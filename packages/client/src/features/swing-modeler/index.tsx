@@ -10,6 +10,8 @@ import { useModelData } from './hooks/useModelData';
 import { useModelerUrlState } from './hooks/useModelerUrlState';
 import { ControlsPanel } from './components/ControlsPanel';
 import { ResultsSummary } from './components/ResultsSummary';
+import { extractWardMetadata } from '@/shared/lib/wardMetadata';
+import { buildWardRegionMap } from '@/shared/lib/regionMapping';
 import type { RaceType, Prediction } from '@/types/election';
 import type { MapDataResponse, WardMapEntry } from '@/features/election-map/hooks/useMapData';
 
@@ -47,10 +49,25 @@ function predictionsToMapData(
   };
 }
 
+const REGIONAL_PARAM_KEYS = [
+  'swing_milwaukee_metro',
+  'swing_madison_metro',
+  'swing_fox_valley',
+  'swing_rural',
+] as const;
+
+const REGION_ID_MAP: Record<string, string> = {
+  swing_milwaukee_metro: 'milwaukee_metro',
+  swing_madison_metro: 'madison_metro',
+  swing_fox_valley: 'fox_valley',
+  swing_rural: 'rural',
+};
+
 export default function SwingModeler() {
   const selectedWardId = useMapStore((s) => s.selectedWardId);
   const setSelectedWard = useMapStore((s) => s.setSelectedWard);
 
+  const activeModelId = useModelStore((s) => s.activeModelId);
   const parameters = useModelStore((s) => s.parameters);
   const predictions = useModelStore((s) => s.predictions);
   const isComputing = useModelStore((s) => s.isComputing);
@@ -72,7 +89,27 @@ export default function SwingModeler() {
   const { data: boundaries, isLoading: boundariesLoading } = useWardBoundaries();
 
   // Fetch base election map data and convert to WardData[]
-  const { wardData, baseMapData, isLoading: dataLoading } = useModelData(baseYear, baseRace);
+  const { wardData, baseMapData, isLoading: dataLoading } = useModelData(
+    baseYear, baseRace, boundaries,
+  );
+
+  // Ward metadata for aggregations
+  const wardMetadata = useMemo(() => extractWardMetadata(boundaries), [boundaries]);
+
+  // Ward region map for regional swing
+  const wardRegions = useMemo(() => buildWardRegionMap(wardMetadata), [wardMetadata]);
+
+  // Build regional swing from params
+  const regionalSwing = useMemo(() => {
+    const swing: Record<string, number> = {};
+    let hasAny = false;
+    for (const paramKey of REGIONAL_PARAM_KEYS) {
+      const val = (parameters[paramKey] as number) ?? 0;
+      if (val !== 0) hasAny = true;
+      swing[REGION_ID_MAP[paramKey]] = val;
+    }
+    return hasAny ? swing : undefined;
+  }, [parameters]);
 
   // Web Worker
   const workerRef = useRef<Worker | null>(null);
@@ -119,6 +156,9 @@ export default function SwingModeler() {
           swingPoints,
           turnoutChange,
         },
+        modelType: activeModelId,
+        wardRegions: Object.keys(wardRegions).length > 0 ? wardRegions : undefined,
+        regionalSwing,
       });
     }, 50);
 
@@ -127,7 +167,7 @@ export default function SwingModeler() {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [wardData, baseYear, baseRace, swingPoints, turnoutChange, setIsComputing]);
+  }, [wardData, baseYear, baseRace, swingPoints, turnoutChange, activeModelId, wardRegions, regionalSwing, setIsComputing]);
 
   // Convert predictions to MapDataResponse for the map
   const mapData = useMemo(() => {
@@ -191,7 +231,11 @@ export default function SwingModeler() {
       <div className="flex flex-1 overflow-hidden">
         {/* Left sidebar: controls + results */}
         <ControlsPanel>
-          <ResultsSummary predictions={predictions} baseMapData={baseMapData} />
+          <ResultsSummary
+            predictions={predictions}
+            baseMapData={baseMapData}
+            wardMetadata={wardMetadata}
+          />
         </ControlsPanel>
 
         {/* Map area */}

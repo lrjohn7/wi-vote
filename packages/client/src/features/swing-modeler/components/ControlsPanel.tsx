@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -10,6 +11,9 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useElections } from '@/features/election-map/hooks/useElections';
 import { useModelStore } from '@/stores/modelStore';
+import { modelRegistry } from '@/models';
+import { scenarioPresets } from '../lib/scenarioPresets';
+import { REGION_LABELS, type Region } from '@/shared/lib/regionMapping';
 import type { RaceType } from '@/types/election';
 
 const RACE_LABELS: Record<string, string> = {
@@ -23,6 +27,13 @@ const RACE_LABELS: Record<string, string> = {
   secretary_of_state: 'Sec. of State',
   treasurer: 'Treasurer',
 };
+
+const REGIONAL_PARAM_KEYS: { region: Region; paramKey: string }[] = [
+  { region: 'milwaukee_metro', paramKey: 'swing_milwaukee_metro' },
+  { region: 'madison_metro', paramKey: 'swing_madison_metro' },
+  { region: 'fox_valley', paramKey: 'swing_fox_valley' },
+  { region: 'rural', paramKey: 'swing_rural' },
+];
 
 function formatSwing(value: number): string {
   if (value === 0) return 'Even';
@@ -43,7 +54,12 @@ interface ControlsPanelProps {
 export function ControlsPanel({ children }: ControlsPanelProps) {
   const { data: electionsData, isLoading: electionsLoading } = useElections();
   const parameters = useModelStore((s) => s.parameters);
+  const activeModelId = useModelStore((s) => s.activeModelId);
   const setParameter = useModelStore((s) => s.setParameter);
+  const setParameters = useModelStore((s) => s.setParameters);
+  const setActiveModel = useModelStore((s) => s.setActiveModel);
+
+  const [showRegional, setShowRegional] = useState(false);
 
   const baseYear = String(parameters.baseElectionYear ?? '2024');
   const baseRace = String(parameters.baseRaceType ?? 'president') as RaceType;
@@ -56,14 +72,56 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
     .filter((e) => e.year === Number(baseYear))
     .map((e) => e.race_type);
 
+  const allModels = modelRegistry.getAll();
+
   const handleReset = () => {
     setParameter('swingPoints', 0);
     setParameter('turnoutChange', 0);
+    for (const { paramKey } of REGIONAL_PARAM_KEYS) {
+      setParameter(paramKey, 0);
+    }
+  };
+
+  const handleModelChange = (modelId: string) => {
+    // Preserve current parameters when switching models
+    const currentParams = { ...parameters };
+    setActiveModel(modelId);
+    // Re-apply params since setActiveModel clears them
+    setParameters(currentParams);
+  };
+
+  const handlePreset = (preset: typeof scenarioPresets[number]) => {
+    setParameters(preset.params);
   };
 
   return (
     <div className="flex w-80 shrink-0 flex-col border-r bg-background">
       <div className="overflow-y-auto p-4">
+        {/* Model Selector */}
+        {allModels.length > 1 && (
+          <>
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-muted-foreground">Model</h3>
+              <Select value={activeModelId} onValueChange={handleModelChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Model" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allModels.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground">
+                {allModels.find((m) => m.id === activeModelId)?.description}
+              </p>
+            </div>
+            <Separator className="my-4" />
+          </>
+        )}
+
         {/* Base Election Selection */}
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground">Base Election</h3>
@@ -77,7 +135,6 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
                 value={baseYear}
                 onValueChange={(val) => {
                   setParameter('baseElectionYear', val);
-                  // Auto-select first available race for the new year
                   const firstRace = elections.find((e) => e.year === Number(val));
                   if (firstRace) {
                     setParameter('baseRaceType', firstRace.race_type);
@@ -174,10 +231,81 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
             size="sm"
             className="w-full"
             onClick={handleReset}
-            disabled={swingPoints === 0 && turnoutChange === 0}
+            disabled={
+              swingPoints === 0 &&
+              turnoutChange === 0 &&
+              REGIONAL_PARAM_KEYS.every(({ paramKey }) => (parameters[paramKey] as number ?? 0) === 0)
+            }
           >
             Reset to Baseline
           </Button>
+        </div>
+
+        <Separator className="my-4" />
+
+        {/* Regional Swing Sliders */}
+        <div className="space-y-3">
+          <button
+            className="flex w-full items-center justify-between text-sm font-medium text-muted-foreground"
+            onClick={() => setShowRegional(!showRegional)}
+          >
+            <span>Regional Swing</span>
+            <span className="text-xs">{showRegional ? '[-]' : '[+]'}</span>
+          </button>
+
+          {showRegional && (
+            <div className="space-y-3">
+              <p className="text-[10px] text-muted-foreground">
+                Additional offset applied on top of statewide swing.
+              </p>
+              {REGIONAL_PARAM_KEYS.map(({ region, paramKey }) => {
+                const val = (parameters[paramKey] as number) ?? 0;
+                return (
+                  <div key={paramKey} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs text-muted-foreground">
+                        {REGION_LABELS[region]}
+                      </label>
+                      <span
+                        className="text-xs font-semibold"
+                        style={{ color: val > 0 ? '#2166ac' : val < 0 ? '#b2182b' : undefined }}
+                      >
+                        {formatSwing(val)}
+                      </span>
+                    </div>
+                    <Slider
+                      value={[val]}
+                      min={-10}
+                      max={10}
+                      step={0.5}
+                      onValueChange={([v]) => setParameter(paramKey, v)}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <Separator className="my-4" />
+
+        {/* Scenario Presets */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-muted-foreground">Scenarios</h3>
+          <div className="grid grid-cols-2 gap-1.5">
+            {scenarioPresets.map((preset) => (
+              <Button
+                key={preset.id}
+                variant="outline"
+                size="sm"
+                className="h-auto py-1.5 text-xs"
+                onClick={() => handlePreset(preset)}
+                title={preset.description}
+              >
+                {preset.label}
+              </Button>
+            ))}
+          </div>
         </div>
 
         <Separator className="my-4" />

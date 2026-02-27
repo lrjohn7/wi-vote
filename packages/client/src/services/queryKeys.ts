@@ -20,5 +20,15 @@ export const queryKeys = {
     ward: (wardId: string) => ['trends', wardId] as const,
     area: (filters: Record<string, string>) =>
       ['trends', 'area', filters] as const,
+    classify: (raceType: string) =>
+      ['trends', 'classify', raceType] as const,
+  },
+  aggregations: {
+    county: (county: string, year: number, raceType: string) =>
+      ['aggregations', 'county', county, year, raceType] as const,
+    district: (districtType: string, districtId: string, year: number, raceType: string) =>
+      ['aggregations', 'district', districtType, districtId, year, raceType] as const,
+    statewide: (year: number, raceType: string) =>
+      ['aggregations', 'statewide', year, raceType] as const,
   },
 };

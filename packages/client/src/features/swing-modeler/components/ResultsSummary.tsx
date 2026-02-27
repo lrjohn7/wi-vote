@@ -1,9 +1,21 @@
+import { useMemo } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import type { Prediction } from '@/types/election';
 import type { MapDataResponse } from '@/features/election-map/hooks/useMapData';
+import type { WardMeta } from '@/shared/lib/wardMetadata';
+import {
+  aggregateByCounty,
+  aggregateByCongressionalDistrict,
+  aggregateBySenateDistrict,
+  aggregateByAssemblyDistrict,
+  type AggregatedResult,
+} from '../lib/aggregatePredictions';
 
 interface ResultsSummaryProps {
   predictions: Prediction[] | null;
   baseMapData: MapDataResponse | null;
+  wardMetadata?: Record<string, WardMeta>;
 }
 
 function formatMargin(margin: number): string {
@@ -16,7 +28,47 @@ function formatNumber(n: number): string {
   return n.toLocaleString();
 }
 
-export function ResultsSummary({ predictions, baseMapData }: ResultsSummaryProps) {
+function AggregationTable({ rows }: { rows: AggregatedResult[] }) {
+  if (rows.length === 0) {
+    return <p className="py-2 text-xs text-muted-foreground">No district data available.</p>;
+  }
+
+  return (
+    <div className="max-h-64 overflow-y-auto">
+      <table className="w-full text-xs">
+        <thead className="sticky top-0 bg-background">
+          <tr className="border-b text-left text-muted-foreground">
+            <th className="py-1 pr-2 font-medium">Area</th>
+            <th className="py-1 pr-2 text-right font-medium">Margin</th>
+            <th className="py-1 text-right font-medium">Wards</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.key} className="border-b border-border/50">
+              <td className="py-1 pr-2 truncate max-w-[120px]" title={r.label}>
+                {r.label}
+              </td>
+              <td className="py-1 pr-2 text-right">
+                <span
+                  className="font-semibold"
+                  style={{
+                    color: r.margin > 0 ? '#2166ac' : r.margin < 0 ? '#b2182b' : undefined,
+                  }}
+                >
+                  {formatMargin(r.margin)}
+                </span>
+              </td>
+              <td className="py-1 text-right text-muted-foreground">{r.wardCount}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export function ResultsSummary({ predictions, baseMapData, wardMetadata }: ResultsSummaryProps) {
   if (!predictions || predictions.length === 0) {
     return (
       <div className="text-sm text-muted-foreground">
@@ -52,6 +104,19 @@ export function ResultsSummary({ predictions, baseMapData }: ResultsSummaryProps
   const shift = baselineMargin != null ? margin - baselineMargin : null;
   const winner = margin > 0 ? 'DEM' : margin < 0 ? 'REP' : 'TIE';
   const winnerColor = margin > 0 ? '#2166ac' : '#b2182b';
+
+  // Aggregations by geography
+  const meta = wardMetadata ?? {};
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const countyRows = useMemo(() => aggregateByCounty(predictions, meta), [predictions, meta]);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const cdRows = useMemo(() => aggregateByCongressionalDistrict(predictions, meta), [predictions, meta]);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const sdRows = useMemo(() => aggregateBySenateDistrict(predictions, meta), [predictions, meta]);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const adRows = useMemo(() => aggregateByAssemblyDistrict(predictions, meta), [predictions, meta]);
+
+  const hasAggregations = Object.keys(meta).length > 0;
 
   return (
     <div className="space-y-3">
@@ -134,6 +199,33 @@ export function ResultsSummary({ predictions, baseMapData }: ResultsSummaryProps
           </div>
         )}
       </div>
+
+      {/* County / District Aggregation Tabs */}
+      {hasAggregations && (
+        <>
+          <Separator className="my-2" />
+          <Tabs defaultValue="counties" className="w-full">
+            <TabsList className="grid w-full grid-cols-4 h-8">
+              <TabsTrigger value="counties" className="text-[10px] px-1">Counties</TabsTrigger>
+              <TabsTrigger value="cd" className="text-[10px] px-1">Congress</TabsTrigger>
+              <TabsTrigger value="sd" className="text-[10px] px-1">Senate</TabsTrigger>
+              <TabsTrigger value="ad" className="text-[10px] px-1">Assembly</TabsTrigger>
+            </TabsList>
+            <TabsContent value="counties">
+              <AggregationTable rows={countyRows} />
+            </TabsContent>
+            <TabsContent value="cd">
+              <AggregationTable rows={cdRows} />
+            </TabsContent>
+            <TabsContent value="sd">
+              <AggregationTable rows={sdRows} />
+            </TabsContent>
+            <TabsContent value="ad">
+              <AggregationTable rows={adRows} />
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
     </div>
   );
 }

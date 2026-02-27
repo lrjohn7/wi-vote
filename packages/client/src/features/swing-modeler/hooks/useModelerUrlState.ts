@@ -9,13 +9,22 @@ const VALID_RACE_TYPES: RaceType[] = [
   'secretary_of_state', 'treasurer',
 ];
 
+const REGIONAL_URL_MAP: { urlKey: string; paramKey: string }[] = [
+  { urlKey: 'swing_mke', paramKey: 'swing_milwaukee_metro' },
+  { urlKey: 'swing_msn', paramKey: 'swing_madison_metro' },
+  { urlKey: 'swing_fox', paramKey: 'swing_fox_valley' },
+  { urlKey: 'swing_rural', paramKey: 'swing_rural' },
+];
+
 export function useModelerUrlState() {
   const [searchParams, setSearchParams] = useSearchParams();
   const parameters = useModelStore((s) => s.parameters);
+  const activeModelId = useModelStore((s) => s.activeModelId);
   const setParameter = useModelStore((s) => s.setParameter);
+  const setActiveModel = useModelStore((s) => s.setActiveModel);
   const initialized = useRef(false);
 
-  // Read URL params on mount -> initialize modelStore
+  // Read URL params on mount -> initialize stores
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
@@ -24,6 +33,11 @@ export function useModelerUrlState() {
     const race = searchParams.get('race');
     const swing = searchParams.get('swing');
     const turnout = searchParams.get('turnout');
+    const model = searchParams.get('model');
+
+    if (model && (model === 'uniform-swing' || model === 'proportional-swing')) {
+      setActiveModel(model);
+    }
 
     if (year) {
       setParameter('baseElectionYear', year);
@@ -39,6 +53,14 @@ export function useModelerUrlState() {
       const val = parseFloat(turnout);
       if (!isNaN(val)) setParameter('turnoutChange', val);
     }
+
+    for (const { urlKey, paramKey } of REGIONAL_URL_MAP) {
+      const raw = searchParams.get(urlKey);
+      if (raw != null && raw !== '') {
+        const val = parseFloat(raw);
+        if (!isNaN(val)) setParameter(paramKey, val);
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -47,6 +69,10 @@ export function useModelerUrlState() {
     if (!initialized.current) return;
 
     const params = new URLSearchParams();
+
+    if (activeModelId && activeModelId !== 'uniform-swing') {
+      params.set('model', activeModelId);
+    }
 
     const year = parameters.baseElectionYear;
     const race = parameters.baseRaceType;
@@ -62,6 +88,13 @@ export function useModelerUrlState() {
       params.set('turnout', String(turnout));
     }
 
+    for (const { urlKey, paramKey } of REGIONAL_URL_MAP) {
+      const val = parameters[paramKey];
+      if (typeof val === 'number' && val !== 0) {
+        params.set(urlKey, String(val));
+      }
+    }
+
     setSearchParams(params, { replace: true });
-  }, [parameters, setSearchParams]);
+  }, [parameters, activeModelId, setSearchParams]);
 }

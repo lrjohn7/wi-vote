@@ -119,6 +119,62 @@ export interface ReportCardResponse {
   has_estimates: boolean;
 }
 
+// ── Trend types ──
+
+export interface WardTrendInfo {
+  race_type: string;
+  direction: 'more_democratic' | 'more_republican' | 'inconclusive';
+  slope: number | null;
+  r_squared: number | null;
+  p_value: number | null;
+  elections_analyzed: number;
+  start_year: number | null;
+  end_year: number | null;
+}
+
+export interface TrendElection {
+  year: number;
+  race_type: string;
+  dem_votes: number;
+  rep_votes: number;
+  other_votes: number;
+  total_votes: number;
+  dem_pct: number;
+  rep_pct: number;
+  margin: number;
+  is_estimate: boolean;
+}
+
+export interface WardTrendResponse {
+  ward_id: string;
+  trends: WardTrendInfo[];
+  elections: TrendElection[];
+}
+
+export interface AreaTrendEntry {
+  ward_id: string;
+  race_type: string;
+  direction: string;
+  slope: number | null;
+  r_squared: number | null;
+  p_value: number | null;
+}
+
+export interface AreaTrendsResponse {
+  summary: {
+    more_democratic: number;
+    more_republican: number;
+    inconclusive: number;
+  };
+  total_wards: number;
+  trends: AreaTrendEntry[];
+}
+
+export interface TrendClassificationsResponse {
+  race_type: string;
+  classifications: Record<string, { direction: string; slope: number | null }>;
+}
+
 // ── API methods ──
 
 export const api = {
@@ -153,7 +209,13 @@ export const api = {
 
   // Trends
   getWardTrend: (wardId: string) =>
-    request<unknown>(`/api/v1/trends/ward/${wardId}`),
+    request<WardTrendResponse>(`/api/v1/trends/ward/${wardId}`),
+  getAreaTrends: (filters: Record<string, string>) => {
+    const params = new URLSearchParams(filters);
+    return request<AreaTrendsResponse>(`/api/v1/trends/area?${params.toString()}`);
+  },
+  getTrendClassifications: (raceType: string) =>
+    request<TrendClassificationsResponse>(`/api/v1/trends/classify?race_type=${encodeURIComponent(raceType)}`),
 
   // Models
   predict: (body: unknown) =>
