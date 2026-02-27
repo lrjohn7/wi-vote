@@ -1,12 +1,13 @@
 import { NavLink, Outlet } from 'react-router';
-import { Map, Search, TrendingUp, SlidersHorizontal, Scale } from 'lucide-react';
+import { Map, Search, TrendingUp, SlidersHorizontal, Scale, ClipboardList } from 'lucide-react';
 
 const navItems = [
-  { to: '/map', label: 'Election Map', icon: Map },
-  { to: '/supreme-court', label: 'Supreme Court', icon: Scale },
-  { to: '/wards', label: 'Ward Explorer', icon: Search },
-  { to: '/trends', label: 'Trends', icon: TrendingUp },
-  { to: '/modeler', label: 'Swing Modeler', icon: SlidersHorizontal },
+  { to: '/map', label: 'Election Map', icon: Map, end: false },
+  { to: '/supreme-court', label: 'Supreme Court', icon: Scale, end: false },
+  { to: '/wards', label: 'Ward Explorer', icon: Search, end: true },
+  { to: '/wards/report', label: 'My Ward', icon: ClipboardList, end: false },
+  { to: '/trends', label: 'Trends', icon: TrendingUp, end: false },
+  { to: '/modeler', label: 'Swing Modeler', icon: SlidersHorizontal, end: false },
 ];
 
 export default function App() {
@@ -18,10 +19,11 @@ export default function App() {
           <span className="text-wi-red">-Vote</span>
         </NavLink>
         <nav className="flex items-center gap-1">
-          {navItems.map(({ to, label, icon: Icon }) => (
+          {navItems.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
+              end={end}
               className={({ isActive }) =>
                 `flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors ${
                   isActive

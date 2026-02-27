@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import { MapPin } from 'lucide-react';
+import { MapPin, ClipboardList } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -185,14 +185,24 @@ export default function WardExplorer() {
                     {wardDetail.municipality}, {wardDetail.county} County
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleViewOnMap(wardDetail.ward_id)}
-                >
-                  <MapPin className="mr-1 h-4 w-4" />
-                  View on Map
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/wards/${wardDetail.ward_id}/report`)}
+                  >
+                    <ClipboardList className="mr-1 h-4 w-4" />
+                    Report Card
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewOnMap(wardDetail.ward_id)}
+                  >
+                    <MapPin className="mr-1 h-4 w-4" />
+                    View on Map
+                  </Button>
+                </div>
               </div>
 
               <div className="mt-3 flex flex-wrap gap-1.5">

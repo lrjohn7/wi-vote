@@ -7,6 +7,7 @@ export const queryKeys = {
     detail: (wardId: string) => ['wards', wardId] as const,
     geocode: (lat: number, lng: number) => ['wards', 'geocode', lat, lng] as const,
     search: (query: string) => ['wards', 'search', query] as const,
+    reportCard: (wardId: string) => ['wards', wardId, 'report-card'] as const,
   },
   elections: {
     all: ['elections'] as const,

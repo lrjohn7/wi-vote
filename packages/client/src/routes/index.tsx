@@ -7,6 +7,7 @@ const WardExplorer = lazy(() => import('@/features/ward-explorer'));
 const Trends = lazy(() => import('@/features/trends'));
 const SwingModeler = lazy(() => import('@/features/swing-modeler'));
 const SupremeCourt = lazy(() => import('@/features/supreme-court'));
+const WardReport = lazy(() => import('@/features/ward-report'));
 const DataManager = lazy(() => import('@/features/data-manager'));
 
 function Loading() {
@@ -44,6 +45,22 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loading />}>
             <SupremeCourt />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'wards/report',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <WardReport />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'wards/:wardId/report',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <WardReport />
           </Suspense>
         ),
       },

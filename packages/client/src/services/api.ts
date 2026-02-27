@@ -50,6 +50,75 @@ interface ElectionsResponse {
   elections: ElectionInfo[];
 }
 
+export interface ReportCardPartisanLean {
+  score: number | null;
+  label: string;
+  elections_used: number;
+  percentile: number | null;
+}
+
+export interface ReportCardTrend {
+  direction: 'more_democratic' | 'more_republican' | 'inconclusive';
+  slope: number | null;
+  r_squared: number | null;
+  p_value: number | null;
+  is_significant: boolean;
+  elections_analyzed: number;
+  start_year: number | null;
+  end_year: number | null;
+}
+
+export interface ReportCardElection {
+  election_year: number;
+  race_type: string;
+  race_name: string | null;
+  dem_candidate: string | null;
+  rep_candidate: string | null;
+  dem_votes: number;
+  rep_votes: number;
+  other_votes: number;
+  total_votes: number;
+  dem_pct: number;
+  rep_pct: number;
+  margin: number;
+  is_estimate: boolean;
+}
+
+export interface ReportCardComparison {
+  election_year: number;
+  race_type: string;
+  ward_margin: number;
+  county_margin: number | null;
+  state_margin: number | null;
+}
+
+export interface ReportCardTurnout {
+  election_year: number;
+  race_type: string;
+  total_votes: number;
+}
+
+export interface ReportCardResponse {
+  metadata: {
+    ward_id: string;
+    ward_name: string;
+    municipality: string;
+    municipality_type: string | null;
+    county: string;
+    congressional_district: string | null;
+    state_senate_district: string | null;
+    assembly_district: string | null;
+    ward_vintage: number;
+    is_estimated: boolean;
+  };
+  partisan_lean: ReportCardPartisanLean;
+  trend: ReportCardTrend;
+  elections: ReportCardElection[];
+  comparisons: ReportCardComparison[];
+  turnout: ReportCardTurnout[];
+  has_estimates: boolean;
+}
+
 // ── API methods ──
 
 export const api = {
@@ -75,6 +144,12 @@ export const api = {
     ),
   getMapData: (year: number, raceType: string) =>
     request<MapDataResponse>(`/api/v1/elections/map-data/${year}/${raceType}`),
+
+  // Report Card
+  getWardReportCard: (wardId: string, raceType: string = 'president') =>
+    request<ReportCardResponse>(
+      `/api/v1/wards/${wardId}/report-card?race_type=${encodeURIComponent(raceType)}`,
+    ),
 
   // Trends
   getWardTrend: (wardId: string) =>

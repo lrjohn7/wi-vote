@@ -1,4 +1,5 @@
-import { X } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { X, ClipboardList } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -19,6 +20,7 @@ const RACE_LABELS: Record<string, string> = {
 };
 
 export function WardDetailPanel() {
+  const navigate = useNavigate();
   const selectedWardId = useMapStore((s) => s.selectedWardId);
   const setSelectedWard = useMapStore((s) => s.setSelectedWard);
   const { data: ward, isLoading } = useWardDetail(selectedWardId);
@@ -43,14 +45,27 @@ export function WardDetailPanel() {
             <p className="text-sm text-muted-foreground">Ward not found</p>
           )}
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 shrink-0"
-          onClick={() => setSelectedWard(null)}
-        >
-          <X className="h-4 w-4" />
-        </Button>
+        <div className="flex shrink-0 gap-1">
+          {ward && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              title="Report Card"
+              onClick={() => navigate(`/wards/${ward.ward_id}/report`)}
+            >
+              <ClipboardList className="h-4 w-4" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setSelectedWard(null)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {ward && (

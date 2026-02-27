@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.services.ward_service import WardService
 from app.services.geocoding_service import GeocodingService
+from app.services.report_card_service import ReportCardService
 
 router = APIRouter(prefix="/wards", tags=["wards"])
 
@@ -79,6 +80,20 @@ async def search_wards(
     service = WardService(db)
     results = await service.search(q, limit=limit)
     return {"results": results, "query": q, "count": len(results)}
+
+
+@router.get("/{ward_id}/report-card")
+async def get_ward_report_card(
+    ward_id: str,
+    race_type: str = Query("president"),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Get a full report card for a ward."""
+    service = ReportCardService(db)
+    report = await service.get_report_card(ward_id, race_type=race_type)
+    if not report:
+        raise HTTPException(status_code=404, detail=f"Ward {ward_id} not found")
+    return report
 
 
 @router.get("/{ward_id}")

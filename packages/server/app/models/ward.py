@@ -25,6 +25,7 @@ class Ward(Base):
         Geometry("MULTIPOLYGON", srid=4326), nullable=False
     )
     area_sq_miles: Mapped[float | None] = mapped_column(Float)
+    partisan_lean: Mapped[float | None] = mapped_column(Float, nullable=True)
     is_estimated: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(
