@@ -74,13 +74,24 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
 
   const allModels = modelRegistry.getAll();
 
+  const isDemographic = activeModelId === 'demographic-swing';
+
+  const urbanSwing = (parameters.urbanSwing as number) ?? 0;
+  const suburbanSwing = (parameters.suburbanSwing as number) ?? 0;
+  const ruralSwing = (parameters.ruralSwing as number) ?? 0;
+
   const handleReset = () => {
     setParameter('swingPoints', 0);
     setParameter('turnoutChange', 0);
+    setParameter('urbanSwing', 0);
+    setParameter('suburbanSwing', 0);
+    setParameter('ruralSwing', 0);
     for (const { paramKey } of REGIONAL_PARAM_KEYS) {
       setParameter(paramKey, 0);
     }
   };
+
+  const isDemographicDirty = urbanSwing !== 0 || suburbanSwing !== 0 || ruralSwing !== 0;
 
   const handleModelChange = (modelId: string) => {
     // Preserve current parameters when switching models
@@ -177,34 +188,73 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
 
         <Separator className="my-4" />
 
-        {/* Swing Slider */}
+        {/* Swing Sliders */}
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground">Adjustments</h3>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs text-muted-foreground">Statewide Swing</label>
-              <span
-                className="text-sm font-semibold"
-                style={{ color: swingPoints > 0 ? '#2166ac' : swingPoints < 0 ? '#b2182b' : undefined }}
-              >
-                {formatSwing(swingPoints)}
-              </span>
-            </div>
-            <Slider
-              value={[swingPoints]}
-              min={-15}
-              max={15}
-              step={0.1}
-              onValueChange={([val]) => setParameter('swingPoints', val)}
-              aria-label={`Statewide swing: ${formatSwing(swingPoints)}`}
-            />
-            <div className="flex justify-between text-[10px] text-muted-foreground">
-              <span>R+15</span>
-              <span>Even</span>
-              <span>D+15</span>
-            </div>
-          </div>
+          {isDemographic ? (
+            <>
+              {/* Demographic model: per-classification sliders */}
+              {([
+                { id: 'urbanSwing', label: 'Urban Swing', value: urbanSwing, desc: '>3,000 people/sq mi' },
+                { id: 'suburbanSwing', label: 'Suburban Swing', value: suburbanSwing, desc: '500-3,000 people/sq mi' },
+                { id: 'ruralSwing', label: 'Rural Swing', value: ruralSwing, desc: '<500 people/sq mi' },
+              ] as const).map(({ id, label, value, desc }) => (
+                <div key={id} className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs text-muted-foreground">{label}</label>
+                    <span
+                      className="text-sm font-semibold"
+                      style={{ color: value > 0 ? '#2166ac' : value < 0 ? '#b2182b' : undefined }}
+                    >
+                      {formatSwing(value)}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[value]}
+                    min={-10}
+                    max={10}
+                    step={0.1}
+                    onValueChange={([val]) => setParameter(id, val)}
+                    aria-label={`${label}: ${formatSwing(value)}`}
+                  />
+                  <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <span>R+10</span>
+                    <span>{desc}</span>
+                    <span>D+10</span>
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : (
+            <>
+              {/* Uniform/Proportional: single statewide swing slider */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs text-muted-foreground">Statewide Swing</label>
+                  <span
+                    className="text-sm font-semibold"
+                    style={{ color: swingPoints > 0 ? '#2166ac' : swingPoints < 0 ? '#b2182b' : undefined }}
+                  >
+                    {formatSwing(swingPoints)}
+                  </span>
+                </div>
+                <Slider
+                  value={[swingPoints]}
+                  min={-15}
+                  max={15}
+                  step={0.1}
+                  onValueChange={([val]) => setParameter('swingPoints', val)}
+                  aria-label={`Statewide swing: ${formatSwing(swingPoints)}`}
+                />
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>R+15</span>
+                  <span>Even</span>
+                  <span>D+15</span>
+                </div>
+              </div>
+            </>
+          )}
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -236,6 +286,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
             disabled={
               swingPoints === 0 &&
               turnoutChange === 0 &&
+              !isDemographicDirty &&
               REGIONAL_PARAM_KEYS.every(({ paramKey }) => (parameters[paramKey] as number ?? 0) === 0)
             }
           >
@@ -245,8 +296,8 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
 
         <Separator className="my-4" />
 
-        {/* Regional Swing Sliders */}
-        <div className="space-y-3">
+        {/* Regional Swing Sliders — only for uniform/proportional models */}
+        {!isDemographic && <div className="space-y-3">
           <button
             className="flex w-full items-center justify-between text-sm font-medium text-muted-foreground"
             onClick={() => setShowRegional(!showRegional)}
@@ -290,7 +341,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
               })}
             </div>
           )}
-        </div>
+        </div>}
 
         <Separator className="my-4" />
 
