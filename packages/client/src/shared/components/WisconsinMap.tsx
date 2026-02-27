@@ -88,8 +88,36 @@ export function WisconsinMap({
     };
   }, []);
 
+  // Helper: check if map data has materially changed
+  const hasDataChanged = useCallback((prev: MapDataResponse | null, next: MapDataResponse | null | undefined): boolean => {
+    if (!prev && !next) return false;
+    if (!prev || !next) return true;
+    if (prev.wardCount !== next.wardCount) return true;
+    if (prev.year !== next.year || prev.raceType !== next.raceType) return true;
+
+    // Sample check: compare a few wards to detect changes without deep equality
+    const prevKeys = Object.keys(prev.data);
+    const nextKeys = Object.keys(next.data);
+    if (prevKeys.length !== nextKeys.length) return true;
+
+    const sampleSize = Math.min(10, prevKeys.length);
+    const step = Math.max(1, Math.floor(prevKeys.length / sampleSize));
+    for (let i = 0; i < prevKeys.length; i += step) {
+      const key = prevKeys[i];
+      const pEntry = prev.data[key];
+      const nEntry = next.data[key];
+      if (!nEntry) return true;
+      if (pEntry.demPct !== nEntry.demPct || pEntry.margin !== nEntry.margin) return true;
+    }
+
+    return false;
+  }, []);
+
   // Helper: apply current mapData to the map via setFeatureState
   const applyMapData = useCallback((m: maplibregl.Map, data: MapDataResponse | null | undefined) => {
+    // Skip if data hasn't actually changed
+    if (!hasDataChanged(prevMapDataRef.current, data)) return;
+
     // Clear previous feature states
     if (prevMapDataRef.current) {
       for (const wardId of Object.keys(prevMapDataRef.current.data)) {
@@ -99,7 +127,6 @@ export function WisconsinMap({
 
     // Apply new data
     if (data) {
-      const start = performance.now();
       for (const [wardId, entry] of Object.entries(data.data)) {
         m.setFeatureState(
           { source: WARD_SOURCE, id: wardId },
@@ -112,12 +139,10 @@ export function WisconsinMap({
           },
         );
       }
-      const elapsed = performance.now() - start;
-      console.log(`setFeatureState: ${Object.keys(data.data).length} wards in ${elapsed.toFixed(0)}ms`);
     }
 
     prevMapDataRef.current = data ?? null;
-  }, []);
+  }, [hasDataChanged]);
 
   // Add/update GeoJSON source when boundaries load
   useEffect(() => {
@@ -327,6 +352,9 @@ export function WisconsinMap({
       ref={mapContainer}
       className="h-full w-full"
       style={{ minHeight: '400px' }}
+      role="application"
+      aria-label="Wisconsin election map"
+      tabIndex={0}
     />
   );
 }

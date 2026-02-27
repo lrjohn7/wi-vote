@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router';
-import { Map, Search, TrendingUp, SlidersHorizontal, Scale, ClipboardList } from 'lucide-react';
+import { Map, Search, TrendingUp, SlidersHorizontal, Scale, ClipboardList, GitCompareArrows } from 'lucide-react';
 
 const navItems = [
   { to: '/map', label: 'Election Map', icon: Map, end: false },
@@ -8,17 +8,24 @@ const navItems = [
   { to: '/wards/report', label: 'My Ward', icon: ClipboardList, end: false },
   { to: '/trends', label: 'Trends', icon: TrendingUp, end: false },
   { to: '/modeler', label: 'Swing Modeler', icon: SlidersHorizontal, end: false },
+  { to: '/compare', label: 'Compare', icon: GitCompareArrows, end: false },
 ];
 
 export default function App() {
   return (
     <div className="flex h-screen flex-col">
-      <header className="flex h-14 items-center gap-6 border-b bg-background px-4">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:shadow-lg"
+      >
+        Skip to content
+      </a>
+      <header role="banner" className="flex h-14 items-center gap-6 border-b bg-background px-4">
         <NavLink to="/" className="flex items-center gap-2 font-bold">
           <span className="text-wi-blue">WI</span>
           <span className="text-wi-red">-Vote</span>
         </NavLink>
-        <nav className="flex items-center gap-1">
+        <nav role="navigation" aria-label="Main navigation" className="flex items-center gap-1">
           {navItems.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
@@ -32,13 +39,13 @@ export default function App() {
                 }`
               }
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-4 w-4" aria-hidden="true" />
               {label}
             </NavLink>
           ))}
         </nav>
       </header>
-      <main className="flex-1 overflow-hidden">
+      <main id="main-content" role="main" className="flex-1 overflow-hidden">
         <Outlet />
       </main>
     </div>

@@ -197,6 +197,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
               max={15}
               step={0.1}
               onValueChange={([val]) => setParameter('swingPoints', val)}
+              aria-label={`Statewide swing: ${formatSwing(swingPoints)}`}
             />
             <div className="flex justify-between text-[10px] text-muted-foreground">
               <span>R+15</span>
@@ -218,6 +219,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
               max={30}
               step={1}
               onValueChange={([val]) => setParameter('turnoutChange', val)}
+              aria-label={`Turnout change: ${formatTurnout(turnoutChange)}`}
             />
             <div className="flex justify-between text-[10px] text-muted-foreground">
               <span>-30%</span>
@@ -248,13 +250,15 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
           <button
             className="flex w-full items-center justify-between text-sm font-medium text-muted-foreground"
             onClick={() => setShowRegional(!showRegional)}
+            aria-expanded={showRegional}
+            aria-controls="regional-swing-panel"
           >
             <span>Regional Swing</span>
             <span className="text-xs">{showRegional ? '[-]' : '[+]'}</span>
           </button>
 
           {showRegional && (
-            <div className="space-y-3">
+            <div id="regional-swing-panel" className="space-y-3">
               <p className="text-[10px] text-muted-foreground">
                 Additional offset applied on top of statewide swing.
               </p>
@@ -279,6 +283,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
                       max={10}
                       step={0.5}
                       onValueChange={([v]) => setParameter(paramKey, v)}
+                      aria-label={`${REGION_LABELS[region]} swing: ${formatSwing(val)}`}
                     />
                   </div>
                 );

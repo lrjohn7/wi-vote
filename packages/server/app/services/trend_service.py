@@ -114,6 +114,39 @@ class TrendService:
             "trends": ward_trends,
         }
 
+    async def get_bulk_elections(self, ward_ids: list[str]) -> dict[str, list[dict]]:
+        """Get election histories for a list of ward IDs."""
+        if not ward_ids:
+            return {}
+
+        stmt = (
+            select(ElectionResult)
+            .where(ElectionResult.ward_id.in_(ward_ids))
+            .order_by(ElectionResult.ward_id, ElectionResult.election_year)
+        )
+
+        result = await self.db.execute(stmt)
+        elections = result.scalars().all()
+
+        grouped: dict[str, list[dict]] = {}
+        for e in elections:
+            if e.ward_id not in grouped:
+                grouped[e.ward_id] = []
+            grouped[e.ward_id].append({
+                "year": e.election_year,
+                "race_type": e.race_type,
+                "dem_votes": e.dem_votes,
+                "rep_votes": e.rep_votes,
+                "other_votes": e.other_votes,
+                "total_votes": e.total_votes,
+                "dem_pct": e.dem_pct,
+                "rep_pct": e.rep_pct,
+                "margin": e.margin,
+                "is_estimate": e.is_estimate,
+            })
+
+        return grouped
+
     async def classify_all(self, race_type: str = "president") -> dict:
         """Compact {wardId: {direction, slope}} map for map rendering."""
         stmt = select(

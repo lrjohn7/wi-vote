@@ -217,6 +217,26 @@ export const api = {
   getTrendClassifications: (raceType: string) =>
     request<TrendClassificationsResponse>(`/api/v1/trends/classify?race_type=${encodeURIComponent(raceType)}`),
 
+  // Bulk elections
+  getBulkWardElections: (wardIds: string[]) =>
+    request<{ ward_count: number; elections: Record<string, TrendElection[]> }>(
+      '/api/v1/trends/bulk-elections',
+      {
+        method: 'POST',
+        body: JSON.stringify({ ward_ids: wardIds }),
+      },
+    ),
+
+  // Demographics
+  getWardDemographics: (wardId: string) =>
+    request<Record<string, unknown>>(`/api/v1/demographics/ward/${wardId}`),
+  getBulkDemographics: () =>
+    request<{ ward_count: number; demographics: Record<string, Record<string, unknown>> }>(
+      '/api/v1/demographics/bulk',
+    ),
+  getDemographicsSummary: () =>
+    request<Record<string, unknown>>('/api/v1/demographics/summary'),
+
   // Models
   predict: (body: unknown) =>
     request<unknown>('/api/v1/models/predict', {

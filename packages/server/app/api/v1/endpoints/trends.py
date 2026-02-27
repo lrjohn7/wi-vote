@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -36,6 +36,19 @@ async def get_area_trends(
         district_type=district_type,
         district_id=district_id,
     )
+
+
+@router.post("/bulk-elections")
+async def get_bulk_elections(
+    ward_ids: list[str] = Body(..., embed=True),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Get election histories for a list of ward IDs."""
+    # Limit to 500 wards per request
+    capped = ward_ids[:500]
+    service = TrendService(db)
+    data = await service.get_bulk_elections(capped)
+    return {"ward_count": len(data), "elections": data}
 
 
 @router.get("/classify")

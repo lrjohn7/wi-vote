@@ -10,9 +10,10 @@ import { useModelData } from './hooks/useModelData';
 import { useModelerUrlState } from './hooks/useModelerUrlState';
 import { ControlsPanel } from './components/ControlsPanel';
 import { ResultsSummary } from './components/ResultsSummary';
+import { UncertaintyOverlay } from './components/UncertaintyOverlay';
 import { extractWardMetadata } from '@/shared/lib/wardMetadata';
 import { buildWardRegionMap } from '@/shared/lib/regionMapping';
-import type { RaceType, Prediction } from '@/types/election';
+import type { RaceType, Prediction, UncertaintyBand } from '@/types/election';
 import type { MapDataResponse, WardMapEntry } from '@/features/election-map/hooks/useMapData';
 
 interface TooltipState {
@@ -75,6 +76,8 @@ export default function SwingModeler() {
   const setIsComputing = useModelStore((s) => s.setIsComputing);
 
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const [showUncertainty, setShowUncertainty] = useState(false);
+  const [uncertainty, setUncertainty] = useState<UncertaintyBand[] | null>(null);
 
   // URL state sync
   useModelerUrlState();
@@ -99,6 +102,36 @@ export default function SwingModeler() {
   // Ward region map for regional swing
   const wardRegions = useMemo(() => buildWardRegionMap(wardMetadata), [wardMetadata]);
 
+  // Ward classifications for demographic model (urban/suburban/rural)
+  // Uses population density from boundaries if available, else falls back to region mapping
+  const wardClassifications = useMemo(() => {
+    if (!boundaries) return {};
+    const classifications: Record<string, string> = {};
+    for (const feature of boundaries.features) {
+      const props = feature.properties;
+      if (!props) continue;
+      const wardId = String(props.ward_id ?? '');
+      if (!wardId) continue;
+      const density = props.population_density as number | undefined;
+      if (density !== undefined && density > 0) {
+        if (density > 3000) classifications[wardId] = 'urban';
+        else if (density > 500) classifications[wardId] = 'suburban';
+        else classifications[wardId] = 'rural';
+      } else {
+        // Fall back to region mapping
+        const region = wardRegions[wardId];
+        if (region === 'milwaukee_metro' || region === 'madison_metro') {
+          classifications[wardId] = 'urban';
+        } else if (region === 'fox_valley') {
+          classifications[wardId] = 'suburban';
+        } else {
+          classifications[wardId] = 'rural';
+        }
+      }
+    }
+    return classifications;
+  }, [boundaries, wardRegions]);
+
   // Build regional swing from params
   const regionalSwing = useMemo(() => {
     const swing: Record<string, number> = {};
@@ -120,8 +153,11 @@ export default function SwingModeler() {
       { type: 'module' },
     );
 
-    workerRef.current.onmessage = (e: MessageEvent<{ predictions: Prediction[] }>) => {
+    workerRef.current.onmessage = (e: MessageEvent<{ predictions: Prediction[]; uncertainty?: UncertaintyBand[] }>) => {
       setPredictions(e.data.predictions);
+      if (e.data.uncertainty) {
+        setUncertainty(e.data.uncertainty);
+      }
       setIsComputing(false);
     };
 
@@ -155,10 +191,15 @@ export default function SwingModeler() {
           baseRaceType: baseRace,
           swingPoints,
           turnoutChange,
+          urbanSwing: (parameters.urbanSwing as number) ?? 0,
+          suburbanSwing: (parameters.suburbanSwing as number) ?? 0,
+          ruralSwing: (parameters.ruralSwing as number) ?? 0,
         },
         modelType: activeModelId,
         wardRegions: Object.keys(wardRegions).length > 0 ? wardRegions : undefined,
         regionalSwing,
+        wardClassifications: activeModelId === 'demographic-swing' ? wardClassifications : undefined,
+        computeUncertainty: showUncertainty,
       });
     }, 50);
 
@@ -167,7 +208,7 @@ export default function SwingModeler() {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [wardData, baseYear, baseRace, swingPoints, turnoutChange, activeModelId, wardRegions, regionalSwing, setIsComputing]);
+  }, [wardData, baseYear, baseRace, swingPoints, turnoutChange, activeModelId, wardRegions, regionalSwing, wardClassifications, showUncertainty, parameters, setIsComputing]);
 
   // Convert predictions to MapDataResponse for the map
   const mapData = useMemo(() => {
@@ -225,6 +266,17 @@ export default function SwingModeler() {
         {dataLoading && (
           <span className="text-sm text-muted-foreground">Loading base data...</span>
         )}
+        <div className="ml-auto flex items-center gap-2">
+          <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={showUncertainty}
+              onChange={(e) => setShowUncertainty(e.target.checked)}
+              className="h-3.5 w-3.5 rounded border"
+            />
+            Uncertainty
+          </label>
+        </div>
       </div>
 
       {/* Main content: sidebar + map */}
@@ -276,6 +328,9 @@ export default function SwingModeler() {
               y={tooltip.y}
             />
           )}
+
+          {/* Uncertainty overlay */}
+          <UncertaintyOverlay uncertainty={uncertainty} visible={showUncertainty} />
 
           {/* Ward Detail Panel */}
           <WardDetailPanel />

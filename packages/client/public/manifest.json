@@ -1,0 +1,17 @@
+{
+  "name": "WI-Vote — Wisconsin Election Explorer",
+  "short_name": "WI-Vote",
+  "description": "Explore ward-level election data and model future outcomes across Wisconsin.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2166ac",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

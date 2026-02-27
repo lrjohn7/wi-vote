@@ -30,6 +30,14 @@ interface Prediction {
   confidence?: number;
 }
 
+interface UncertaintyBand {
+  wardId: string;
+  lowerDemPct: number;
+  upperDemPct: number;
+  lowerMargin: number;
+  upperMargin: number;
+}
+
 interface WorkerRequest {
   wardData: WardData[];
   params: {
@@ -37,14 +45,20 @@ interface WorkerRequest {
     baseRaceType: string;
     swingPoints: number;
     turnoutChange: number;
+    urbanSwing?: number;
+    suburbanSwing?: number;
+    ruralSwing?: number;
   };
-  modelType?: 'uniform-swing' | 'proportional-swing';
+  modelType?: 'uniform-swing' | 'proportional-swing' | 'demographic-swing';
   wardRegions?: Record<string, string>;
   regionalSwing?: Record<string, number>;
+  wardClassifications?: Record<string, string>;
+  computeUncertainty?: boolean;
 }
 
 interface WorkerResponse {
   predictions: Prediction[];
+  uncertainty?: UncertaintyBand[];
 }
 
 function getEffectiveSwing(
@@ -179,13 +193,139 @@ function predictProportional(
   });
 }
 
+function predictDemographic(
+  wardData: WardData[],
+  params: WorkerRequest['params'],
+  wardClassifications?: Record<string, string>,
+): Prediction[] {
+  const { baseElectionYear, baseRaceType, turnoutChange } = params;
+  const urbanSwing = params.urbanSwing ?? 0;
+  const suburbanSwing = params.suburbanSwing ?? 0;
+  const ruralSwing = params.ruralSwing ?? 0;
+  const turnoutMultiplier = 1 + turnoutChange / 100;
+  const year = Number(baseElectionYear);
+
+  return wardData.map((ward) => {
+    const election = findElection(ward, year, baseRaceType);
+    if (!election) return { wardId: ward.wardId, ...NO_DATA_PREDICTION };
+
+    const twoPartyBase = election.demVotes + election.repVotes;
+    if (twoPartyBase === 0) return { wardId: ward.wardId, ...NO_DATA_PREDICTION };
+
+    const classification = wardClassifications?.[ward.wardId] ?? 'rural';
+    let swingPoints: number;
+    switch (classification) {
+      case 'urban':
+        swingPoints = urbanSwing;
+        break;
+      case 'suburban':
+        swingPoints = suburbanSwing;
+        break;
+      default:
+        swingPoints = ruralSwing;
+        break;
+    }
+
+    const swing = swingPoints / 100;
+    const baseDemTwoParty = election.demVotes / twoPartyBase;
+    const adjustedDemTwoParty = Math.max(0.01, Math.min(0.99, baseDemTwoParty + swing));
+
+    const projectedTotal = Math.round(election.totalVotes * turnoutMultiplier);
+    const twoPartyTotal = Math.round(twoPartyBase * turnoutMultiplier);
+
+    const projectedDem = Math.round(twoPartyTotal * adjustedDemTwoParty);
+    const projectedRep = twoPartyTotal - projectedDem;
+
+    return {
+      wardId: ward.wardId,
+      predictedDemPct: projectedTotal > 0 ? (projectedDem / projectedTotal) * 100 : 50,
+      predictedRepPct: projectedTotal > 0 ? (projectedRep / projectedTotal) * 100 : 50,
+      predictedMargin:
+        projectedTotal > 0 ? ((projectedDem - projectedRep) / projectedTotal) * 100 : 0,
+      predictedDemVotes: projectedDem,
+      predictedRepVotes: projectedRep,
+      predictedTotalVotes: projectedTotal,
+      confidence: 0.5,
+    };
+  });
+}
+
+function computeUncertainty(
+  wardData: WardData[],
+  predictions: Prediction[],
+  baseRaceType: string,
+): UncertaintyBand[] {
+  const predMap = new Map(predictions.map((p) => [p.wardId, p]));
+
+  return wardData.map((ward) => {
+    const pred = predMap.get(ward.wardId);
+    if (!pred) {
+      return {
+        wardId: ward.wardId,
+        lowerDemPct: 0,
+        upperDemPct: 100,
+        lowerMargin: -100,
+        upperMargin: 100,
+      };
+    }
+
+    // Factors that affect confidence:
+    // 1. Number of elections analyzed
+    const relevantElections = ward.elections.filter((e) => e.raceType === baseRaceType);
+    const electionCount = relevantElections.length;
+
+    // 2. Volatility (standard deviation of historical margins)
+    let volatility = 10; // default high uncertainty
+    if (electionCount >= 2) {
+      const margins = relevantElections.map((e) => e.margin);
+      const mean = margins.reduce((a, b) => a + b, 0) / margins.length;
+      const variance = margins.reduce((a, b) => a + (b - mean) ** 2, 0) / margins.length;
+      volatility = Math.sqrt(variance);
+    }
+
+    // 3. Is estimate penalty
+    const hasEstimates = relevantElections.some((e) => e.isEstimate);
+
+    // Compute confidence (0-1)
+    let confidence = 0.3; // base
+    confidence += Math.min(0.3, electionCount * 0.05); // +0.05 per election, max 0.3
+    confidence += Math.max(0, 0.3 - volatility * 0.02); // lower volatility = higher confidence
+    if (hasEstimates) confidence -= 0.1;
+    confidence = Math.max(0.1, Math.min(0.9, confidence));
+
+    // Uncertainty band width based on confidence
+    const bandWidth = (1 - confidence) * 20; // max +/- 10 points at lowest confidence
+
+    return {
+      wardId: ward.wardId,
+      lowerDemPct: Math.max(0, pred.predictedDemPct - bandWidth),
+      upperDemPct: Math.min(100, pred.predictedDemPct + bandWidth),
+      lowerMargin: pred.predictedMargin - bandWidth * 2,
+      upperMargin: pred.predictedMargin + bandWidth * 2,
+    };
+  });
+}
+
 self.onmessage = (e: MessageEvent<WorkerRequest>) => {
-  const { wardData, params, modelType, wardRegions, regionalSwing } = e.data;
+  const {
+    wardData, params, modelType, wardRegions, regionalSwing,
+    wardClassifications, computeUncertainty: shouldComputeUncertainty,
+  } = e.data;
 
-  const predictions =
-    modelType === 'proportional-swing'
-      ? predictProportional(wardData, params, wardRegions, regionalSwing)
-      : predictUniform(wardData, params, wardRegions, regionalSwing);
+  let predictions: Prediction[];
+  if (modelType === 'demographic-swing') {
+    predictions = predictDemographic(wardData, params, wardClassifications);
+  } else if (modelType === 'proportional-swing') {
+    predictions = predictProportional(wardData, params, wardRegions, regionalSwing);
+  } else {
+    predictions = predictUniform(wardData, params, wardRegions, regionalSwing);
+  }
 
-  self.postMessage({ predictions } satisfies WorkerResponse);
+  const response: WorkerResponse = { predictions };
+
+  if (shouldComputeUncertainty) {
+    response.uncertainty = computeUncertainty(wardData, predictions, params.baseRaceType);
+  }
+
+  self.postMessage(response);
 };

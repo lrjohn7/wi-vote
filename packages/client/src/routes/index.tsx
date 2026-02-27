@@ -8,6 +8,7 @@ const Trends = lazy(() => import('@/features/trends'));
 const SwingModeler = lazy(() => import('@/features/swing-modeler'));
 const SupremeCourt = lazy(() => import('@/features/supreme-court'));
 const WardReport = lazy(() => import('@/features/ward-report'));
+const ElectionComparison = lazy(() => import('@/features/election-comparison'));
 const DataManager = lazy(() => import('@/features/data-manager'));
 
 function Loading() {
@@ -77,6 +78,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loading />}>
             <SwingModeler />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'compare',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <ElectionComparison />
           </Suspense>
         ),
       },
