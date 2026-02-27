@@ -18,6 +18,11 @@ const WARD_LAYER_HIGHLIGHT = 'ward-highlight';
 
 let protocolAdded = false;
 
+export interface MapViewState {
+  center: [number, number];
+  zoom: number;
+}
+
 interface WisconsinMapProps {
   boundariesGeoJSON?: GeoJSON.FeatureCollection | null;
   mapData?: MapDataResponse | null;
@@ -28,6 +33,12 @@ interface WisconsinMapProps {
     properties: Record<string, unknown> | null,
     point: { x: number; y: number } | null,
   ) => void;
+  /** Per-ward opacity overrides (e.g. from uncertainty). Values 0-1. */
+  wardOpacities?: Record<string, number> | null;
+  /** Controlled view state for syncing multiple maps */
+  viewState?: MapViewState | null;
+  /** Called when the user moves the map */
+  onMove?: (viewState: MapViewState) => void;
 }
 
 export function WisconsinMap({
@@ -36,6 +47,9 @@ export function WisconsinMap({
   selectedWardId,
   onWardClick,
   onWardHover,
+  wardOpacities,
+  viewState,
+  onMove,
 }: WisconsinMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -43,6 +57,8 @@ export function WisconsinMap({
   const boundariesAdded = useRef(false);
   const prevMapDataRef = useRef<MapDataResponse | null>(null);
   const prevSelectedRef = useRef<string | null>(null);
+  const prevOpacityWardIds = useRef<string[]>([]);
+  const isSyncing = useRef(false);
 
   // Initialize map
   useEffect(() => {
@@ -165,7 +181,11 @@ export function WisconsinMap({
         source: WARD_SOURCE,
         paint: {
           'fill-color': choroplethFillColor,
-          'fill-opacity': 0.75,
+          'fill-opacity': [
+            'coalesce',
+            ['feature-state', 'opacity'],
+            0.75,
+          ],
         },
       });
 
@@ -228,6 +248,33 @@ export function WisconsinMap({
     if (!m || !boundariesAdded.current) return;
     applyMapData(m, mapData);
   }, [mapData, applyMapData]);
+
+  // Apply per-ward opacity overrides (uncertainty visualization)
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !boundariesAdded.current) return;
+
+    // Clear previous opacity states
+    for (const wardId of prevOpacityWardIds.current) {
+      m.setFeatureState(
+        { source: WARD_SOURCE, id: wardId },
+        { opacity: null },
+      );
+    }
+
+    if (wardOpacities) {
+      const wardIds = Object.keys(wardOpacities);
+      for (const wardId of wardIds) {
+        m.setFeatureState(
+          { source: WARD_SOURCE, id: wardId },
+          { opacity: wardOpacities[wardId] },
+        );
+      }
+      prevOpacityWardIds.current = wardIds;
+    } else {
+      prevOpacityWardIds.current = [];
+    }
+  }, [wardOpacities]);
 
   // Update selected ward highlight
   useEffect(() => {
@@ -346,6 +393,52 @@ export function WisconsinMap({
       m.off('mouseleave', WARD_LAYER_FILL, handleLeave);
     };
   }, [onWardHover]);
+
+  // Emit viewport changes to parent (for syncing)
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !onMove) return;
+
+    const handleMoveEnd = () => {
+      if (isSyncing.current) return;
+      const center = m.getCenter();
+      onMove({
+        center: [center.lng, center.lat],
+        zoom: m.getZoom(),
+      });
+    };
+
+    m.on('moveend', handleMoveEnd);
+    return () => {
+      m.off('moveend', handleMoveEnd);
+    };
+  }, [onMove]);
+
+  // Respond to external viewState changes (from synced map)
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !viewState) return;
+
+    const currentCenter = m.getCenter();
+    const currentZoom = m.getZoom();
+    const [lng, lat] = viewState.center;
+
+    // Skip if already at this position (avoid infinite loop)
+    if (
+      Math.abs(currentCenter.lng - lng) < 0.0001 &&
+      Math.abs(currentCenter.lat - lat) < 0.0001 &&
+      Math.abs(currentZoom - viewState.zoom) < 0.01
+    ) {
+      return;
+    }
+
+    isSyncing.current = true;
+    m.jumpTo({ center: viewState.center, zoom: viewState.zoom });
+    // Reset syncing flag after the move completes
+    requestAnimationFrame(() => {
+      isSyncing.current = false;
+    });
+  }, [viewState]);
 
   return (
     <div

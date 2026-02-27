@@ -13,6 +13,7 @@ import { ResultsSummary } from './components/ResultsSummary';
 import { UncertaintyOverlay } from './components/UncertaintyOverlay';
 import { extractWardMetadata } from '@/shared/lib/wardMetadata';
 import { buildWardRegionMap } from '@/shared/lib/regionMapping';
+import { uncertaintyToOpacityMap } from './lib/computeUncertainty';
 import type { RaceType, Prediction, UncertaintyBand } from '@/types/election';
 import type { MapDataResponse, WardMapEntry } from '@/features/election-map/hooks/useMapData';
 
@@ -218,6 +219,12 @@ export default function SwingModeler() {
     return baseMapData;
   }, [predictions, baseMapData, baseYear, baseRace]);
 
+  // Compute ward opacities from uncertainty bands
+  const wardOpacities = useMemo(() => {
+    if (!showUncertainty || !uncertainty) return null;
+    return uncertaintyToOpacityMap(uncertainty);
+  }, [showUncertainty, uncertainty]);
+
   const handleWardClick = useCallback(
     (wardId: string) => {
       setSelectedWard(wardId === selectedWardId ? null : wardId);
@@ -306,6 +313,7 @@ export default function SwingModeler() {
             selectedWardId={selectedWardId}
             onWardClick={handleWardClick}
             onWardHover={handleWardHover}
+            wardOpacities={wardOpacities}
           />
 
           {/* Legend */}

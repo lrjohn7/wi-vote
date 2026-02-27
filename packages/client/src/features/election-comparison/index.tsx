@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { WisconsinMap } from '@/shared/components/WisconsinMap';
+import { WisconsinMap, type MapViewState } from '@/shared/components/WisconsinMap';
 import { useWardBoundaries } from '@/features/election-map/hooks/useWardBoundaries';
 import { MapLegend } from '@/features/election-map/components/MapLegend';
 import { ComparisonSelector } from './components/ComparisonSelector';
@@ -15,6 +15,7 @@ export default function ElectionComparison() {
   const [yearB, setYearB] = useState(2020);
   const [raceB, setRaceB] = useState<RaceType>('president');
   const [viewMode, setViewMode] = useState<ViewMode>('side-by-side');
+  const [syncedView, setSyncedView] = useState<MapViewState | null>(null);
 
   const { data: boundaries, isLoading: boundariesLoading } = useWardBoundaries();
   const { mapDataA, mapDataB, diffData, isLoading } = useComparisonData(
@@ -23,6 +24,10 @@ export default function ElectionComparison() {
 
   const handleWardClickA = useCallback(() => {}, []);
   const handleWardClickB = useCallback(() => {}, []);
+
+  const handleMapMove = useCallback((vs: MapViewState) => {
+    setSyncedView(vs);
+  }, []);
 
   return (
     <div className="flex h-full flex-col">
@@ -91,6 +96,8 @@ export default function ElectionComparison() {
                 boundariesGeoJSON={boundaries}
                 mapData={mapDataA}
                 onWardClick={handleWardClickA}
+                viewState={syncedView}
+                onMove={handleMapMove}
               />
               <div className="absolute bottom-4 left-2 z-10">
                 <MapLegend />
@@ -106,6 +113,8 @@ export default function ElectionComparison() {
                 boundariesGeoJSON={boundaries}
                 mapData={mapDataB}
                 onWardClick={handleWardClickB}
+                viewState={syncedView}
+                onMove={handleMapMove}
               />
               <div className="absolute bottom-4 left-2 z-10">
                 <MapLegend />
