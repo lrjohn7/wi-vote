@@ -1,13 +1,241 @@
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { WisconsinMap } from '@/shared/components/WisconsinMap';
+import { useMapStore } from '@/stores/mapStore';
+import { useModelStore } from '@/stores/modelStore';
+import { useWardBoundaries } from '@/features/election-map/hooks/useWardBoundaries';
+import { MapLegend } from '@/features/election-map/components/MapLegend';
+import { WardTooltip } from '@/features/election-map/components/WardTooltip';
+import { WardDetailPanel } from '@/features/election-map/components/WardDetailPanel';
+import { useModelData } from './hooks/useModelData';
+import { useModelerUrlState } from './hooks/useModelerUrlState';
+import { ControlsPanel } from './components/ControlsPanel';
+import { ResultsSummary } from './components/ResultsSummary';
+import type { RaceType, Prediction } from '@/types/election';
+import type { MapDataResponse, WardMapEntry } from '@/features/election-map/hooks/useMapData';
+
+interface TooltipState {
+  wardId: string;
+  wardName: string;
+  municipality: string;
+  county: string;
+  x: number;
+  y: number;
+}
+
+function predictionsToMapData(
+  predictions: Prediction[],
+  year: number,
+  raceType: string,
+): MapDataResponse {
+  const data: Record<string, WardMapEntry> = {};
+  for (const p of predictions) {
+    data[p.wardId] = {
+      demPct: p.predictedDemPct,
+      repPct: p.predictedRepPct,
+      margin: p.predictedMargin,
+      totalVotes: p.predictedTotalVotes,
+      demVotes: p.predictedDemVotes,
+      repVotes: p.predictedRepVotes,
+      isEstimate: false,
+    };
+  }
+  return {
+    year,
+    raceType,
+    wardCount: predictions.length,
+    data,
+  };
+}
+
 export default function SwingModeler() {
+  const selectedWardId = useMapStore((s) => s.selectedWardId);
+  const setSelectedWard = useMapStore((s) => s.setSelectedWard);
+
+  const parameters = useModelStore((s) => s.parameters);
+  const predictions = useModelStore((s) => s.predictions);
+  const isComputing = useModelStore((s) => s.isComputing);
+  const setPredictions = useModelStore((s) => s.setPredictions);
+  const setIsComputing = useModelStore((s) => s.setIsComputing);
+
+  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+
+  // URL state sync
+  useModelerUrlState();
+
+  // Derive base election from model parameters
+  const baseYear = Number(parameters.baseElectionYear) || 2024;
+  const baseRace = (parameters.baseRaceType as RaceType) || 'president';
+  const swingPoints = (parameters.swingPoints as number) ?? 0;
+  const turnoutChange = (parameters.turnoutChange as number) ?? 0;
+
+  // Fetch ward boundaries (cached)
+  const { data: boundaries, isLoading: boundariesLoading } = useWardBoundaries();
+
+  // Fetch base election map data and convert to WardData[]
+  const { wardData, baseMapData, isLoading: dataLoading } = useModelData(baseYear, baseRace);
+
+  // Web Worker
+  const workerRef = useRef<Worker | null>(null);
+
+  useEffect(() => {
+    workerRef.current = new Worker(
+      new URL('./model.worker.ts', import.meta.url),
+      { type: 'module' },
+    );
+
+    workerRef.current.onmessage = (e: MessageEvent<{ predictions: Prediction[] }>) => {
+      setPredictions(e.data.predictions);
+      setIsComputing(false);
+    };
+
+    return () => {
+      workerRef.current?.terminate();
+      workerRef.current = null;
+    };
+  }, [setPredictions, setIsComputing]);
+
+  // Debounce timer for posting to worker
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Post to worker when parameters or ward data change
+  useEffect(() => {
+    if (!wardData || !workerRef.current) return;
+
+    // Clear any pending debounce
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      setIsComputing(true);
+      workerRef.current?.postMessage({
+        wardData: wardData.map((w) => ({
+          wardId: w.wardId,
+          elections: w.elections,
+        })),
+        params: {
+          baseElectionYear: String(baseYear),
+          baseRaceType: baseRace,
+          swingPoints,
+          turnoutChange,
+        },
+      });
+    }, 50);
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [wardData, baseYear, baseRace, swingPoints, turnoutChange, setIsComputing]);
+
+  // Convert predictions to MapDataResponse for the map
+  const mapData = useMemo(() => {
+    if (predictions && predictions.length > 0) {
+      return predictionsToMapData(predictions, baseYear, baseRace);
+    }
+    return baseMapData;
+  }, [predictions, baseMapData, baseYear, baseRace]);
+
+  const handleWardClick = useCallback(
+    (wardId: string) => {
+      setSelectedWard(wardId === selectedWardId ? null : wardId);
+    },
+    [selectedWardId, setSelectedWard],
+  );
+
+  const handleWardHover = useCallback(
+    (
+      wardId: string | null,
+      properties: Record<string, unknown> | null,
+      point: { x: number; y: number } | null,
+    ) => {
+      if (wardId && properties && point) {
+        setTooltip({
+          wardId,
+          wardName: String(properties.ward_name ?? ''),
+          municipality: String(properties.municipality ?? ''),
+          county: String(properties.county ?? ''),
+          x: point.x,
+          y: point.y,
+        });
+      } else {
+        setTooltip(null);
+      }
+    },
+    [],
+  );
+
+  // Hovered ward data for tooltip
+  const hoveredWardData = tooltip && mapData?.data?.[tooltip.wardId];
+
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold">Swing Modeler</h2>
-      <p className="mt-2 text-muted-foreground">
-        Model future election outcomes by adjusting statewide swing, turnout,
-        and regional variables. See projected results update in real-time.
-      </p>
-      <div className="mt-8 rounded-lg border border-dashed p-12 text-center text-muted-foreground">
-        What-if modeling coming in Phase 2.
+    <div className="flex h-full flex-col">
+      {/* Top bar */}
+      <div className="flex items-center gap-4 border-b bg-background px-4 py-2">
+        <h2 className="text-lg font-semibold">Swing Modeler</h2>
+        {isComputing && (
+          <span className="text-sm text-muted-foreground">Computing...</span>
+        )}
+        {mapData && !isComputing && (
+          <span className="text-sm text-muted-foreground">
+            {mapData.wardCount.toLocaleString()} wards
+          </span>
+        )}
+        {dataLoading && (
+          <span className="text-sm text-muted-foreground">Loading base data...</span>
+        )}
+      </div>
+
+      {/* Main content: sidebar + map */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left sidebar: controls + results */}
+        <ControlsPanel>
+          <ResultsSummary predictions={predictions} baseMapData={baseMapData} />
+        </ControlsPanel>
+
+        {/* Map area */}
+        <div className="relative flex-1">
+          {boundariesLoading && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/50">
+              <div className="rounded-lg bg-white p-4 shadow-lg">
+                Loading ward boundaries...
+              </div>
+            </div>
+          )}
+
+          <WisconsinMap
+            boundariesGeoJSON={boundaries}
+            mapData={mapData}
+            selectedWardId={selectedWardId}
+            onWardClick={handleWardClick}
+            onWardHover={handleWardHover}
+          />
+
+          {/* Legend */}
+          <div className="absolute bottom-6 left-4 z-10">
+            <MapLegend />
+          </div>
+
+          {/* Tooltip */}
+          {tooltip && (
+            <WardTooltip
+              wardName={tooltip.wardName}
+              municipality={tooltip.municipality}
+              county={tooltip.county}
+              demPct={hoveredWardData?.demPct}
+              repPct={hoveredWardData?.repPct}
+              margin={hoveredWardData?.margin}
+              totalVotes={hoveredWardData?.totalVotes}
+              isEstimate={hoveredWardData?.isEstimate}
+              x={tooltip.x}
+              y={tooltip.y}
+            />
+          )}
+
+          {/* Ward Detail Panel */}
+          <WardDetailPanel />
+        </div>
       </div>
     </div>
   );
