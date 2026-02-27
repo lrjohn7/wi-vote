@@ -1,0 +1,34 @@
+import { MARGIN_LEGEND_BINS, NO_DATA_COLOR } from '@/shared/lib/colorScale';
+
+export function MapLegend() {
+  return (
+    <div className="rounded-lg bg-white/90 p-3 shadow-md backdrop-blur-sm">
+      <div className="mb-2 flex justify-between text-xs font-medium text-muted-foreground">
+        <span>Republican</span>
+        <span>Democrat</span>
+      </div>
+      <div className="flex">
+        {MARGIN_LEGEND_BINS.map((bin) => (
+          <div key={bin.label} className="flex-1">
+            <div
+              className="h-4 border border-white/50"
+              style={{ backgroundColor: bin.color }}
+            />
+          </div>
+        ))}
+      </div>
+      <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+        <span>R+30</span>
+        <span>Even</span>
+        <span>D+30</span>
+      </div>
+      <div className="mt-2 flex items-center gap-1 text-[10px] text-muted-foreground">
+        <div
+          className="h-3 w-3 rounded-sm border"
+          style={{ backgroundColor: NO_DATA_COLOR }}
+        />
+        <span>No data</span>
+      </div>
+    </div>
+  );
+}

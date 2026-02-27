@@ -3,6 +3,7 @@ import type { RaceType } from '@/types/election';
 export const queryKeys = {
   wards: {
     all: ['wards'] as const,
+    boundaries: (vintage: number) => ['wards', 'boundaries', vintage] as const,
     detail: (wardId: string) => ['wards', wardId] as const,
     geocode: (lat: number, lng: number) => ['wards', 'geocode', lat, lng] as const,
     search: (query: string) => ['wards', 'search', query] as const,

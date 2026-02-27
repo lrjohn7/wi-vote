@@ -6,6 +6,7 @@ const ElectionMap = lazy(() => import('@/features/election-map'));
 const WardExplorer = lazy(() => import('@/features/ward-explorer'));
 const Trends = lazy(() => import('@/features/trends'));
 const SwingModeler = lazy(() => import('@/features/swing-modeler'));
+const SupremeCourt = lazy(() => import('@/features/supreme-court'));
 const DataManager = lazy(() => import('@/features/data-manager'));
 
 function Loading() {
@@ -35,6 +36,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loading />}>
             <WardExplorer />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'supreme-court',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <SupremeCourt />
           </Suspense>
         ),
       },

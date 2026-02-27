@@ -1,21 +1,52 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db
+from app.services.election_service import ElectionService
 
 router = APIRouter(prefix="/elections", tags=["elections"])
 
 
 @router.get("")
-async def list_elections() -> dict:
+async def list_elections(
+    db: AsyncSession = Depends(get_db),
+) -> dict:
     """List all available elections (years + race types)."""
-    return {"elections": []}
+    service = ElectionService(db)
+    elections = await service.list_elections()
+    return {"elections": elections}
 
 
 @router.get("/{year}/{race_type}")
-async def get_election_results(year: int, race_type: str) -> dict:
+async def get_election_results(
+    year: int,
+    race_type: str,
+    county: str | None = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(100, ge=1, le=1000),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
     """Get all ward results for a specific election."""
-    return {"year": year, "race_type": race_type, "results": []}
+    service = ElectionService(db)
+    return await service.get_results(
+        year=year,
+        race_type=race_type,
+        county=county,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.get("/map-data/{year}/{race_type}")
-async def get_map_data(year: int, race_type: str) -> dict:
-    """Get ward results optimized for map rendering."""
-    return {"year": year, "race_type": race_type, "features": []}
+async def get_map_data(
+    year: int,
+    race_type: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Get ward results optimized for map rendering.
+
+    Returns compact dict keyed by ward_id with demPct/repPct/margin/totalVotes.
+    Designed for efficient setFeatureState updates on the frontend.
+    """
+    service = ElectionService(db)
+    return await service.get_map_data(year, race_type)

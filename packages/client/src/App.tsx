@@ -1,8 +1,9 @@
 import { NavLink, Outlet } from 'react-router';
-import { Map, Search, TrendingUp, SlidersHorizontal } from 'lucide-react';
+import { Map, Search, TrendingUp, SlidersHorizontal, Scale } from 'lucide-react';
 
 const navItems = [
   { to: '/map', label: 'Election Map', icon: Map },
+  { to: '/supreme-court', label: 'Supreme Court', icon: Scale },
   { to: '/wards', label: 'Ward Explorer', icon: Search },
   { to: '/trends', label: 'Trends', icon: TrendingUp },
   { to: '/modeler', label: 'Swing Modeler', icon: SlidersHorizontal },

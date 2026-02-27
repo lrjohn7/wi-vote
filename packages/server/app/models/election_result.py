@@ -1,7 +1,7 @@
 from datetime import date, datetime
 
-from sqlalchemy import Boolean, Integer, String, UniqueConstraint, Index
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Boolean, ForeignKey, Integer, String, UniqueConstraint, Index
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
@@ -10,7 +10,9 @@ class ElectionResult(Base):
     __tablename__ = "election_results"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    ward_id: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    ward_id: Mapped[str] = mapped_column(
+        String(50), ForeignKey("wards.ward_id"), nullable=False, index=True
+    )
     election_year: Mapped[int] = mapped_column(Integer, nullable=False)
     election_date: Mapped[date | None] = mapped_column()
     race_type: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -26,6 +28,8 @@ class ElectionResult(Base):
     data_source: Mapped[str | None] = mapped_column(String(100))
     ward_vintage: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
+
+    ward: Mapped["Ward"] = relationship("Ward", back_populates="election_results")
 
     @property
     def dem_pct(self) -> float:
@@ -53,3 +57,6 @@ class ElectionResult(Base):
             name="idx_results_unique",
         ),
     )
+
+
+from app.models.ward import Ward  # noqa: E402

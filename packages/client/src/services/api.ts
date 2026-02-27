@@ -1,3 +1,7 @@
+import type { MapDataResponse } from '@/features/election-map/hooks/useMapData';
+import type { ElectionInfo } from '@/features/election-map/hooks/useElections';
+import type { WardDetail } from '@/features/election-map/hooks/useWardDetail';
+
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -11,23 +15,66 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+// ── Response types ──
+
+interface WardListResponse {
+  wards: WardSummary[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface WardSummary {
+  ward_id: string;
+  ward_name: string;
+  municipality: string;
+  county: string;
+  congressional_district: string | null;
+  state_senate_district: string | null;
+  assembly_district: string | null;
+  ward_vintage: number;
+}
+
+interface SearchResponse {
+  results: WardSummary[];
+  query: string;
+  count: number;
+}
+
+interface GeocodeResponse {
+  ward: WardSummary | null;
+  coordinates: { lat: number; lng: number };
+}
+
+interface ElectionsResponse {
+  elections: ElectionInfo[];
+}
+
+// ── API methods ──
+
 export const api = {
   // Wards
   getWards: (params?: URLSearchParams) =>
-    request<unknown>(`/api/v1/wards?${params?.toString() ?? ''}`),
+    request<WardListResponse>(`/api/v1/wards?${params?.toString() ?? ''}`),
   getWard: (wardId: string) =>
-    request<unknown>(`/api/v1/wards/${wardId}`),
+    request<WardDetail>(`/api/v1/wards/${wardId}`),
+  getWardBoundaries: (vintage?: number) =>
+    request<GeoJSON.FeatureCollection>(
+      `/api/v1/wards/boundaries${vintage ? `?vintage=${vintage}` : ''}`,
+    ),
   geocodeWard: (lat: number, lng: number) =>
-    request<unknown>(`/api/v1/wards/geocode?lat=${lat}&lng=${lng}`),
+    request<GeocodeResponse>(`/api/v1/wards/geocode?lat=${lat}&lng=${lng}`),
   searchWards: (query: string) =>
-    request<unknown>(`/api/v1/wards/search?q=${encodeURIComponent(query)}`),
+    request<SearchResponse>(`/api/v1/wards/search?q=${encodeURIComponent(query)}`),
 
   // Elections
-  getElections: () => request<unknown>('/api/v1/elections'),
+  getElections: () => request<ElectionsResponse>('/api/v1/elections'),
   getElectionResults: (year: number, raceType: string) =>
-    request<unknown>(`/api/v1/elections/${year}/${raceType}`),
+    request<{ results: unknown[]; total: number }>(
+      `/api/v1/elections/${year}/${raceType}`,
+    ),
   getMapData: (year: number, raceType: string) =>
-    request<unknown>(`/api/v1/elections/map-data/${year}/${raceType}`),
+    request<MapDataResponse>(`/api/v1/elections/map-data/${year}/${raceType}`),
 
   // Trends
   getWardTrend: (wardId: string) =>

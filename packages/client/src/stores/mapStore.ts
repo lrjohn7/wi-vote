@@ -22,7 +22,7 @@ interface MapState {
 }
 
 // Wisconsin center coordinates
-const WISCONSIN_CENTER: [number, number] = [-89.5, 44.5];
+const WISCONSIN_CENTER: [number, number] = [-87.95, 43.04]; // Milwaukee metro
 
 export const useMapStore = create<MapState>((set) => ({
   viewport: { center: WISCONSIN_CENTER, zoom: 7 },
