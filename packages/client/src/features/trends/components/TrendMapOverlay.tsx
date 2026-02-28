@@ -9,12 +9,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { MapDataResponse, WardMapEntry } from '@/features/election-map/hooks/useMapData';
+import type { TrendClassificationEntry } from '@/services/api';
+import { TrendInfoBanner } from './TrendInfoBanner';
+import { TrendLegend } from './TrendLegend';
+import { TrendHoverTooltip } from './TrendHoverTooltip';
+import { TrendSummaryDashboard } from './TrendSummaryDashboard';
 
 const RACE_OPTIONS = [
   { label: 'President', value: 'president' },
   { label: 'Governor', value: 'governor' },
   { label: 'US Senate', value: 'us_senate' },
 ];
+
+interface HoverState {
+  wardId: string;
+  properties: Record<string, unknown>;
+  point: { x: number; y: number };
+}
 
 /**
  * Map trend directions to a demPct scale for coloring:
@@ -24,7 +35,7 @@ const RACE_OPTIONS = [
  * The slope magnitude controls intensity.
  */
 function trendToMapData(
-  classifications: Record<string, { direction: string; slope: number | null }>,
+  classifications: Record<string, TrendClassificationEntry>,
 ): MapDataResponse {
   const data: Record<string, WardMapEntry> = {};
 
@@ -61,8 +72,68 @@ function trendToMapData(
   };
 }
 
+interface SummaryStats {
+  demCount: number;
+  repCount: number;
+  incCount: number;
+  avgDemSlope: number | null;
+  avgRepSlope: number | null;
+  minYear: number | null;
+  maxYear: number | null;
+}
+
+function computeSummary(
+  classifications: Record<string, TrendClassificationEntry>,
+): SummaryStats {
+  let demCount = 0;
+  let repCount = 0;
+  let incCount = 0;
+  let demSlopeSum = 0;
+  let demSlopeN = 0;
+  let repSlopeSum = 0;
+  let repSlopeN = 0;
+  let minYear: number | null = null;
+  let maxYear: number | null = null;
+
+  for (const entry of Object.values(classifications)) {
+    if (entry.direction === 'more_democratic') {
+      demCount++;
+      if (entry.slope != null) {
+        demSlopeSum += entry.slope;
+        demSlopeN++;
+      }
+    } else if (entry.direction === 'more_republican') {
+      repCount++;
+      if (entry.slope != null) {
+        repSlopeSum += entry.slope;
+        repSlopeN++;
+      }
+    } else {
+      incCount++;
+    }
+
+    if (entry.start_year != null) {
+      if (minYear == null || entry.start_year < minYear) minYear = entry.start_year;
+    }
+    if (entry.end_year != null) {
+      if (maxYear == null || entry.end_year > maxYear) maxYear = entry.end_year;
+    }
+  }
+
+  return {
+    demCount,
+    repCount,
+    incCount,
+    avgDemSlope: demSlopeN > 0 ? demSlopeSum / demSlopeN : null,
+    avgRepSlope: repSlopeN > 0 ? repSlopeSum / repSlopeN : null,
+    minYear,
+    maxYear,
+  };
+}
+
 export function TrendMapOverlay() {
   const [raceType, setRaceType] = useState('president');
+  const [hover, setHover] = useState<HoverState | null>(null);
   const { data: classData, isLoading: classLoading } = useTrendClassifications(raceType);
 
   const mapData = useMemo(() => {
@@ -70,9 +141,36 @@ export function TrendMapOverlay() {
     return trendToMapData(classData.classifications);
   }, [classData]);
 
+  const summaryStats = useMemo<SummaryStats>(() => {
+    if (!classData?.classifications) {
+      return { demCount: 0, repCount: 0, incCount: 0, avgDemSlope: null, avgRepSlope: null, minYear: null, maxYear: null };
+    }
+    return computeSummary(classData.classifications);
+  }, [classData]);
+
   const handleWardClick = useCallback(() => {
     // No-op for trend map; could add detail panel in future
   }, []);
+
+  const handleWardHover = useCallback(
+    (
+      wardId: string | null,
+      properties: Record<string, unknown> | null,
+      point: { x: number; y: number } | null,
+    ) => {
+      if (wardId && properties && point) {
+        setHover({ wardId, properties, point });
+      } else {
+        setHover(null);
+      }
+    },
+    [],
+  );
+
+  const hoveredClassification: TrendClassificationEntry | null =
+    hover && classData?.classifications?.[hover.wardId]
+      ? classData.classifications[hover.wardId]
+      : null;
 
   const isLoading = classLoading;
 
@@ -101,32 +199,32 @@ export function TrendMapOverlay() {
           </span>
         )}
       </div>
+
+      <TrendInfoBanner />
+
       <div className="relative flex-1">
         <WisconsinMap
           mapData={mapData}
           selectedWardId={null}
           onWardClick={handleWardClick}
-          onWardHover={() => {}}
+          onWardHover={handleWardHover}
         />
 
-        {/* Custom legend */}
-        <div className="absolute bottom-6 left-4 z-10 rounded-lg bg-white/90 p-3 shadow-md">
-          <p className="mb-1.5 text-xs font-medium">Trend Direction</p>
-          <div className="space-y-1 text-[10px]">
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-5 rounded" style={{ backgroundColor: '#2166ac' }} />
-              <span>Trending Democratic</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-5 rounded" style={{ backgroundColor: '#d4d4d4' }} />
-              <span>Inconclusive</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-5 rounded" style={{ backgroundColor: '#b2182b' }} />
-              <span>Trending Republican</span>
-            </div>
-          </div>
-        </div>
+        <TrendLegend
+          demCount={summaryStats.demCount}
+          repCount={summaryStats.repCount}
+          incCount={summaryStats.incCount}
+          minYear={summaryStats.minYear}
+          maxYear={summaryStats.maxYear}
+        />
+
+        <TrendSummaryDashboard stats={summaryStats} />
+
+        <TrendHoverTooltip
+          point={hover?.point ?? null}
+          properties={hover?.properties ?? null}
+          classification={hoveredClassification}
+        />
       </div>
     </div>
   );
