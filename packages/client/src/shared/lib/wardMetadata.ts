@@ -1,4 +1,4 @@
-import type { FeatureCollection, Feature, Geometry } from 'geojson';
+import type { FeatureCollection, Geometry } from 'geojson';
 
 export interface WardMeta {
   county: string;

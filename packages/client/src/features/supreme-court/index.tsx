@@ -20,7 +20,7 @@ import type { SpringContest } from './hooks/useSpringElections';
 type ViewMode = 'reporting-units' | 'counties';
 
 export default function SupremeCourt() {
-  const { data: contestsData, isLoading: contestsLoading } = useSpringContests();
+  const { data: contestsData } = useSpringContests();
 
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [viewMode, setViewMode] = useState<ViewMode>('counties');

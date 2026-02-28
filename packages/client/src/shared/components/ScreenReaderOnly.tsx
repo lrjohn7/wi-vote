@@ -1,6 +1,6 @@
 interface ScreenReaderOnlyProps {
   children: React.ReactNode;
-  as?: keyof JSX.IntrinsicElements;
+  as?: React.ElementType;
 }
 
 /**

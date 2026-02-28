@@ -56,8 +56,8 @@ export function ComparisonChart({ comparisons, county }: ComparisonChartProps) {
               tickFormatter={formatMargin}
             />
             <Tooltip
-              formatter={(value: number, name: string) => [
-                formatMargin(value),
+              formatter={(value, name) => [
+                formatMargin(Number(value)),
                 name === 'ward' ? 'Ward' : name === 'county' ? `${county} Co.` : 'Wisconsin',
               ]}
               labelFormatter={(label) => `${label} Presidential`}

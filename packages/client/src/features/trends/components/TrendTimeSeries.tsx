@@ -74,10 +74,11 @@ export const TrendTimeSeries = memo(function TrendTimeSeries({ elections, raceTy
           domain={['auto', 'auto']}
         />
         <Tooltip
-          formatter={(value: number) =>
-            value > 0 ? `D+${value.toFixed(1)}` : value < 0 ? `R+${Math.abs(value).toFixed(1)}` : 'Even'
-          }
-          labelFormatter={(label: number) => `${label}`}
+          formatter={(value) => {
+            const v = Number(value);
+            return v > 0 ? `D+${v.toFixed(1)}` : v < 0 ? `R+${Math.abs(v).toFixed(1)}` : 'Even';
+          }}
+          labelFormatter={(label) => `${label}`}
         />
         <ReferenceLine y={0} stroke="#666" strokeDasharray="4 4" />
         <Line

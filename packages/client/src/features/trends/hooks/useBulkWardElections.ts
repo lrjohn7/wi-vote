@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { api, type TrendElection } from '@/services/api';
+import { api } from '@/services/api';
 
 /**
  * Fetches election histories for a batch of ward IDs.

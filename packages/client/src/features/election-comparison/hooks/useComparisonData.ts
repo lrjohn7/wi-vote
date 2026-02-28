@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { useMapData } from '@/features/election-map/hooks/useMapData';
 import type { RaceType } from '@/types/election';
-import type { MapDataResponse } from '@/features/election-map/hooks/useMapData';
 
 export interface DiffEntry {
   diffMargin: number;

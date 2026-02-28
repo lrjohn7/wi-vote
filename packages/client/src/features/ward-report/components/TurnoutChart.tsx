@@ -51,7 +51,7 @@ export function TurnoutChart({ turnout, elections }: TurnoutChartProps) {
             />
             <YAxis tick={{ fontSize: 12 }} />
             <Tooltip
-              formatter={(value: number) => [value.toLocaleString(), 'Total Votes']}
+              formatter={(value) => [Number(value).toLocaleString(), 'Total Votes']}
               labelFormatter={(label) => `${label} Presidential`}
             />
             <Bar dataKey="votes" radius={[4, 4, 0, 0]}>
