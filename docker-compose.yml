@@ -40,12 +40,34 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@db:5432/wivote
       API_CORS_ORIGINS: ${API_CORS_ORIGINS:-http://localhost:5173}
+      REDIS_URL: redis://redis:6379/0
+      MRP_TRACES_DIR: /data/mrp_traces
     volumes:
       - ./packages/server/app:/app/app
       - ./packages/server/alembic:/app/alembic
       - ./packages/server/alembic.ini:/app/alembic.ini
       - ./data:/data
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+  celery-worker:
+    build: ./packages/server
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@db:5432/wivote
+      REDIS_URL: redis://redis:6379/0
+      MRP_TRACES_DIR: /data/mrp_traces
+    volumes:
+      - ./packages/server/app:/app/app
+      - ./packages/server/alembic:/app/alembic
+      - ./packages/server/alembic.ini:/app/alembic.ini
+      - ./data:/data
+    entrypoint: []
+    command: celery -A app.core.celery_app worker --loglevel=info --concurrency=1
     restart: unless-stopped
 
   seed:

@@ -14,6 +14,7 @@ import { UncertaintyOverlay } from './components/UncertaintyOverlay';
 import { extractWardMetadata } from '@/shared/lib/wardMetadata';
 import { buildWardRegionMap } from '@/shared/lib/regionMapping';
 import { uncertaintyToOpacityMap } from './lib/computeUncertainty';
+import { fetchMrpPrediction, mrpResponseToPredictions } from '@/services/mrpApi';
 import type { RaceType, Prediction, UncertaintyBand } from '@/types/election';
 import type { MapDataResponse, WardMapEntry } from '@/features/election-map/hooks/useMapData';
 
@@ -168,11 +169,53 @@ export default function SwingModeler() {
     };
   }, [setPredictions, setIsComputing]);
 
-  // Debounce timer for posting to worker
+  // Debounce timer for posting to worker / server
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Track in-flight MRP request to cancel stale ones
+  const mrpAbortRef = useRef<AbortController | null>(null);
 
-  // Post to worker when parameters or ward data change
+  // Post to worker or server when parameters or ward data change
   useEffect(() => {
+    if (activeModelId === 'mrp') {
+      // MRP: route to server API
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+
+      debounceRef.current = setTimeout(() => {
+        // Cancel any in-flight MRP request
+        mrpAbortRef.current?.abort();
+        const controller = new AbortController();
+        mrpAbortRef.current = controller;
+
+        setIsComputing(true);
+        fetchMrpPrediction({
+          baseElectionYear: baseYear,
+          baseRaceType: baseRace,
+          turnoutChange,
+          collegeShift: (parameters.collegeShift as number) ?? 0,
+          urbanShift: (parameters.urbanShift as number) ?? 0,
+          ruralShift: (parameters.ruralShift as number) ?? 0,
+          incomeShift: (parameters.incomeShift as number) ?? 0,
+        })
+          .then((response) => {
+            if (controller.signal.aborted) return;
+            const { predictions: preds, uncertainty: unc } = mrpResponseToPredictions(response);
+            setPredictions(preds);
+            setUncertainty(unc);
+            setIsComputing(false);
+          })
+          .catch((err) => {
+            if (controller.signal.aborted) return;
+            console.error('MRP prediction failed:', err);
+            setIsComputing(false);
+          });
+      }, 300); // Longer debounce for server calls
+
+      return () => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+      };
+    }
+
+    // Client-side models: post to Web Worker
     if (!wardData || !workerRef.current) return;
 
     // Clear any pending debounce
@@ -209,7 +252,7 @@ export default function SwingModeler() {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [wardData, baseYear, baseRace, swingPoints, turnoutChange, activeModelId, wardRegions, regionalSwing, wardClassifications, showUncertainty, parameters, setIsComputing]);
+  }, [wardData, baseYear, baseRace, swingPoints, turnoutChange, activeModelId, wardRegions, regionalSwing, wardClassifications, showUncertainty, parameters, setIsComputing, setPredictions]);
 
   // Convert predictions to MapDataResponse for the map
   const mapData = useMemo(() => {

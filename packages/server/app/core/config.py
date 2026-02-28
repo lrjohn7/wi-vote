@@ -15,6 +15,12 @@ class Settings(BaseSettings):
         "https://geocoding.geo.census.gov/geocoder"
     )
 
+    # Redis / Celery
+    redis_url: str = "redis://localhost:6379/0"
+
+    # MRP model traces directory
+    mrp_traces_dir: str = "/data/mrp_traces"
+
     # App
     app_name: str = "WI-Vote API"
     app_version: str = "0.1.0"

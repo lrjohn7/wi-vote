@@ -13,6 +13,7 @@ import { useElections } from '@/features/election-map/hooks/useElections';
 import { useModelStore } from '@/stores/modelStore';
 import { modelRegistry } from '@/models';
 import { scenarioPresets } from '../lib/scenarioPresets';
+import { MrpStatus } from './MrpStatus';
 import { REGION_LABELS, type Region } from '@/shared/lib/regionMapping';
 import type { RaceType } from '@/types/election';
 
@@ -75,10 +76,17 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
   const allModels = modelRegistry.getAll();
 
   const isDemographic = activeModelId === 'demographic-swing';
+  const isMrp = activeModelId === 'mrp';
 
   const urbanSwing = (parameters.urbanSwing as number) ?? 0;
   const suburbanSwing = (parameters.suburbanSwing as number) ?? 0;
   const ruralSwing = (parameters.ruralSwing as number) ?? 0;
+
+  // MRP-specific params
+  const collegeShift = (parameters.collegeShift as number) ?? 0;
+  const mrpUrbanShift = (parameters.urbanShift as number) ?? 0;
+  const mrpRuralShift = (parameters.ruralShift as number) ?? 0;
+  const incomeShift = (parameters.incomeShift as number) ?? 0;
 
   const handleReset = () => {
     setParameter('swingPoints', 0);
@@ -86,12 +94,17 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
     setParameter('urbanSwing', 0);
     setParameter('suburbanSwing', 0);
     setParameter('ruralSwing', 0);
+    setParameter('collegeShift', 0);
+    setParameter('urbanShift', 0);
+    setParameter('ruralShift', 0);
+    setParameter('incomeShift', 0);
     for (const { paramKey } of REGIONAL_PARAM_KEYS) {
       setParameter(paramKey, 0);
     }
   };
 
   const isDemographicDirty = urbanSwing !== 0 || suburbanSwing !== 0 || ruralSwing !== 0;
+  const isMrpDirty = collegeShift !== 0 || mrpUrbanShift !== 0 || mrpRuralShift !== 0 || incomeShift !== 0;
 
   const handleModelChange = (modelId: string) => {
     // Preserve current parameters when switching models
@@ -192,7 +205,45 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
         <div className="space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground">Adjustments</h3>
 
-          {isDemographic ? (
+          {isMrp ? (
+            <>
+              {/* MRP model: demographic group shift sliders */}
+              <p className="text-[10px] text-muted-foreground">
+                Bayesian posterior adjustments. Credible intervals reflect model uncertainty.
+              </p>
+              {([
+                { id: 'collegeShift', label: 'College-Educated Shift', value: collegeShift, desc: 'College degree areas' },
+                { id: 'urbanShift', label: 'Urban Shift', value: mrpUrbanShift, desc: '>3,000 people/sq mi' },
+                { id: 'ruralShift', label: 'Rural Shift', value: mrpRuralShift, desc: '<500 people/sq mi' },
+                { id: 'incomeShift', label: 'Income Effect Shift', value: incomeShift, desc: 'Income coefficient' },
+              ] as const).map(({ id, label, value, desc }) => (
+                <div key={id} className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs text-muted-foreground">{label}</label>
+                    <span
+                      className="text-sm font-semibold"
+                      style={{ color: value > 0 ? '#2166ac' : value < 0 ? '#b2182b' : undefined }}
+                    >
+                      {formatSwing(value)}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[value]}
+                    min={-10}
+                    max={10}
+                    step={0.5}
+                    onValueChange={([val]) => setParameter(id, val)}
+                    aria-label={`${label}: ${formatSwing(value)}`}
+                  />
+                  <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <span>R+10</span>
+                    <span>{desc}</span>
+                    <span>D+10</span>
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : isDemographic ? (
             <>
               {/* Demographic model: per-classification sliders */}
               {([
@@ -287,6 +338,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
               swingPoints === 0 &&
               turnoutChange === 0 &&
               !isDemographicDirty &&
+              !isMrpDirty &&
               REGIONAL_PARAM_KEYS.every(({ paramKey }) => (parameters[paramKey] as number ?? 0) === 0)
             }
           >
@@ -297,7 +349,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
         <Separator className="my-4" />
 
         {/* Regional Swing Sliders — only for uniform/proportional models */}
-        {!isDemographic && <div className="space-y-3">
+        {!isDemographic && !isMrp && <div className="space-y-3">
           <button
             className="flex w-full items-center justify-between text-sm font-medium text-muted-foreground"
             onClick={() => setShowRegional(!showRegional)}
@@ -363,6 +415,14 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
             ))}
           </div>
         </div>
+
+        {/* MRP model status — only when MRP is selected */}
+        {isMrp && (
+          <>
+            <Separator className="my-4" />
+            <MrpStatus />
+          </>
+        )}
 
         <Separator className="my-4" />
 

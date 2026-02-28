@@ -22,6 +22,13 @@ const DEMOGRAPHIC_URL_MAP: { urlKey: string; paramKey: string }[] = [
   { urlKey: 'rural', paramKey: 'ruralSwing' },
 ];
 
+const MRP_URL_MAP: { urlKey: string; paramKey: string }[] = [
+  { urlKey: 'college', paramKey: 'collegeShift' },
+  { urlKey: 'mrp_urban', paramKey: 'urbanShift' },
+  { urlKey: 'mrp_rural', paramKey: 'ruralShift' },
+  { urlKey: 'income', paramKey: 'incomeShift' },
+];
+
 export function useModelerUrlState() {
   const [searchParams, setSearchParams] = useSearchParams();
   const parameters = useModelStore((s) => s.parameters);
@@ -41,7 +48,7 @@ export function useModelerUrlState() {
     const turnout = searchParams.get('turnout');
     const model = searchParams.get('model');
 
-    if (model && (model === 'uniform-swing' || model === 'proportional-swing' || model === 'demographic-swing')) {
+    if (model && (model === 'uniform-swing' || model === 'proportional-swing' || model === 'demographic-swing' || model === 'mrp')) {
       setActiveModel(model);
     }
 
@@ -69,6 +76,14 @@ export function useModelerUrlState() {
     }
 
     for (const { urlKey, paramKey } of DEMOGRAPHIC_URL_MAP) {
+      const raw = searchParams.get(urlKey);
+      if (raw != null && raw !== '') {
+        const val = parseFloat(raw);
+        if (!isNaN(val)) setParameter(paramKey, val);
+      }
+    }
+
+    for (const { urlKey, paramKey } of MRP_URL_MAP) {
       const raw = searchParams.get(urlKey);
       if (raw != null && raw !== '') {
         const val = parseFloat(raw);
@@ -110,6 +125,13 @@ export function useModelerUrlState() {
     }
 
     for (const { urlKey, paramKey } of DEMOGRAPHIC_URL_MAP) {
+      const val = parameters[paramKey];
+      if (typeof val === 'number' && val !== 0) {
+        params.set(urlKey, String(val));
+      }
+    }
+
+    for (const { urlKey, paramKey } of MRP_URL_MAP) {
       const val = parameters[paramKey];
       if (typeof val === 'number' && val !== 0) {
         params.set(urlKey, String(val));
