@@ -6,7 +6,14 @@ from alembic import context
 
 from app.core.config import settings
 from app.core.database import Base
-from app.models import Ward, ElectionResult, WardTrend, WardDemographic  # noqa: F401
+from app.models import (  # noqa: F401
+    Ward,
+    ElectionResult,
+    WardTrend,
+    WardDemographic,
+    SpringElectionResult,
+    ElectionAggregation,
+)
 
 config = context.config
 

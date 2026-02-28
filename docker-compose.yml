@@ -25,19 +25,21 @@ services:
       timeout: 5s
       retries: 5
 
-  # Uncomment when ready to containerize the API:
-  # api:
-  #   build: ./packages/server
-  #   ports:
-  #     - "8000:8000"
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   environment:
-  #     DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@db:5432/wivote
-  #   command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+  api:
+    build: ./packages/server
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@db:5432/wivote
+    volumes:
+      - ./packages/server:/app
+      - ./data:/data
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:
   pgdata:
