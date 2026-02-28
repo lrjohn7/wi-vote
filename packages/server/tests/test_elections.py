@@ -1,20 +1,10 @@
 """Tests for election API endpoints."""
 import pytest
-from httpx import AsyncClient, ASGITransport
-
-from app.main import app
-
-
-@pytest.fixture
-def client():
-    transport = ASGITransport(app=app)
-    return AsyncClient(transport=transport, base_url="http://test")
 
 
 @pytest.mark.asyncio
 async def test_list_elections(client):
-    async with client as c:
-        response = await c.get("/api/v1/elections")
+    response = await client.get("/api/v1/elections")
     assert response.status_code == 200
     data = response.json()
     assert "elections" in data
@@ -23,8 +13,7 @@ async def test_list_elections(client):
 
 @pytest.mark.asyncio
 async def test_get_election_results(client):
-    async with client as c:
-        response = await c.get("/api/v1/elections/2020/president")
+    response = await client.get("/api/v1/elections/2020/president")
     assert response.status_code == 200
     data = response.json()
     assert "results" in data
@@ -33,8 +22,7 @@ async def test_get_election_results(client):
 
 @pytest.mark.asyncio
 async def test_get_map_data(client):
-    async with client as c:
-        response = await c.get("/api/v1/elections/map-data/2020/president")
+    response = await client.get("/api/v1/elections/map-data/2020/president")
     assert response.status_code == 200
     data = response.json()
     assert "year" in data
@@ -45,8 +33,7 @@ async def test_get_map_data(client):
 
 @pytest.mark.asyncio
 async def test_get_map_data_structure(client):
-    async with client as c:
-        response = await c.get("/api/v1/elections/map-data/2020/president")
+    response = await client.get("/api/v1/elections/map-data/2020/president")
     data = response.json()
     if data["wardCount"] > 0:
         # Check first ward entry has expected fields
