@@ -1,25 +1,12 @@
 import { useMemo, useState, useCallback } from 'react';
 import { WisconsinMap } from '@/shared/components/WisconsinMap';
 import { useTrendClassifications } from '../hooks/useTrends';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import type { MapDataResponse, WardMapEntry } from '@/features/election-map/hooks/useMapData';
 import type { TrendClassificationEntry } from '@/services/api';
 import { TrendInfoBanner } from './TrendInfoBanner';
 import { TrendLegend } from './TrendLegend';
 import { TrendHoverTooltip } from './TrendHoverTooltip';
 import { TrendSummaryDashboard } from './TrendSummaryDashboard';
-
-const RACE_OPTIONS = [
-  { label: 'President', value: 'president' },
-  { label: 'Governor', value: 'governor' },
-  { label: 'US Senate', value: 'us_senate' },
-];
 
 interface HoverState {
   wardId: string;
@@ -137,10 +124,9 @@ const EMPTY_STATS: SummaryStats = {
 };
 
 export function TrendMapOverlay() {
-  const [raceType, setRaceType] = useState('president');
   const [hover, setHover] = useState<HoverState | null>(null);
   const [visibleWardIds, setVisibleWardIds] = useState<string[]>([]);
-  const { data: classData, isLoading: classLoading } = useTrendClassifications(raceType);
+  const { data: classData, isLoading: classLoading } = useTrendClassifications('president');
 
   const mapData = useMemo(() => {
     if (!classData?.classifications) return undefined;
@@ -192,19 +178,7 @@ export function TrendMapOverlay() {
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-3 border-b bg-background px-4 py-2">
-        <span className="text-sm font-medium">Race:</span>
-        <Select value={raceType} onValueChange={setRaceType}>
-          <SelectTrigger className="w-40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {RACE_OPTIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value}>
-                {o.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <span className="text-sm font-medium">Presidential Election Trends</span>
         {isLoading && (
           <span className="text-xs text-muted-foreground">Loading...</span>
         )}
