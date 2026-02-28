@@ -170,19 +170,9 @@ export interface AreaTrendsResponse {
   trends: AreaTrendEntry[];
 }
 
-export interface TrendClassificationEntry {
-  direction: string;
-  slope: number | null;
-  p_value: number | null;
-  r_squared: number | null;
-  elections_analyzed: number | null;
-  start_year: number | null;
-  end_year: number | null;
-}
-
 export interface TrendClassificationsResponse {
   race_type: string;
-  classifications: Record<string, TrendClassificationEntry>;
+  classifications: Record<string, { direction: string; slope: number | null }>;
 }
 
 // ── API methods ──

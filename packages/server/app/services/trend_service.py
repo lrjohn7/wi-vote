@@ -152,16 +152,11 @@ class TrendService:
         return grouped
 
     async def classify_all(self, race_type: str = "president") -> dict:
-        """Compact {wardId: {direction, slope, stats}} map for map rendering."""
+        """Compact {wardId: {direction, slope}} map for map rendering."""
         stmt = select(
             WardTrend.ward_id,
             WardTrend.trend_direction,
             WardTrend.trend_slope,
-            WardTrend.trend_p_value,
-            WardTrend.trend_r_squared,
-            WardTrend.elections_analyzed,
-            WardTrend.start_year,
-            WardTrend.end_year,
         ).where(WardTrend.race_type == race_type)
 
         result = await self.db.execute(stmt)
@@ -172,11 +167,6 @@ class TrendService:
             classifications[row.ward_id] = {
                 "direction": row.trend_direction,
                 "slope": row.trend_slope,
-                "p_value": row.trend_p_value,
-                "r_squared": row.trend_r_squared,
-                "elections_analyzed": row.elections_analyzed,
-                "start_year": row.start_year,
-                "end_year": row.end_year,
             }
 
         return {"race_type": race_type, "classifications": classifications}
