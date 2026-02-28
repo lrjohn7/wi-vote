@@ -414,31 +414,28 @@ export const WisconsinMap = memo(function WisconsinMap({
     if (!m || !onVisibleWardsChange) return;
 
     const emitVisible = () => {
-      if (!layersAdded.current) return;
-      const features = m.queryRenderedFeatures(undefined, {
-        layers: [WARD_LAYER_FILL],
-      });
-      const ids = Array.from(
-        new Set(
-          features
-            .map((f) => f.properties?.ward_id as string | undefined)
-            .filter((id): id is string => !!id),
-        ),
-      );
-      onVisibleWardsChange(ids);
+      try {
+        if (!layersAdded.current) return;
+        const features = m.queryRenderedFeatures({ layers: [WARD_LAYER_FILL] });
+        const ids = Array.from(
+          new Set(
+            features
+              .map((f) => String(f.properties?.ward_id ?? ''))
+              .filter((id) => id !== ''),
+          ),
+        );
+        onVisibleWardsChange(ids);
+      } catch {
+        // queryRenderedFeatures can fail if tiles aren't loaded yet — safe to ignore
+      }
     };
 
     m.on('moveend', emitVisible);
-    // Also emit once data is loaded
-    m.on('load', emitVisible);
-    // Emit after a short delay for initial render (layers may already be loaded)
-    if (layersAdded.current) {
-      requestAnimationFrame(emitVisible);
-    }
+    m.on('idle', emitVisible);
 
     return () => {
       m.off('moveend', emitVisible);
-      m.off('load', emitVisible);
+      m.off('idle', emitVisible);
     };
   }, [onVisibleWardsChange]);
 
