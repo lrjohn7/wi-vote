@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi.responses import ORJSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -32,6 +32,7 @@ async def list_wards(
 
 @router.get("/boundaries")
 async def get_boundaries(
+    response: Response,
     vintage: int | None = None,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
@@ -40,6 +41,7 @@ async def get_boundaries(
     Used by the frontend map to render ward polygons.
     Features include ward_id as the 'id' field for setFeatureState.
     """
+    response.headers["Cache-Control"] = "public, max-age=604800"
     service = WardService(db)
     return await service.get_boundaries_geojson(vintage=vintage)
 

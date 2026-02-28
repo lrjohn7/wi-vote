@@ -19,7 +19,7 @@ export function UncertaintyOverlay({ uncertainty, visible }: UncertaintyOverlayP
   const lowConfidence = ranges.filter((r) => r > 25).length;
 
   return (
-    <div className="absolute right-4 top-16 z-10 w-48 rounded-lg bg-white/90 p-3 shadow-md backdrop-blur-sm">
+    <div className="glass-panel absolute right-4 top-16 z-10 w-48 p-3">
       <h4 className="mb-2 text-xs font-semibold text-muted-foreground">Uncertainty</h4>
       <div className="space-y-1 text-[10px] text-muted-foreground">
         <div className="flex justify-between">

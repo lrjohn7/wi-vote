@@ -30,7 +30,7 @@ export default function ElectionComparison() {
   return (
     <div className="flex h-full flex-col">
       {/* Top bar */}
-      <div className="flex flex-wrap items-center gap-4 border-b bg-background px-4 py-2">
+      <div className="flex flex-wrap items-center gap-4 border-b border-border/50 bg-background/80 px-5 py-2.5 backdrop-blur-sm">
         <h2 className="text-lg font-semibold">Compare Elections</h2>
 
         <ComparisonSelector
@@ -71,7 +71,10 @@ export default function ElectionComparison() {
         </div>
 
         {isLoading && (
-          <span className="text-sm text-muted-foreground">Loading...</span>
+          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" />
+            Loading
+          </span>
         )}
       </div>
 
@@ -81,7 +84,7 @@ export default function ElectionComparison() {
           <div className="flex h-full">
             {/* Election A */}
             <div className="relative flex-1 border-r">
-              <div className="absolute left-2 top-2 z-10 rounded bg-white/90 px-2 py-1 text-xs font-medium shadow">
+              <div className="glass-panel absolute left-2 top-2 z-10 px-3 py-1.5 text-sm font-semibold">
                 {yearA} {raceA}
               </div>
               <WisconsinMap
@@ -97,7 +100,7 @@ export default function ElectionComparison() {
 
             {/* Election B */}
             <div className="relative flex-1">
-              <div className="absolute left-2 top-2 z-10 rounded bg-white/90 px-2 py-1 text-xs font-medium shadow">
+              <div className="glass-panel absolute left-2 top-2 z-10 px-3 py-1.5 text-sm font-semibold">
                 {yearB} {raceB}
               </div>
               <WisconsinMap

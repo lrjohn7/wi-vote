@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   LineChart,
   Line,
@@ -16,7 +17,7 @@ interface TrendTimeSeriesProps {
   trend?: WardTrendInfo;
 }
 
-export function TrendTimeSeries({ elections, raceType, trend }: TrendTimeSeriesProps) {
+export const TrendTimeSeries = memo(function TrendTimeSeries({ elections, raceType, trend }: TrendTimeSeriesProps) {
   // Filter elections to the selected race type
   const filtered = elections
     .filter((e) => e.race_type === raceType)
@@ -56,6 +57,7 @@ export function TrendTimeSeries({ elections, raceType, trend }: TrendTimeSeriesP
         : '#888';
 
   return (
+    <div className="rounded-xl border bg-card p-4 shadow-sm">
     <ResponsiveContainer width="100%" height={280}>
       <LineChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -100,5 +102,6 @@ export function TrendTimeSeries({ elections, raceType, trend }: TrendTimeSeriesP
         )}
       </LineChart>
     </ResponsiveContainer>
+    </div>
   );
-}
+});

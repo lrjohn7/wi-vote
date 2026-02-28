@@ -5,6 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
   --color-wi-blue: #2166ac;
   --color-wi-red: #b2182b;
   --color-wi-blue-light: #67a9cf;
@@ -15,6 +16,7 @@
 body {
   margin: 0;
   min-height: 100vh;
+  font-family: var(--font-sans);
 }
 
 #root {
@@ -139,5 +141,11 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply rounded-xl border border-white/20 bg-white/85 shadow-lg backdrop-blur-md;
   }
 }

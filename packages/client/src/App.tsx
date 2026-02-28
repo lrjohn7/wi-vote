@@ -20,22 +20,22 @@ export default function App() {
       >
         Skip to content
       </a>
-      <header role="banner" className="flex h-14 items-center gap-6 border-b bg-background px-4">
-        <NavLink to="/" className="flex items-center gap-2 font-bold">
+      <header role="banner" className="sticky top-0 z-50 flex h-16 items-center gap-6 border-b border-border/50 bg-background/80 px-6 shadow-sm backdrop-blur-md">
+        <NavLink to="/" className="flex items-center gap-1 text-lg font-bold tracking-tight">
           <span className="text-wi-blue">WI</span>
           <span className="text-wi-red">-Vote</span>
         </NavLink>
-        <nav role="navigation" aria-label="Main navigation" className="flex items-center gap-1">
+        <nav role="navigation" aria-label="Main navigation" className="flex items-center overflow-x-auto rounded-lg bg-muted/50 p-1">
           {navItems.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors ${
+                `flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm transition-all duration-200 ${
                   isActive
-                    ? 'bg-accent font-medium text-accent-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-background font-semibold text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-background/50 hover:text-foreground'
                 }`
               }
             >

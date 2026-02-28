@@ -28,12 +28,15 @@ export function WardDetailPanel() {
   if (!selectedWardId) return null;
 
   return (
-    <div className="absolute right-0 top-0 z-10 flex h-full w-96 flex-col border-l bg-white shadow-lg">
+    <div className="absolute right-0 top-0 z-10 flex h-full w-[420px] flex-col border-l bg-background/95 shadow-lg backdrop-blur-sm animate-in slide-in-from-right-full duration-300">
       {/* Header */}
-      <div className="flex items-start justify-between p-4">
+      <div className="flex items-start justify-between px-5 py-4">
         <div className="min-w-0 flex-1">
           {isLoading ? (
-            <div className="h-6 w-48 animate-pulse rounded bg-muted" />
+            <div className="space-y-2">
+              <div className="h-6 w-48 animate-pulse rounded bg-muted" />
+              <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+            </div>
           ) : ward ? (
             <>
               <h3 className="truncate text-lg font-semibold">{ward.ward_name}</h3>
@@ -115,7 +118,7 @@ export function WardDetailPanel() {
                     return (
                       <div
                         key={`${e.election_year}-${e.race_type}`}
-                        className="rounded-lg border p-3"
+                        className="rounded-xl border p-3 transition-shadow duration-200 hover:shadow-md"
                       >
                         <div className="mb-1.5 flex items-center justify-between">
                           <span className="text-sm font-medium">

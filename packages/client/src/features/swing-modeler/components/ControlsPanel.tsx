@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -125,7 +126,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
         {allModels.length > 1 && (
           <>
             <div className="space-y-2">
-              <h3 className="text-sm font-medium text-muted-foreground">Model</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Model</h3>
               <Select value={activeModelId} onValueChange={handleModelChange}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Model" />
@@ -138,7 +139,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {allModels.find((m) => m.id === activeModelId)?.description}
               </p>
             </div>
@@ -147,8 +148,8 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
         )}
 
         {/* Base Election Selection */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium text-muted-foreground">Base Election</h3>
+        <div className="space-y-3 rounded-lg bg-muted/30 p-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Base Election</h3>
 
           <div className="space-y-2">
             <label className="text-xs text-muted-foreground">Year</label>
@@ -202,13 +203,13 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
         <Separator className="my-4" />
 
         {/* Swing Sliders */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium text-muted-foreground">Adjustments</h3>
+        <div className="space-y-3 rounded-lg bg-muted/30 p-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Adjustments</h3>
 
           {isMrp ? (
             <>
               {/* MRP model: demographic group shift sliders */}
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Bayesian posterior adjustments. Credible intervals reflect model uncertainty.
               </p>
               {([
@@ -235,7 +236,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
                     onValueChange={([val]) => setParameter(id, val)}
                     aria-label={`${label}: ${formatSwing(value)}`}
                   />
-                  <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <div className="flex justify-between text-xs text-muted-foreground">
                     <span>R+10</span>
                     <span>{desc}</span>
                     <span>D+10</span>
@@ -269,7 +270,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
                     onValueChange={([val]) => setParameter(id, val)}
                     aria-label={`${label}: ${formatSwing(value)}`}
                   />
-                  <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <div className="flex justify-between text-xs text-muted-foreground">
                     <span>R+10</span>
                     <span>{desc}</span>
                     <span>D+10</span>
@@ -298,7 +299,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
                   onValueChange={([val]) => setParameter('swingPoints', val)}
                   aria-label={`Statewide swing: ${formatSwing(swingPoints)}`}
                 />
-                <div className="flex justify-between text-[10px] text-muted-foreground">
+                <div className="flex justify-between text-xs text-muted-foreground">
                   <span>R+15</span>
                   <span>Even</span>
                   <span>D+15</span>
@@ -322,7 +323,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
               onValueChange={([val]) => setParameter('turnoutChange', val)}
               aria-label={`Turnout change: ${formatTurnout(turnoutChange)}`}
             />
-            <div className="flex justify-between text-[10px] text-muted-foreground">
+            <div className="flex justify-between text-xs text-muted-foreground">
               <span>-30%</span>
               <span>0</span>
               <span>+30%</span>
@@ -351,18 +352,22 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
         {/* Regional Swing Sliders — only for uniform/proportional models */}
         {!isDemographic && !isMrp && <div className="space-y-3">
           <button
-            className="flex w-full items-center justify-between text-sm font-medium text-muted-foreground"
+            className="flex w-full items-center justify-between text-xs font-semibold uppercase tracking-wider text-muted-foreground"
             onClick={() => setShowRegional(!showRegional)}
             aria-expanded={showRegional}
             aria-controls="regional-swing-panel"
           >
             <span>Regional Swing</span>
-            <span className="text-xs">{showRegional ? '[-]' : '[+]'}</span>
+            {showRegional ? (
+              <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+            ) : (
+              <ChevronRight className="h-4 w-4 transition-transform duration-200" />
+            )}
           </button>
 
           {showRegional && (
             <div id="regional-swing-panel" className="space-y-3">
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Additional offset applied on top of statewide swing.
               </p>
               {REGIONAL_PARAM_KEYS.map(({ region, paramKey }) => {
@@ -399,7 +404,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
 
         {/* Scenario Presets */}
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-muted-foreground">Scenarios</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Scenarios</h3>
           <div className="grid grid-cols-2 gap-1.5">
             {scenarioPresets.map((preset) => (
               <Button

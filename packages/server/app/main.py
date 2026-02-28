@@ -3,6 +3,7 @@ from collections.abc import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 from app.core.config import settings
 from app.api.v1.router import api_router
@@ -20,6 +21,9 @@ app = FastAPI(
     version=settings.app_version,
     lifespan=lifespan,
 )
+
+# GZip compression — biggest win for boundaries GeoJSON (~25MB → ~3MB)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # CORS
 app.add_middleware(

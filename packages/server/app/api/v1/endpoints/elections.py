@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -9,9 +9,11 @@ router = APIRouter(prefix="/elections", tags=["elections"])
 
 @router.get("")
 async def list_elections(
+    response: Response,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """List all available elections (years + race types)."""
+    response.headers["Cache-Control"] = "public, max-age=3600"
     service = ElectionService(db)
     elections = await service.list_elections()
     return {"elections": elections}
@@ -41,6 +43,7 @@ async def get_election_results(
 async def get_map_data(
     year: int,
     race_type: str,
+    response: Response,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Get ward results optimized for map rendering.
@@ -48,5 +51,6 @@ async def get_map_data(
     Returns compact dict keyed by ward_id with demPct/repPct/margin/totalVotes.
     Designed for efficient setFeatureState updates on the frontend.
     """
+    response.headers["Cache-Control"] = "public, max-age=86400"
     service = ElectionService(db)
     return await service.get_map_data(year, race_type)

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import type { Prediction } from '@/types/election';
@@ -68,7 +68,7 @@ function AggregationTable({ rows }: { rows: AggregatedResult[] }) {
   );
 }
 
-export function ResultsSummary({ predictions, baseMapData, wardMetadata }: ResultsSummaryProps) {
+export const ResultsSummary = memo(function ResultsSummary({ predictions, baseMapData, wardMetadata }: ResultsSummaryProps) {
   if (!predictions || predictions.length === 0) {
     return (
       <div className="text-sm text-muted-foreground">
@@ -123,10 +123,13 @@ export function ResultsSummary({ predictions, baseMapData, wardMetadata }: Resul
       <h3 className="text-sm font-medium text-muted-foreground">Projected Results</h3>
 
       {/* Winner + Margin */}
-      <div className="rounded-lg border p-3">
+      <div
+        className="rounded-lg border p-3 shadow-sm"
+        style={{ backgroundColor: `${winnerColor}08` }}
+      >
         <div className="text-center">
           <div
-            className="text-2xl font-bold"
+            className="text-3xl font-extrabold"
             style={{ color: winnerColor }}
           >
             {formatMargin(margin)}
@@ -228,4 +231,4 @@ export function ResultsSummary({ predictions, baseMapData, wardMetadata }: Resul
       )}
     </div>
   );
-}
+});

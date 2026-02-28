@@ -303,10 +303,13 @@ export default function SwingModeler() {
   return (
     <div className="flex h-full flex-col">
       {/* Top bar */}
-      <div className="flex items-center gap-4 border-b bg-background px-4 py-2">
+      <div className="flex items-center gap-4 border-b border-border/50 bg-background/80 px-5 py-2.5 backdrop-blur-sm">
         <h2 className="text-lg font-semibold">Swing Modeler</h2>
         {isComputing && (
-          <span className="text-sm text-muted-foreground">Computing...</span>
+          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+            Computing
+          </span>
         )}
         {mapData && !isComputing && (
           <span className="text-sm text-muted-foreground">
@@ -314,7 +317,10 @@ export default function SwingModeler() {
           </span>
         )}
         {dataLoading && (
-          <span className="text-sm text-muted-foreground">Loading base data...</span>
+          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" />
+            Loading base data
+          </span>
         )}
         <div className="ml-auto flex items-center gap-2">
           <label className="flex items-center gap-1.5 text-sm text-muted-foreground">

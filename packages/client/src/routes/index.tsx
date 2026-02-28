@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
 import App from '@/App';
+import { MapPageSkeleton, SidebarPageSkeleton, ContentPageSkeleton } from '@/shared/components/PageSkeleton';
 
 const ElectionMap = lazy(() => import('@/features/election-map'));
 const WardExplorer = lazy(() => import('@/features/ward-explorer'));
@@ -11,14 +12,6 @@ const WardReport = lazy(() => import('@/features/ward-report'));
 const ElectionComparison = lazy(() => import('@/features/election-comparison'));
 const DataManager = lazy(() => import('@/features/data-manager'));
 
-function Loading() {
-  return (
-    <div className="flex h-64 items-center justify-center text-muted-foreground">
-      Loading...
-    </div>
-  );
-}
-
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -28,7 +21,7 @@ export const router = createBrowserRouter([
       {
         path: 'map',
         element: (
-          <Suspense fallback={<Loading />}>
+          <Suspense fallback={<MapPageSkeleton />}>
             <ElectionMap />
           </Suspense>
         ),
@@ -36,7 +29,7 @@ export const router = createBrowserRouter([
       {
         path: 'wards',
         element: (
-          <Suspense fallback={<Loading />}>
+          <Suspense fallback={<SidebarPageSkeleton />}>
             <WardExplorer />
           </Suspense>
         ),
@@ -44,7 +37,7 @@ export const router = createBrowserRouter([
       {
         path: 'supreme-court',
         element: (
-          <Suspense fallback={<Loading />}>
+          <Suspense fallback={<ContentPageSkeleton />}>
             <SupremeCourt />
           </Suspense>
         ),
@@ -52,7 +45,7 @@ export const router = createBrowserRouter([
       {
         path: 'wards/report',
         element: (
-          <Suspense fallback={<Loading />}>
+          <Suspense fallback={<ContentPageSkeleton />}>
             <WardReport />
           </Suspense>
         ),
@@ -60,7 +53,7 @@ export const router = createBrowserRouter([
       {
         path: 'wards/:wardId/report',
         element: (
-          <Suspense fallback={<Loading />}>
+          <Suspense fallback={<ContentPageSkeleton />}>
             <WardReport />
           </Suspense>
         ),
@@ -68,7 +61,7 @@ export const router = createBrowserRouter([
       {
         path: 'trends',
         element: (
-          <Suspense fallback={<Loading />}>
+          <Suspense fallback={<ContentPageSkeleton />}>
             <Trends />
           </Suspense>
         ),
@@ -76,7 +69,7 @@ export const router = createBrowserRouter([
       {
         path: 'modeler',
         element: (
-          <Suspense fallback={<Loading />}>
+          <Suspense fallback={<MapPageSkeleton />}>
             <SwingModeler />
           </Suspense>
         ),
@@ -84,7 +77,7 @@ export const router = createBrowserRouter([
       {
         path: 'compare',
         element: (
-          <Suspense fallback={<Loading />}>
+          <Suspense fallback={<MapPageSkeleton />}>
             <ElectionComparison />
           </Suspense>
         ),
@@ -92,7 +85,7 @@ export const router = createBrowserRouter([
       {
         path: 'data',
         element: (
-          <Suspense fallback={<Loading />}>
+          <Suspense fallback={<ContentPageSkeleton />}>
             <DataManager />
           </Suspense>
         ),

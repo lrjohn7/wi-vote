@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, memo } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Protocol } from 'pmtiles';
@@ -42,7 +42,7 @@ interface WisconsinMapProps {
 
 const WARD_SOURCE_LAYER = 'wards';
 
-export function WisconsinMap({
+export const WisconsinMap = memo(function WisconsinMap({
   mapData,
   selectedWardId,
   onWardClick,
@@ -441,4 +441,4 @@ export function WisconsinMap({
       tabIndex={0}
     />
   );
-}
+});

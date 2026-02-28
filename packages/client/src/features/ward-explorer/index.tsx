@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import { MapPin, ClipboardList } from 'lucide-react';
+import { MapPin, ClipboardList, Search as SearchIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -156,15 +156,39 @@ export default function WardExplorer() {
       {/* Right panel: Ward detail */}
       <div className="flex-1 overflow-auto p-6">
         {detailLoading && selectedWardId && (
-          <div className="flex h-full items-center justify-center">
-            <p className="text-muted-foreground">Loading ward details...</p>
+          <div className="mx-auto max-w-3xl space-y-4 p-6">
+            <div className="h-8 w-64 animate-pulse rounded-lg bg-muted" />
+            <div className="h-4 w-48 animate-pulse rounded bg-muted" />
+            <div className="mt-4 flex gap-2">
+              <div className="h-6 w-16 animate-pulse rounded-full bg-muted" />
+              <div className="h-6 w-16 animate-pulse rounded-full bg-muted" />
+              <div className="h-6 w-16 animate-pulse rounded-full bg-muted" />
+            </div>
+            <div className="grid gap-3 pt-4 sm:grid-cols-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="space-y-2 rounded-xl border p-4">
+                  <div className="flex justify-between">
+                    <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+                    <div className="h-4 w-12 animate-pulse rounded bg-muted" />
+                  </div>
+                  <div className="h-2.5 w-full animate-pulse rounded-full bg-muted" />
+                  <div className="flex justify-between">
+                    <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+                    <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {!selectedWardId && (
           <div className="flex h-full items-center justify-center text-center">
-            <div>
-              <h3 className="text-lg font-medium text-muted-foreground">
+            <div className="flex flex-col items-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <SearchIcon className="h-7 w-7 text-muted-foreground/60" />
+              </div>
+              <h3 className="mt-4 text-lg font-medium text-muted-foreground">
                 Select a ward to view details
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -249,7 +273,7 @@ export default function WardExplorer() {
                           : 'Even';
 
                     return (
-                      <Card key={`${e.election_year}-${e.race_type}`}>
+                      <Card key={`${e.election_year}-${e.race_type}`} className="transition-shadow duration-200 hover:shadow-md">
                         <CardHeader className="pb-2">
                           <CardTitle className="flex items-center justify-between text-sm">
                             <span>

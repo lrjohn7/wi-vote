@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { useBulkWardElections } from '../hooks/useBulkWardElections';
 import type { AreaTrendEntry, TrendElection } from '@/services/api';
@@ -11,7 +11,7 @@ interface TrendSparklineGridProps {
 
 type SortMode = 'ward_id' | 'slope_asc' | 'slope_desc';
 
-function MiniSparkline({
+const MiniSparkline = memo(function MiniSparkline({
   elections,
   raceType,
   direction,
@@ -106,7 +106,7 @@ function MiniSparkline({
       <circle cx={110} cy={clampEnd} r={2.5} fill={color} />
     </svg>
   );
-}
+});
 
 export function TrendSparklineGrid({
   trends,
@@ -176,7 +176,7 @@ export function TrendSparklineGrid({
         {displayed.map((t) => (
           <div
             key={t.ward_id}
-            className="rounded border p-1.5"
+            className="rounded-lg border bg-card p-2 shadow-sm transition-shadow duration-200 hover:shadow-md"
             title={`${t.ward_id}: ${t.direction} (slope: ${t.slope?.toFixed(2) ?? 'N/A'})`}
           >
             <MiniSparkline
