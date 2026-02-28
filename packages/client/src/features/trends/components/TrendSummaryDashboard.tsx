@@ -29,7 +29,10 @@ export const TrendSummaryDashboard = memo(function TrendSummaryDashboard({
 
   return (
     <div className="glass-panel absolute right-4 top-16 z-10 w-56 p-3">
-      <h4 className="mb-2 text-xs font-semibold text-foreground">Trend Summary</h4>
+      <h4 className="mb-0.5 text-xs font-semibold text-foreground">Trend Summary</h4>
+      <p className="mb-2 text-[9px] text-muted-foreground">
+        {total.toLocaleString()} wards in view
+      </p>
 
       {/* Stacked bar */}
       <div className="flex h-3 w-full overflow-hidden rounded-full">

@@ -38,6 +38,8 @@ interface WisconsinMapProps {
   viewState?: MapViewState | null;
   /** Called when the user moves the map */
   onMove?: (viewState: MapViewState) => void;
+  /** Called when the set of visible wards changes (after pan/zoom) */
+  onVisibleWardsChange?: (wardIds: string[]) => void;
 }
 
 const WARD_SOURCE_LAYER = 'wards';
@@ -50,6 +52,7 @@ export const WisconsinMap = memo(function WisconsinMap({
   wardOpacities,
   viewState,
   onMove,
+  onVisibleWardsChange,
 }: WisconsinMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -404,6 +407,40 @@ export const WisconsinMap = memo(function WisconsinMap({
       m.off('moveend', handleMoveEnd);
     };
   }, [onMove]);
+
+  // Emit visible ward IDs after pan/zoom
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !onVisibleWardsChange) return;
+
+    const emitVisible = () => {
+      if (!layersAdded.current) return;
+      const features = m.queryRenderedFeatures(undefined, {
+        layers: [WARD_LAYER_FILL],
+      });
+      const ids = Array.from(
+        new Set(
+          features
+            .map((f) => f.properties?.ward_id as string | undefined)
+            .filter((id): id is string => !!id),
+        ),
+      );
+      onVisibleWardsChange(ids);
+    };
+
+    m.on('moveend', emitVisible);
+    // Also emit once data is loaded
+    m.on('load', emitVisible);
+    // Emit after a short delay for initial render (layers may already be loaded)
+    if (layersAdded.current) {
+      requestAnimationFrame(emitVisible);
+    }
+
+    return () => {
+      m.off('moveend', emitVisible);
+      m.off('load', emitVisible);
+    };
+  }, [onVisibleWardsChange]);
 
   // Respond to external viewState changes (from synced map)
   useEffect(() => {

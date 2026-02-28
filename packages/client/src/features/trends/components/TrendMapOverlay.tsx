@@ -131,9 +131,15 @@ function computeSummary(
   };
 }
 
+const EMPTY_STATS: SummaryStats = {
+  demCount: 0, repCount: 0, incCount: 0,
+  avgDemSlope: null, avgRepSlope: null, minYear: null, maxYear: null,
+};
+
 export function TrendMapOverlay() {
   const [raceType, setRaceType] = useState('president');
   const [hover, setHover] = useState<HoverState | null>(null);
+  const [visibleWardIds, setVisibleWardIds] = useState<string[]>([]);
   const { data: classData, isLoading: classLoading } = useTrendClassifications(raceType);
 
   const mapData = useMemo(() => {
@@ -141,12 +147,17 @@ export function TrendMapOverlay() {
     return trendToMapData(classData.classifications);
   }, [classData]);
 
-  const summaryStats = useMemo<SummaryStats>(() => {
-    if (!classData?.classifications) {
-      return { demCount: 0, repCount: 0, incCount: 0, avgDemSlope: null, avgRepSlope: null, minYear: null, maxYear: null };
+  // Viewport-scoped summary: only count wards currently visible on the map
+  const viewportStats = useMemo<SummaryStats>(() => {
+    if (!classData?.classifications || visibleWardIds.length === 0) return EMPTY_STATS;
+    const filtered: Record<string, TrendClassificationEntry> = {};
+    for (const id of visibleWardIds) {
+      if (classData.classifications[id]) {
+        filtered[id] = classData.classifications[id];
+      }
     }
-    return computeSummary(classData.classifications);
-  }, [classData]);
+    return computeSummary(filtered);
+  }, [classData, visibleWardIds]);
 
   const handleWardClick = useCallback(() => {
     // No-op for trend map; could add detail panel in future
@@ -166,6 +177,10 @@ export function TrendMapOverlay() {
     },
     [],
   );
+
+  const handleVisibleWardsChange = useCallback((wardIds: string[]) => {
+    setVisibleWardIds(wardIds);
+  }, []);
 
   const hoveredClassification: TrendClassificationEntry | null =
     hover && classData?.classifications?.[hover.wardId]
@@ -208,17 +223,18 @@ export function TrendMapOverlay() {
           selectedWardId={null}
           onWardClick={handleWardClick}
           onWardHover={handleWardHover}
+          onVisibleWardsChange={handleVisibleWardsChange}
         />
 
         <TrendLegend
-          demCount={summaryStats.demCount}
-          repCount={summaryStats.repCount}
-          incCount={summaryStats.incCount}
-          minYear={summaryStats.minYear}
-          maxYear={summaryStats.maxYear}
+          demCount={viewportStats.demCount}
+          repCount={viewportStats.repCount}
+          incCount={viewportStats.incCount}
+          minYear={viewportStats.minYear}
+          maxYear={viewportStats.maxYear}
         />
 
-        <TrendSummaryDashboard stats={summaryStats} />
+        <TrendSummaryDashboard stats={viewportStats} />
 
         <TrendHoverTooltip
           point={hover?.point ?? null}
