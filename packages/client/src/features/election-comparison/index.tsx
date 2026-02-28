@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import { WisconsinMap, type MapViewState } from '@/shared/components/WisconsinMap';
-import { useWardBoundaries } from '@/features/election-map/hooks/useWardBoundaries';
 import { MapLegend } from '@/features/election-map/components/MapLegend';
 import { ComparisonSelector } from './components/ComparisonSelector';
 import { DifferenceMap } from './components/DifferenceMap';
@@ -17,7 +16,6 @@ export default function ElectionComparison() {
   const [viewMode, setViewMode] = useState<ViewMode>('side-by-side');
   const [syncedView, setSyncedView] = useState<MapViewState | null>(null);
 
-  const { data: boundaries, isLoading: boundariesLoading } = useWardBoundaries();
   const { mapDataA, mapDataB, diffData, isLoading } = useComparisonData(
     yearA, raceA, yearB, raceB,
   );
@@ -79,13 +77,7 @@ export default function ElectionComparison() {
 
       {/* Map content */}
       <div className="flex-1 overflow-hidden">
-        {boundariesLoading && (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
-            Loading ward boundaries...
-          </div>
-        )}
-
-        {!boundariesLoading && viewMode === 'side-by-side' && (
+        {viewMode === 'side-by-side' && (
           <div className="flex h-full">
             {/* Election A */}
             <div className="relative flex-1 border-r">
@@ -93,7 +85,6 @@ export default function ElectionComparison() {
                 {yearA} {raceA}
               </div>
               <WisconsinMap
-                boundariesGeoJSON={boundaries}
                 mapData={mapDataA}
                 onWardClick={handleWardClickA}
                 viewState={syncedView}
@@ -110,7 +101,6 @@ export default function ElectionComparison() {
                 {yearB} {raceB}
               </div>
               <WisconsinMap
-                boundariesGeoJSON={boundaries}
                 mapData={mapDataB}
                 onWardClick={handleWardClickB}
                 viewState={syncedView}
@@ -123,9 +113,8 @@ export default function ElectionComparison() {
           </div>
         )}
 
-        {!boundariesLoading && viewMode === 'difference' && (
+        {viewMode === 'difference' && (
           <DifferenceMap
-            boundariesGeoJSON={boundaries}
             diffData={diffData}
           />
         )}

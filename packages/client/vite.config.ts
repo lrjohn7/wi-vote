@@ -15,7 +15,18 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         runtimeCaching: [
           {
-            // Cache ward boundaries aggressively
+            // Cache PMTiles range requests aggressively
+            urlPattern: /\/tiles\/.*\.pmtiles/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'ward-tiles',
+              expiration: {
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+            },
+          },
+          {
+            // Cache ward boundaries API (still used by swing modeler for metadata)
             urlPattern: /\/api\/v1\/wards\/boundaries/,
             handler: 'CacheFirst',
             options: {

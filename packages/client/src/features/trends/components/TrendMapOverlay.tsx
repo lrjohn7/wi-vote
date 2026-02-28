@@ -1,6 +1,5 @@
 import { useMemo, useState, useCallback } from 'react';
 import { WisconsinMap } from '@/shared/components/WisconsinMap';
-import { useWardBoundaries } from '@/features/election-map/hooks/useWardBoundaries';
 import { useTrendClassifications } from '../hooks/useTrends';
 import {
   Select,
@@ -64,7 +63,6 @@ function trendToMapData(
 
 export function TrendMapOverlay() {
   const [raceType, setRaceType] = useState('president');
-  const { data: boundaries, isLoading: boundariesLoading } = useWardBoundaries();
   const { data: classData, isLoading: classLoading } = useTrendClassifications(raceType);
 
   const mapData = useMemo(() => {
@@ -76,7 +74,7 @@ export function TrendMapOverlay() {
     // No-op for trend map; could add detail panel in future
   }, []);
 
-  const isLoading = boundariesLoading || classLoading;
+  const isLoading = classLoading;
 
   return (
     <div className="flex h-full flex-col">
@@ -105,7 +103,6 @@ export function TrendMapOverlay() {
       </div>
       <div className="relative flex-1">
         <WisconsinMap
-          boundariesGeoJSON={boundaries}
           mapData={mapData}
           selectedWardId={null}
           onWardClick={handleWardClick}

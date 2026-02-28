@@ -1,0 +1,21 @@
+FROM ubuntu:24.04
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        tippecanoe \
+        curl \
+        ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install pmtiles CLI (Go binary)
+ARG PMTILES_VERSION=1.22.5
+RUN ARCH=$(dpkg --print-architecture) && \
+    curl -fsSL "https://github.com/protomaps/go-pmtiles/releases/download/v${PMTILES_VERSION}/go-pmtiles_${PMTILES_VERSION}_Linux_${ARCH}.tar.gz" \
+    | tar -xz -C /usr/local/bin pmtiles
+
+WORKDIR /data
+
+COPY scripts/generate_tiles.sh /usr/local/bin/generate_tiles.sh
+RUN chmod +x /usr/local/bin/generate_tiles.sh
+
+ENTRYPOINT ["bash", "/usr/local/bin/generate_tiles.sh"]

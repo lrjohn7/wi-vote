@@ -12,21 +12,21 @@ const WISCONSIN_BOUNDS: [[number, number], [number, number]] = [
 ];
 
 const WARD_SOURCE = 'wards';
+const WARD_SOURCE_LAYER = 'wards';
 const WARD_LAYER_FILL = 'ward-fills';
 const WARD_LAYER_LINE = 'ward-lines';
 
 let protocolAdded = false;
 
 interface DifferenceMapProps {
-  boundariesGeoJSON?: GeoJSON.FeatureCollection | null;
   diffData: DiffMapData | null;
 }
 
-export function DifferenceMap({ boundariesGeoJSON, diffData }: DifferenceMapProps) {
+export function DifferenceMap({ diffData }: DifferenceMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const mapLoaded = useRef(false);
-  const boundariesAdded = useRef(false);
+  const layersAdded = useRef(false);
   const prevDiffRef = useRef<DiffMapData | null>(null);
 
   useEffect(() => {
@@ -53,51 +53,21 @@ export function DifferenceMap({ boundariesGeoJSON, diffData }: DifferenceMapProp
     });
 
     m.addControl(new maplibregl.NavigationControl(), 'top-right');
-    m.on('load', () => { mapLoaded.current = true; });
-    map.current = m;
 
-    return () => {
-      map.current?.remove();
-      map.current = null;
-      mapLoaded.current = false;
-      boundariesAdded.current = false;
-    };
-  }, []);
-
-  const applyDiffData = useCallback((m: maplibregl.Map, data: DiffMapData | null) => {
-    if (prevDiffRef.current) {
-      for (const wardId of Object.keys(prevDiffRef.current.data)) {
-        m.removeFeatureState({ source: WARD_SOURCE, id: wardId });
-      }
-    }
-    if (data) {
-      for (const [wardId, entry] of Object.entries(data.data)) {
-        m.setFeatureState(
-          { source: WARD_SOURCE, id: wardId },
-          { diffMargin: entry.diffMargin },
-        );
-      }
-    }
-    prevDiffRef.current = data;
-  }, []);
-
-  useEffect(() => {
-    const m = map.current;
-    if (!m || !boundariesGeoJSON) return;
-
-    const addLayers = () => {
-      if (boundariesAdded.current) return;
+    m.on('load', () => {
+      mapLoaded.current = true;
 
       m.addSource(WARD_SOURCE, {
-        type: 'geojson',
-        data: boundariesGeoJSON,
-        promoteId: 'ward_id',
+        type: 'vector',
+        url: 'pmtiles:///tiles/wards.pmtiles',
+        promoteId: { [WARD_SOURCE_LAYER]: 'ward_id' },
       });
 
       m.addLayer({
         id: WARD_LAYER_FILL,
         type: 'fill',
         source: WARD_SOURCE,
+        'source-layer': WARD_SOURCE_LAYER,
         paint: {
           'fill-color': diffChoroplethFillColor,
           'fill-opacity': 0.75,
@@ -108,6 +78,7 @@ export function DifferenceMap({ boundariesGeoJSON, diffData }: DifferenceMapProp
         id: WARD_LAYER_LINE,
         type: 'line',
         source: WARD_SOURCE,
+        'source-layer': WARD_SOURCE_LAYER,
         paint: {
           'line-color': '#666',
           'line-width': ['interpolate', ['linear'], ['zoom'], 7, 0.1, 10, 0.5, 14, 1],
@@ -115,21 +86,48 @@ export function DifferenceMap({ boundariesGeoJSON, diffData }: DifferenceMapProp
         },
       });
 
-      boundariesAdded.current = true;
+      layersAdded.current = true;
+    });
 
-      if (diffData) {
-        applyDiffData(m, diffData);
-      }
+    map.current = m;
+
+    return () => {
+      map.current?.remove();
+      map.current = null;
+      mapLoaded.current = false;
+      layersAdded.current = false;
     };
+  }, []);
 
-    if (mapLoaded.current) addLayers();
-    else m.on('load', addLayers);
-  }, [boundariesGeoJSON, diffData, applyDiffData]);
+  const applyDiffData = useCallback((m: maplibregl.Map, data: DiffMapData | null) => {
+    if (prevDiffRef.current) {
+      for (const wardId of Object.keys(prevDiffRef.current.data)) {
+        m.removeFeatureState({ source: WARD_SOURCE, sourceLayer: WARD_SOURCE_LAYER, id: wardId });
+      }
+    }
+    if (data) {
+      for (const [wardId, entry] of Object.entries(data.data)) {
+        m.setFeatureState(
+          { source: WARD_SOURCE, sourceLayer: WARD_SOURCE_LAYER, id: wardId },
+          { diffMargin: entry.diffMargin },
+        );
+      }
+    }
+    prevDiffRef.current = data;
+  }, []);
 
+  // Apply diff data via setFeatureState once layers are ready
   useEffect(() => {
     const m = map.current;
-    if (!m || !boundariesAdded.current) return;
-    applyDiffData(m, diffData);
+    if (!m) return;
+
+    if (layersAdded.current) {
+      applyDiffData(m, diffData);
+    } else {
+      const onLoad = () => applyDiffData(m, diffData);
+      m.on('load', onLoad);
+      return () => { m.off('load', onLoad); };
+    }
   }, [diffData, applyDiffData]);
 
   return (

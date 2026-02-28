@@ -10,12 +10,26 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DATA_DIR="$(dirname "$SCRIPT_DIR")"
+# When running in Docker, /data is the mount point.
+# When running locally, derive paths from script location.
+if [ -d "/data/processed" ]; then
+    DATA_DIR="/data"
+else
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    DATA_DIR="$(dirname "$SCRIPT_DIR")"
+fi
+
 INPUT="$DATA_DIR/processed/wards_clean.geojson"
 OUTPUT_MBTILES="$DATA_DIR/processed/wards.mbtiles"
 OUTPUT_PMTILES="$DATA_DIR/processed/wards.pmtiles"
-DEST="$SCRIPT_DIR/../../packages/client/public/tiles/wards.pmtiles"
+
+# OUTPUT_DIR env var overrides the default destination (used by Docker)
+if [ -n "${OUTPUT_DIR:-}" ]; then
+    DEST="$OUTPUT_DIR/wards.pmtiles"
+else
+    SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+    DEST="$SCRIPT_DIR/../../packages/client/public/tiles/wards.pmtiles"
+fi
 
 if ! command -v tippecanoe &>/dev/null; then
     echo "ERROR: tippecanoe is not installed."

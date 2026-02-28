@@ -308,7 +308,6 @@ export default function SwingModeler() {
           )}
 
           <WisconsinMap
-            boundariesGeoJSON={boundaries}
             mapData={mapData}
             selectedWardId={selectedWardId}
             onWardClick={handleWardClick}

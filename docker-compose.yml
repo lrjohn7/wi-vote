@@ -81,5 +81,24 @@ services:
                 sys.exit(result.returncode)
         print('\nAll data loaded successfully.')
 
+  tiles:
+    build:
+      context: ./data
+      dockerfile: Dockerfile.tiles
+    profiles: ["tiles"]
+    volumes:
+      - ./data:/data
+      - ./packages/client/public/tiles:/output
+    environment:
+      OUTPUT_DIR: /output
+
+  client:
+    build: ./packages/client
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
 volumes:
   pgdata:

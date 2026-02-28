@@ -24,7 +24,6 @@ export interface MapViewState {
 }
 
 interface WisconsinMapProps {
-  boundariesGeoJSON?: GeoJSON.FeatureCollection | null;
   mapData?: MapDataResponse | null;
   selectedWardId?: string | null;
   onWardClick?: (wardId: string, properties: Record<string, unknown>) => void;
@@ -41,8 +40,9 @@ interface WisconsinMapProps {
   onMove?: (viewState: MapViewState) => void;
 }
 
+const WARD_SOURCE_LAYER = 'wards';
+
 export function WisconsinMap({
-  boundariesGeoJSON,
   mapData,
   selectedWardId,
   onWardClick,
@@ -54,7 +54,7 @@ export function WisconsinMap({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const mapLoaded = useRef(false);
-  const boundariesAdded = useRef(false);
+  const layersAdded = useRef(false);
   const prevMapDataRef = useRef<MapDataResponse | null>(null);
   const prevSelectedRef = useRef<string | null>(null);
   const prevOpacityWardIds = useRef<string[]>([]);
@@ -92,6 +92,71 @@ export function WisconsinMap({
 
     m.on('load', () => {
       mapLoaded.current = true;
+
+      // Add PMTiles vector source
+      m.addSource(WARD_SOURCE, {
+        type: 'vector',
+        url: 'pmtiles:///tiles/wards.pmtiles',
+        promoteId: { [WARD_SOURCE_LAYER]: 'ward_id' },
+      });
+
+      // Choropleth fill layer
+      m.addLayer({
+        id: WARD_LAYER_FILL,
+        type: 'fill',
+        source: WARD_SOURCE,
+        'source-layer': WARD_SOURCE_LAYER,
+        paint: {
+          'fill-color': choroplethFillColor,
+          'fill-opacity': [
+            'coalesce',
+            ['feature-state', 'opacity'],
+            0.75,
+          ],
+        },
+      });
+
+      // Ward boundary lines
+      m.addLayer({
+        id: WARD_LAYER_LINE,
+        type: 'line',
+        source: WARD_SOURCE,
+        'source-layer': WARD_SOURCE_LAYER,
+        paint: {
+          'line-color': '#666',
+          'line-width': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            7, 0.1,
+            10, 0.5,
+            14, 1,
+          ],
+          'line-opacity': 0.4,
+        },
+      });
+
+      // Selected ward highlight
+      m.addLayer({
+        id: WARD_LAYER_HIGHLIGHT,
+        type: 'line',
+        source: WARD_SOURCE,
+        'source-layer': WARD_SOURCE_LAYER,
+        paint: {
+          'line-color': '#000',
+          'line-width': 3,
+          'line-opacity': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            1,
+            ['boolean', ['feature-state', 'hovered'], false],
+            0.7,
+            0,
+          ],
+        },
+      });
+
+      layersAdded.current = true;
     });
 
     map.current = m;
@@ -100,7 +165,7 @@ export function WisconsinMap({
       map.current?.remove();
       map.current = null;
       mapLoaded.current = false;
-      boundariesAdded.current = false;
+      layersAdded.current = false;
     };
   }, []);
 
@@ -137,7 +202,7 @@ export function WisconsinMap({
     // Clear previous feature states
     if (prevMapDataRef.current) {
       for (const wardId of Object.keys(prevMapDataRef.current.data)) {
-        m.removeFeatureState({ source: WARD_SOURCE, id: wardId });
+        m.removeFeatureState({ source: WARD_SOURCE, sourceLayer: WARD_SOURCE_LAYER, id: wardId });
       }
     }
 
@@ -145,7 +210,7 @@ export function WisconsinMap({
     if (data) {
       for (const [wardId, entry] of Object.entries(data.data)) {
         m.setFeatureState(
-          { source: WARD_SOURCE, id: wardId },
+          { source: WARD_SOURCE, sourceLayer: WARD_SOURCE_LAYER, id: wardId },
           {
             demPct: entry.demPct,
             repPct: entry.repPct,
@@ -160,104 +225,30 @@ export function WisconsinMap({
     prevMapDataRef.current = data ?? null;
   }, [hasDataChanged]);
 
-  // Add/update GeoJSON source when boundaries load
+  // Apply election data via setFeatureState once layers are ready
   useEffect(() => {
     const m = map.current;
-    if (!m || !boundariesGeoJSON) return;
+    if (!m) return;
 
-    const addLayers = () => {
-      if (boundariesAdded.current) return;
-
-      m.addSource(WARD_SOURCE, {
-        type: 'geojson',
-        data: boundariesGeoJSON,
-        promoteId: 'ward_id',
-      });
-
-      // Choropleth fill layer
-      m.addLayer({
-        id: WARD_LAYER_FILL,
-        type: 'fill',
-        source: WARD_SOURCE,
-        paint: {
-          'fill-color': choroplethFillColor,
-          'fill-opacity': [
-            'coalesce',
-            ['feature-state', 'opacity'],
-            0.75,
-          ],
-        },
-      });
-
-      // Ward boundary lines
-      m.addLayer({
-        id: WARD_LAYER_LINE,
-        type: 'line',
-        source: WARD_SOURCE,
-        paint: {
-          'line-color': '#666',
-          'line-width': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            7, 0.1,
-            10, 0.5,
-            14, 1,
-          ],
-          'line-opacity': 0.4,
-        },
-      });
-
-      // Selected ward highlight
-      m.addLayer({
-        id: WARD_LAYER_HIGHLIGHT,
-        type: 'line',
-        source: WARD_SOURCE,
-        paint: {
-          'line-color': '#000',
-          'line-width': 3,
-          'line-opacity': [
-            'case',
-            ['boolean', ['feature-state', 'selected'], false],
-            1,
-            ['boolean', ['feature-state', 'hovered'], false],
-            0.7,
-            0,
-          ],
-        },
-      });
-
-      boundariesAdded.current = true;
-
-      // Apply any mapData that arrived before boundaries were ready
-      if (mapData) {
-        applyMapData(m, mapData);
-      }
-    };
-
-    if (mapLoaded.current) {
-      addLayers();
+    if (layersAdded.current) {
+      applyMapData(m, mapData);
     } else {
-      m.on('load', addLayers);
+      // Layers added on 'load' — wait for that, then apply
+      const onLoad = () => applyMapData(m, mapData);
+      m.on('load', onLoad);
+      return () => { m.off('load', onLoad); };
     }
-  }, [boundariesGeoJSON, mapData, applyMapData]);
-
-  // Apply election data via setFeatureState
-  useEffect(() => {
-    const m = map.current;
-    if (!m || !boundariesAdded.current) return;
-    applyMapData(m, mapData);
   }, [mapData, applyMapData]);
 
   // Apply per-ward opacity overrides (uncertainty visualization)
   useEffect(() => {
     const m = map.current;
-    if (!m || !boundariesAdded.current) return;
+    if (!m || !layersAdded.current) return;
 
     // Clear previous opacity states
     for (const wardId of prevOpacityWardIds.current) {
       m.setFeatureState(
-        { source: WARD_SOURCE, id: wardId },
+        { source: WARD_SOURCE, sourceLayer: WARD_SOURCE_LAYER, id: wardId },
         { opacity: null },
       );
     }
@@ -266,7 +257,7 @@ export function WisconsinMap({
       const wardIds = Object.keys(wardOpacities);
       for (const wardId of wardIds) {
         m.setFeatureState(
-          { source: WARD_SOURCE, id: wardId },
+          { source: WARD_SOURCE, sourceLayer: WARD_SOURCE_LAYER, id: wardId },
           { opacity: wardOpacities[wardId] },
         );
       }
@@ -279,19 +270,19 @@ export function WisconsinMap({
   // Update selected ward highlight
   useEffect(() => {
     const m = map.current;
-    if (!m || !boundariesAdded.current) return;
+    if (!m || !layersAdded.current) return;
 
     // Clear previous selection
     if (prevSelectedRef.current) {
       m.setFeatureState(
-        { source: WARD_SOURCE, id: prevSelectedRef.current },
+        { source: WARD_SOURCE, sourceLayer: WARD_SOURCE_LAYER, id: prevSelectedRef.current },
         { selected: false },
       );
     }
 
     if (selectedWardId) {
       m.setFeatureState(
-        { source: WARD_SOURCE, id: selectedWardId },
+        { source: WARD_SOURCE, sourceLayer: WARD_SOURCE_LAYER, id: selectedWardId },
         { selected: true },
       );
     }
@@ -339,7 +330,7 @@ export function WisconsinMap({
       // Clear previous hover
       if (hoveredId) {
         m.setFeatureState(
-          { source: WARD_SOURCE, id: hoveredId },
+          { source: WARD_SOURCE, sourceLayer: WARD_SOURCE_LAYER, id: hoveredId },
           { hovered: false },
         );
       }
@@ -350,7 +341,7 @@ export function WisconsinMap({
         if (wardId) {
           hoveredId = wardId;
           m.setFeatureState(
-            { source: WARD_SOURCE, id: wardId },
+            { source: WARD_SOURCE, sourceLayer: WARD_SOURCE_LAYER, id: wardId },
             { hovered: true },
           );
           m.getCanvas().style.cursor = 'pointer';
@@ -374,7 +365,7 @@ export function WisconsinMap({
     const handleLeave = () => {
       if (hoveredId) {
         m.setFeatureState(
-          { source: WARD_SOURCE, id: hoveredId },
+          { source: WARD_SOURCE, sourceLayer: WARD_SOURCE_LAYER, id: hoveredId },
           { hovered: false },
         );
         hoveredId = null;

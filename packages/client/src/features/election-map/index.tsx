@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { WisconsinMap } from '@/shared/components/WisconsinMap';
 import { useMapStore } from '@/stores/mapStore';
 import { useUrlState } from '@/shared/hooks/useUrlState';
-import { useWardBoundaries } from './hooks/useWardBoundaries';
 import { useMapData } from './hooks/useMapData';
 import { ElectionSelector } from './components/ElectionSelector';
 import { MapLegend } from './components/MapLegend';
@@ -27,9 +26,6 @@ export default function ElectionMap() {
 
   // Sync map state with URL params
   useUrlState();
-
-  // Fetch ward boundaries (once, cached forever)
-  const { data: boundaries, isLoading: boundariesLoading } = useWardBoundaries();
 
   // Fetch election data for map coloring
   const { data: mapData, isLoading: mapDataLoading } = useMapData(
@@ -87,16 +83,7 @@ export default function ElectionMap() {
 
       {/* Map area */}
       <div className="relative flex-1">
-        {boundariesLoading && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/50">
-            <div className="rounded-lg bg-white p-4 shadow-lg">
-              Loading ward boundaries...
-            </div>
-          </div>
-        )}
-
         <WisconsinMap
-          boundariesGeoJSON={boundaries}
           mapData={mapData}
           selectedWardId={selectedWardId}
           onWardClick={handleWardClick}
