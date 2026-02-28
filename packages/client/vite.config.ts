@@ -13,18 +13,11 @@ export default defineConfig({
       manifest: false, // We use our own manifest.json in public/
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Exclude PMTiles from service worker — Range requests are
+        // incompatible with CacheFirst (wrong bytes served from cache).
+        // Nginx already sets Cache-Control: public, immutable on /tiles/.
+        navigateFallbackDenylist: [/\/tiles\//],
         runtimeCaching: [
-          {
-            // Cache PMTiles range requests aggressively
-            urlPattern: /\/tiles\/.*\.pmtiles/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'ward-tiles',
-              expiration: {
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
-              },
-            },
-          },
           {
             // Cache ward boundaries API (still used by swing modeler for metadata)
             urlPattern: /\/api\/v1\/wards\/boundaries/,
