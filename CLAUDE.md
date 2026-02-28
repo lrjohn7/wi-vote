@@ -923,3 +923,26 @@ VITE_FF_PWA=false
 10. **Iterate in this order:** Data pipeline → Map rendering → Ward detail → Election switching → Trends → Modeling. Each step builds on the last and is independently testable.
 
 11. **Post-push TODO summary.** After every `git push` to GitHub, review the Build Phases above against what has been implemented and print a concise checklist of remaining TODO items, organized by phase. Mark completed items with checkmarks and incomplete items with empty boxes. Only include phases that have remaining work.
+
+---
+
+## Known Railway Deployment Issues
+
+### Nginx DNS Caching (Critical)
+**Problem:** Nginx resolves the API upstream hostname (`api.railway.internal`) once at startup and caches the IP indefinitely. When the API service restarts on Railway, it gets a new internal IP. The client's nginx keeps routing to the dead IP, causing 504 timeouts on all API requests. The app appears partially functional because the PWA service worker serves cached data for previously-visited pages.
+
+**Fix (implemented):** The client Dockerfile extracts the container's DNS resolver from `/etc/resolv.conf` at startup and injects it into nginx.conf via `envsubst`. The nginx config uses a `set $api_upstream` variable with `resolver $DNS_RESOLVER valid=10s;` so nginx re-resolves the hostname every 10 seconds instead of caching forever.
+
+**Files:**
+- `packages/client/nginx.conf` — `resolver` directive + variable-based `proxy_pass`
+- `packages/client/Dockerfile` — CMD extracts nameserver from `/etc/resolv.conf`
+
+**Fallback:** If the dynamic resolver fails, manually restart the client service on Railway to force nginx to re-resolve DNS.
+
+### Service Worker Caching Error Responses
+**Problem:** The workbox `NetworkFirst` strategy cached HTTP error responses (504, 500). When the API was temporarily unavailable during a deploy, the 504 response was cached. Subsequent requests served the cached 504 even after the API recovered.
+
+**Fix (implemented):** Added `cacheableResponse: { statuses: [0, 200] }` to all workbox runtime caching rules so only successful responses are cached. Also added `skipWaiting: true` so new service workers activate immediately instead of waiting for all tabs to close.
+
+**Files:**
+- `packages/client/vite.config.ts` — workbox `cacheableResponse` + `skipWaiting` config
