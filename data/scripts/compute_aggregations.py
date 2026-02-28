@@ -65,7 +65,7 @@ def compute_county_aggregations(conn) -> int:
             COUNT(DISTINCT er.ward_id),
             NOW()
         FROM election_results er
-        JOIN wards w ON er.ward_id = w.ward_id
+        JOIN wards w ON er.ward_id = w.ward_id AND er.ward_vintage = w.ward_vintage
         GROUP BY w.county, er.election_year, er.race_type
     """)
 

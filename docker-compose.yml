@@ -68,6 +68,8 @@ services:
         scripts = [
             '/data/scripts/load_database.py',
             '/data/scripts/load_demographics.py',
+            '/data/scripts/compute_aggregations.py',
+            '/data/scripts/backfill_districts.py',
         ]
         for s in scripts:
             print(f'\n{"="*60}')
