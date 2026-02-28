@@ -22,10 +22,10 @@ RUN mkdir -p app && touch app/__init__.py \
 # Copy application code
 COPY . .
 
-# Entrypoint runs migrations then starts the app
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+# Fix line endings on entrypoint (safety net for Windows checkouts)
+RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+
+ENTRYPOINT ["/app/entrypoint.sh"]
 
 EXPOSE 8000
 

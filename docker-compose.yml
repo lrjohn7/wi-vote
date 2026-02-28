@@ -10,10 +10,12 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d wivote"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
@@ -24,6 +26,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   api:
     build: ./packages/server
@@ -38,9 +41,43 @@ services:
       DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@db:5432/wivote
       API_CORS_ORIGINS: ${API_CORS_ORIGINS:-http://localhost:5173}
     volumes:
-      - ./packages/server:/app
+      - ./packages/server/app:/app/app
+      - ./packages/server/alembic:/app/alembic
+      - ./packages/server/alembic.ini:/app/alembic.ini
       - ./data:/data
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+  seed:
+    build: ./packages/server
+    profiles: ["seed"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:${POSTGRES_PASSWORD:-password}@db:5432/wivote
+    volumes:
+      - ./data:/data
+      - ./packages/server/app:/app/app
+    working_dir: /app
+    entrypoint: ["python"]
+    command:
+      - "-c"
+      - |
+        import subprocess, sys
+        scripts = [
+            '/data/scripts/load_database.py',
+            '/data/scripts/load_demographics.py',
+        ]
+        for s in scripts:
+            print(f'\n{"="*60}')
+            print(f'Running {s}')
+            print(f'{"="*60}')
+            result = subprocess.run([sys.executable, s], env={**__import__('os').environ})
+            if result.returncode != 0:
+                print(f'FAILED: {s}')
+                sys.exit(result.returncode)
+        print('\nAll data loaded successfully.')
 
 volumes:
   pgdata:

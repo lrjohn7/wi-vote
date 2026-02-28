@@ -14,11 +14,13 @@ class ReportCardService:
 
     async def get_report_card(self, ward_id: str, race_type: str = "president") -> dict | None:
         """Build a full report card for a ward."""
-        # Fetch ward with elections
+        # Fetch ward with elections (latest vintage)
         stmt = (
             select(Ward)
             .options(selectinload(Ward.election_results))
             .where(Ward.ward_id == ward_id)
+            .order_by(Ward.ward_vintage.desc())
+            .limit(1)
         )
         result = await self.db.execute(stmt)
         ward = result.scalar_one_or_none()

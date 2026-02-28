@@ -50,8 +50,10 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("ward_id"),
+        sa.UniqueConstraint("ward_id", "ward_vintage", name="uq_ward_id_vintage"),
     )
+    # Note: GeoAlchemy2 auto-creates a GiST spatial index (idx_wards_geom)
+    # when the Geometry column is created via op.create_table()
     op.create_index("idx_wards_county", "wards", ["county"])
     op.create_index("idx_wards_municipality", "wards", ["municipality"])
     op.create_index("idx_wards_vintage", "wards", ["ward_vintage"])
@@ -76,7 +78,11 @@ def upgrade() -> None:
         sa.Column("data_source", sa.String(length=100), nullable=True),
         sa.Column("ward_vintage", sa.Integer(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
-        sa.ForeignKeyConstraint(["ward_id"], ["wards.ward_id"]),
+        sa.ForeignKeyConstraint(
+            ["ward_id", "ward_vintage"],
+            ["wards.ward_id", "wards.ward_vintage"],
+            name="fk_results_ward_vintage",
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
             "ward_id",
@@ -203,4 +209,5 @@ def downgrade() -> None:
     op.drop_index("idx_wards_vintage", table_name="wards")
     op.drop_index("idx_wards_municipality", table_name="wards")
     op.drop_index("idx_wards_county", table_name="wards")
+    # idx_wards_geom (spatial) is auto-dropped by GeoAlchemy2 with the table
     op.drop_table("wards")

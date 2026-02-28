@@ -1,6 +1,8 @@
 from datetime import date, datetime
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String, UniqueConstraint, Index
+from sqlalchemy import (
+    Boolean, ForeignKeyConstraint, Integer, String, UniqueConstraint, Index,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -11,7 +13,7 @@ class ElectionResult(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     ward_id: Mapped[str] = mapped_column(
-        String(50), ForeignKey("wards.ward_id"), nullable=False, index=True
+        String(50), nullable=False, index=True
     )
     election_year: Mapped[int] = mapped_column(Integer, nullable=False)
     election_date: Mapped[date | None] = mapped_column()
@@ -50,6 +52,11 @@ class ElectionResult(Base):
         return (self.dem_votes - self.rep_votes) / self.total_votes * 100
 
     __table_args__ = (
+        ForeignKeyConstraint(
+            ["ward_id", "ward_vintage"],
+            ["wards.ward_id", "wards.ward_vintage"],
+            name="fk_results_ward_vintage",
+        ),
         Index("idx_results_year_race", "election_year", "race_type"),
         Index("idx_results_vintage", "ward_vintage"),
         UniqueConstraint(

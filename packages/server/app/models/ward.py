@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from geoalchemy2 import Geometry
-from sqlalchemy import Boolean, Float, Index, Integer, String
+from sqlalchemy import Boolean, Float, Index, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -11,7 +11,7 @@ class Ward(Base):
     __tablename__ = "wards"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    ward_id: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    ward_id: Mapped[str] = mapped_column(String(50), nullable=False)
     ward_name: Mapped[str] = mapped_column(String(255), nullable=False)
     municipality: Mapped[str] = mapped_column(String(255), nullable=False)
     municipality_type: Mapped[str | None] = mapped_column(String(20))
@@ -37,6 +37,7 @@ class Ward(Base):
     )
 
     __table_args__ = (
+        UniqueConstraint("ward_id", "ward_vintage", name="uq_ward_id_vintage"),
         Index("idx_wards_geom", "geom", postgresql_using="gist"),
         Index("idx_wards_vintage", "ward_vintage"),
         Index("idx_wards_county", "county"),

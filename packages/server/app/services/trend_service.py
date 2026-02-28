@@ -73,7 +73,11 @@ class TrendService:
         # Build filter by joining ward_trends with wards
         stmt = (
             select(WardTrend)
-            .join(Ward, Ward.ward_id == WardTrend.ward_id)
+            .join(
+                Ward,
+                (Ward.ward_id == WardTrend.ward_id)
+                & (Ward.ward_vintage == WardTrend.ward_vintage),
+            )
         )
 
         if county:

@@ -93,7 +93,11 @@ class AggregationService:
                 func.sum(ElectionResult.total_votes).label("total_votes"),
                 func.count(ElectionResult.id).label("ward_count"),
             )
-            .join(Ward, Ward.ward_id == ElectionResult.ward_id)
+            .join(
+                Ward,
+                (Ward.ward_id == ElectionResult.ward_id)
+                & (Ward.ward_vintage == ElectionResult.ward_vintage),
+            )
             .where(
                 district_col == district_id,
                 ElectionResult.election_year == year,

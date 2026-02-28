@@ -45,7 +45,11 @@ class ElectionService:
         if county:
             # Join to wards to filter by county
             from app.models.ward import Ward
-            stmt = stmt.join(Ward, ElectionResult.ward_id == Ward.ward_id).where(
+            stmt = stmt.join(
+                Ward,
+                (ElectionResult.ward_id == Ward.ward_id)
+                & (ElectionResult.ward_vintage == Ward.ward_vintage),
+            ).where(
                 Ward.county.ilike(f"%{county}%")
             )
 

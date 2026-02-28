@@ -90,7 +90,7 @@ def load_wards(conn, vintage: int) -> int:
             county_supervisory_district, ward_vintage, geom, area_sq_miles,
             is_estimated, created_at, updated_at
         ) VALUES %s
-        ON CONFLICT (ward_id) DO UPDATE SET
+        ON CONFLICT ON CONSTRAINT uq_ward_id_vintage DO UPDATE SET
             ward_name = EXCLUDED.ward_name,
             municipality = EXCLUDED.municipality,
             municipality_type = EXCLUDED.municipality_type,
@@ -98,7 +98,6 @@ def load_wards(conn, vintage: int) -> int:
             congressional_district = EXCLUDED.congressional_district,
             state_senate_district = EXCLUDED.state_senate_district,
             assembly_district = EXCLUDED.assembly_district,
-            ward_vintage = EXCLUDED.ward_vintage,
             geom = EXCLUDED.geom,
             area_sq_miles = EXCLUDED.area_sq_miles,
             is_estimated = EXCLUDED.is_estimated,

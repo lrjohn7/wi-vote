@@ -57,13 +57,21 @@ class WardService:
             "page_size": page_size,
         }
 
-    async def get_by_id(self, ward_id: str) -> dict | None:
-        """Get a single ward by ID with all election results."""
+    async def get_by_id(self, ward_id: str, vintage: int | None = None) -> dict | None:
+        """Get a single ward by ID with all election results.
+
+        If vintage is not specified, returns the most recent vintage.
+        """
         stmt = (
             select(Ward)
             .options(selectinload(Ward.election_results))
             .where(Ward.ward_id == ward_id)
         )
+        if vintage:
+            stmt = stmt.where(Ward.ward_vintage == vintage)
+        else:
+            stmt = stmt.order_by(Ward.ward_vintage.desc())
+        stmt = stmt.limit(1)
         result = await self.db.execute(stmt)
         ward = result.scalar_one_or_none()
 
@@ -106,15 +114,22 @@ class WardService:
             ),
         }
 
-    async def geocode(self, lat: float, lng: float) -> dict | None:
-        """Find the ward containing the given point."""
+    async def geocode(self, lat: float, lng: float, vintage: int | None = None) -> dict | None:
+        """Find the ward containing the given point.
+
+        If vintage is not specified, returns the most recent vintage match.
+        """
         point = ST_SetSRID(ST_MakePoint(lng, lat), 4326)
         stmt = (
             select(Ward)
             .options(selectinload(Ward.election_results))
             .where(ST_Contains(Ward.geom, point))
-            .limit(1)
         )
+        if vintage:
+            stmt = stmt.where(Ward.ward_vintage == vintage)
+        else:
+            stmt = stmt.order_by(Ward.ward_vintage.desc())
+        stmt = stmt.limit(1)
         result = await self.db.execute(stmt)
         ward = result.scalar_one_or_none()
 

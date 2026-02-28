@@ -99,11 +99,12 @@ async def get_ward_report_card(
 @router.get("/{ward_id}")
 async def get_ward(
     ward_id: str,
+    vintage: int | None = None,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Get a single ward with all election results."""
     service = WardService(db)
-    ward = await service.get_by_id(ward_id)
+    ward = await service.get_by_id(ward_id, vintage=vintage)
     if not ward:
         raise HTTPException(status_code=404, detail=f"Ward {ward_id} not found")
     return ward
