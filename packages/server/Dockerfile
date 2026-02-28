@@ -12,12 +12,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libproj-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Install Python dependencies first (layer caching)
+# Create minimal package structure so setuptools can resolve the project
 COPY pyproject.toml ./
-RUN pip install --no-cache-dir -e ".[migration]"
+RUN mkdir -p app && touch app/__init__.py \
+    && pip install --no-cache-dir ".[migration]" \
+    && rm -rf app
 
 # Copy application code
 COPY . .
+
+# Entrypoint runs migrations then starts the app
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 8000
 
