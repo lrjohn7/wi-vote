@@ -51,7 +51,10 @@ services:
     restart: unless-stopped
 
   celery-worker:
-    build: ./packages/server
+    build:
+      context: ./packages/server
+      args:
+        INSTALL_EXTRAS: ".[all,migration]"
     depends_on:
       db:
         condition: service_healthy
@@ -61,6 +64,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@db:5432/wivote
       REDIS_URL: redis://redis:6379/0
       MRP_TRACES_DIR: /data/mrp_traces
+      SKIP_MIGRATIONS: "true"
     volumes:
       - ./packages/server/app:/app/app
       - ./packages/server/alembic:/app/alembic

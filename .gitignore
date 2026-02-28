@@ -54,8 +54,9 @@ data/processed/*
 *.mbtiles
 *.pmtiles
 
-# Tiles (generated, large)
-packages/client/public/tiles/*.pmtiles
+# Tiles (generated, large) — wards.pmtiles is committed for Railway deployment
+# packages/client/public/tiles/*.pmtiles
+!packages/client/public/tiles/wards.pmtiles
 
 # Testing
 coverage/

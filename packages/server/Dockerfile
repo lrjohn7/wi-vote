@@ -14,10 +14,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies first (layer caching)
-# Create minimal package structure so setuptools can resolve the project
+# Default installs base + migration deps; celery-worker overrides with ".[all,migration]"
+ARG INSTALL_EXTRAS=".[migration]"
 COPY pyproject.toml ./
 RUN mkdir -p app && touch app/__init__.py \
-    && pip install --no-cache-dir ".[migration]" \
+    && pip install --no-cache-dir "${INSTALL_EXTRAS}" \
     && rm -rf app
 
 # Copy application code
