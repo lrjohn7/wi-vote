@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+# Allow celery workers (or other services) to skip DB wait and migrations
+if [ "$SKIP_MIGRATIONS" = "true" ]; then
+    echo "Skipping DB wait and migrations (SKIP_MIGRATIONS=true)"
+    exec "$@"
+fi
+
 # Wait for PostgreSQL to be fully ready (init scripts complete, accepting queries)
 echo "Waiting for database..."
 MAX_RETRIES=30
