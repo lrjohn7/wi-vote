@@ -931,11 +931,13 @@ VITE_FF_PWA=false
 ### Nginx DNS Caching (Critical)
 **Problem:** Nginx resolves the API upstream hostname (`api.railway.internal`) once at startup and caches the IP indefinitely. When the API service restarts on Railway, it gets a new internal IP. The client's nginx keeps routing to the dead IP, causing 504 timeouts on all API requests. The app appears partially functional because the PWA service worker serves cached data for previously-visited pages.
 
-**Fix (implemented):** The client Dockerfile extracts the container's DNS resolver from `/etc/resolv.conf` at startup and injects it into nginx.conf via `envsubst`. The nginx config uses a `set $api_upstream` variable with `resolver $DNS_RESOLVER valid=10s;` so nginx re-resolves the hostname every 10 seconds instead of caching forever.
+**Fix (implemented):** The nginx config uses `resolver [fd12::10] ipv6=on valid=5s;` (Railway's internal IPv6 DNS server) with a `set $api_upstream` variable so nginx re-resolves the hostname every 5 seconds instead of caching forever. The `DNS_RESOLVER` env var defaults to `[fd12::10]` in the Dockerfile, with a fallback to `/etc/resolv.conf` for local Docker Compose.
 
 **Files:**
-- `packages/client/nginx.conf` — `resolver` directive + variable-based `proxy_pass`
-- `packages/client/Dockerfile` — CMD extracts nameserver from `/etc/resolv.conf`
+- `packages/client/nginx.conf` — `resolver` directive at server level + variable-based `proxy_pass`
+- `packages/client/Dockerfile` — `ENV DNS_RESOLVER=[fd12::10]` + CMD envsubst pipeline
+
+**Key detail:** Railway uses IPv6 networking internally. The DNS resolver is `fd12::10` (not a standard IPv4 nameserver). The `ipv6=on` flag is required. The `resolver` directive must be at the `server` level (not inside `location`) so the `set $api_upstream` variable benefits from DNS re-resolution.
 
 **Fallback:** If the dynamic resolver fails, manually restart the client service on Railway to force nginx to re-resolve DNS.
 

@@ -15,6 +15,7 @@ COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 ENV API_UPSTREAM=http://api:8000
 ENV PORT=80
+ENV DNS_RESOLVER=[fd12::10]
 
 EXPOSE 80
-CMD ["/bin/sh", "-c", "export DNS_RESOLVER=$(awk '/^nameserver/{print $2; exit}' /etc/resolv.conf) && envsubst '${API_UPSTREAM} ${PORT} ${DNS_RESOLVER}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+CMD ["/bin/sh", "-c", "DNS_RESOLVER=${DNS_RESOLVER:-$(awk '/^nameserver/{print $2; exit}' /etc/resolv.conf)} && export DNS_RESOLVER && envsubst '${API_UPSTREAM} ${PORT} ${DNS_RESOLVER}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
