@@ -12,6 +12,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       manifest: false, // We use our own manifest.json in public/
       workbox: {
+        skipWaiting: true,
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         // Exclude PMTiles from service worker — Range requests are
         // incompatible with CacheFirst (wrong bytes served from cache).
