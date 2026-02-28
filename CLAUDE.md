@@ -921,3 +921,5 @@ VITE_FF_PWA=false
 9. **URL-driven state.** Election year, race type, selected ward, model parameters — all should be reflected in the URL so users can share specific views.
 
 10. **Iterate in this order:** Data pipeline → Map rendering → Ward detail → Election switching → Trends → Modeling. Each step builds on the last and is independently testable.
+
+11. **Post-push TODO summary.** After every `git push` to GitHub, review the Build Phases above against what has been implemented and print a concise checklist of remaining TODO items, organized by phase. Mark completed items with checkmarks and incomplete items with empty boxes. Only include phases that have remaining work.
