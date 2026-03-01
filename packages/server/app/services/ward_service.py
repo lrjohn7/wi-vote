@@ -150,10 +150,21 @@ class WardService:
         }
 
     async def search(self, query: str, limit: int = 20) -> list[dict]:
-        """Search wards by name or municipality."""
+        """Search wards by name or municipality.
+
+        Deduplicates across ward vintages by keeping only the most
+        recent vintage for each ward_id.
+        """
         pattern = f"%{query}%"
-        stmt = (
-            select(Ward)
+
+        # Subquery: rank rows per ward_id by vintage descending
+        ranked = (
+            select(
+                Ward.id,
+                func.row_number()
+                .over(partition_by=Ward.ward_id, order_by=Ward.ward_vintage.desc())
+                .label("rn"),
+            )
             .where(
                 or_(
                     Ward.ward_name.ilike(pattern),
@@ -161,6 +172,13 @@ class WardService:
                     Ward.county.ilike(pattern),
                 )
             )
+            .subquery()
+        )
+
+        stmt = (
+            select(Ward)
+            .join(ranked, Ward.id == ranked.c.id)
+            .where(ranked.c.rn == 1)
             .order_by(Ward.ward_name)
             .limit(limit)
         )

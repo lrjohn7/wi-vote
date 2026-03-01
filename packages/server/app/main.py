@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
 from app.core.config import settings
+from app.core.rate_limit import RateLimitMiddleware
 from app.api.v1.router import api_router
 
 
@@ -20,6 +21,14 @@ app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     lifespan=lifespan,
+)
+
+# Rate limiting — 120 req/min default, 30 req/min for expensive endpoints
+app.add_middleware(
+    RateLimitMiddleware,
+    max_requests=120,
+    window_seconds=60,
+    expensive_paths=["/api/v1/wards/boundaries", "/api/v1/elections/map-data"],
 )
 
 # GZip compression — biggest win for boundaries GeoJSON (~25MB → ~3MB)

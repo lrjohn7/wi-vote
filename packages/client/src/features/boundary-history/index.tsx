@@ -119,7 +119,9 @@ export default function BoundaryHistory() {
 
         {/* Map area */}
         <div className="relative flex-1">
-          <WisconsinMap />
+          <WisconsinMap
+            overlayGeoJSON={comparisonBoundaries ?? null}
+          />
 
           {/* Comparison GeoJSON overlay rendered as an info card */}
           {comparisonVintage && comparisonBoundaries && (

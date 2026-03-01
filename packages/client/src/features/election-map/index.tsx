@@ -7,6 +7,7 @@ import { ElectionSelector } from './components/ElectionSelector';
 import { MapLegend } from './components/MapLegend';
 import { WardTooltip } from './components/WardTooltip';
 import { WardDetailPanel } from './components/WardDetailPanel';
+import { MetricToggle } from './components/MetricToggle';
 
 interface TooltipState {
   wardId: string;
@@ -21,6 +22,7 @@ export default function ElectionMap() {
   const activeElection = useMapStore((s) => s.activeElection);
   const selectedWardId = useMapStore((s) => s.selectedWardId);
   const setSelectedWard = useMapStore((s) => s.setSelectedWard);
+  const displayMetric = useMapStore((s) => s.displayMetric);
 
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
@@ -82,6 +84,9 @@ export default function ElectionMap() {
             {mapData.wardCount.toLocaleString()} wards
           </span>
         )}
+        <div className="ml-auto rounded-lg bg-content2/60 p-0.5">
+          <MetricToggle />
+        </div>
       </div>
 
       {/* Map area */}
@@ -91,6 +96,7 @@ export default function ElectionMap() {
           selectedWardId={selectedWardId}
           onWardClick={handleWardClick}
           onWardHover={handleWardHover}
+          displayMetric={displayMetric}
         />
 
         {/* Legend */}

@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import type { RaceType } from '@/types/election';
-
-type DisplayMetric = 'margin' | 'demPct' | 'repPct' | 'turnout' | 'totalVotes';
+import type { DisplayMetric } from '@/shared/lib/colorScale';
 
 interface MapState {
   viewport: { center: [number, number]; zoom: number };

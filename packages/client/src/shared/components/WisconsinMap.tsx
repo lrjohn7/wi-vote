@@ -2,7 +2,8 @@ import { useEffect, useRef, useCallback, memo } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Protocol } from 'pmtiles';
-import { choroplethFillColor } from '@/shared/lib/colorScale';
+import { choroplethFillColor, getFillColorForMetric } from '@/shared/lib/colorScale';
+import type { DisplayMetric } from '@/shared/lib/colorScale';
 import type { MapDataResponse } from '@/features/election-map/hooks/useMapData';
 
 const WISCONSIN_CENTER: [number, number] = [-87.95, 43.04]; // Milwaukee metro
@@ -40,6 +41,10 @@ interface WisconsinMapProps {
   onMove?: (viewState: MapViewState) => void;
   /** Called when the set of visible wards changes (after pan/zoom) */
   onVisibleWardsChange?: (wardIds: string[]) => void;
+  /** Display metric controlling the choropleth color expression */
+  displayMetric?: DisplayMetric;
+  /** Optional GeoJSON overlay (e.g., comparison vintage boundaries) */
+  overlayGeoJSON?: GeoJSON.FeatureCollection | null;
 }
 
 const WARD_SOURCE_LAYER = 'wards';
@@ -53,6 +58,8 @@ export const WisconsinMap = memo(function WisconsinMap({
   viewState,
   onMove,
   onVisibleWardsChange,
+  displayMetric,
+  overlayGeoJSON,
 }: WisconsinMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -469,6 +476,55 @@ export const WisconsinMap = memo(function WisconsinMap({
       isSyncing.current = false;
     });
   }, [viewState]);
+
+  // Update fill-color expression when displayMetric changes
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !layersAdded.current) return;
+
+    const expression = displayMetric
+      ? getFillColorForMetric(displayMetric)
+      : choroplethFillColor;
+
+    m.setPaintProperty(WARD_LAYER_FILL, 'fill-color', expression);
+  }, [displayMetric]);
+
+  // Render GeoJSON comparison overlay
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !layersAdded.current) return;
+
+    const OVERLAY_SOURCE = 'comparison-overlay';
+    const OVERLAY_LAYER = 'comparison-overlay-lines';
+
+    // Remove previous overlay if it exists
+    if (m.getLayer(OVERLAY_LAYER)) m.removeLayer(OVERLAY_LAYER);
+    if (m.getSource(OVERLAY_SOURCE)) m.removeSource(OVERLAY_SOURCE);
+
+    if (overlayGeoJSON && overlayGeoJSON.features.length > 0) {
+      m.addSource(OVERLAY_SOURCE, {
+        type: 'geojson',
+        data: overlayGeoJSON,
+      });
+
+      m.addLayer({
+        id: OVERLAY_LAYER,
+        type: 'line',
+        source: OVERLAY_SOURCE,
+        paint: {
+          'line-color': '#f59e0b',
+          'line-width': 2,
+          'line-dasharray': [4, 3],
+          'line-opacity': 0.8,
+        },
+      });
+    }
+
+    return () => {
+      if (m.getLayer(OVERLAY_LAYER)) m.removeLayer(OVERLAY_LAYER);
+      if (m.getSource(OVERLAY_SOURCE)) m.removeSource(OVERLAY_SOURCE);
+    };
+  }, [overlayGeoJSON]);
 
   return (
     <div

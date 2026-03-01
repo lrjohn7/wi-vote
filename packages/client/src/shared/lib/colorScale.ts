@@ -104,3 +104,103 @@ export const MARGIN_LEGEND_BINS: LegendBin[] = [
 ];
 
 export const NO_DATA_COLOR = '#d4d4d4';
+
+// Display metric type
+export type DisplayMetric = 'margin' | 'demPct' | 'repPct' | 'turnout' | 'totalVotes';
+
+// RepPct fill color (mirror of demPct — high R% = deep red)
+export const repPctFillColor: maplibregl.ExpressionSpecification = [
+  'case',
+  ['!=', ['feature-state', 'repPct'], null],
+  [
+    'interpolate',
+    ['linear'],
+    ['feature-state', 'repPct'],
+    0, '#2166ac',
+    35, '#2166ac',
+    42, '#4393c3',
+    46, '#92c5de',
+    48, '#d1e5f0',
+    50, '#f7f7f7',
+    52, '#fddbc7',
+    54, '#f4a582',
+    58, '#d6604d',
+    65, '#b2182b',
+    100, '#b2182b',
+  ],
+  '#d4d4d4',
+];
+
+// Total votes fill — sequential purple scale
+export const totalVotesFillColor: maplibregl.ExpressionSpecification = [
+  'case',
+  ['!=', ['feature-state', 'totalVotes'], null],
+  [
+    'interpolate',
+    ['linear'],
+    ['feature-state', 'totalVotes'],
+    0, '#f2f0f7',
+    100, '#dadaeb',
+    300, '#bcbddc',
+    500, '#9e9ac8',
+    1000, '#807dba',
+    2000, '#6a51a3',
+    5000, '#4a1486',
+  ],
+  '#d4d4d4',
+];
+
+export function getFillColorForMetric(metric: DisplayMetric): maplibregl.ExpressionSpecification {
+  switch (metric) {
+    case 'margin': return marginFillColor;
+    case 'demPct': return choroplethFillColor;
+    case 'repPct': return repPctFillColor;
+    case 'totalVotes': return totalVotesFillColor;
+    case 'turnout': return marginFillColor;
+    default: return marginFillColor;
+  }
+}
+
+export const REP_PCT_LEGEND_BINS: LegendBin[] = [
+  { label: 'D+30+', color: '#2166ac', min: 0, max: 35 },
+  { label: 'D+8-30', color: '#4393c3', min: 35, max: 42 },
+  { label: 'D+4-8', color: '#92c5de', min: 42, max: 46 },
+  { label: 'D+0-4', color: '#d1e5f0', min: 46, max: 48 },
+  { label: 'Even', color: '#f7f7f7', min: 48, max: 52 },
+  { label: 'R+0-4', color: '#fddbc7', min: 52, max: 54 },
+  { label: 'R+4-8', color: '#f4a582', min: 54, max: 58 },
+  { label: 'R+8-30', color: '#d6604d', min: 58, max: 65 },
+  { label: 'R+30+', color: '#b2182b', min: 65, max: 100 },
+];
+
+export const TOTAL_VOTES_LEGEND_BINS: LegendBin[] = [
+  { label: '0-100', color: '#f2f0f7', min: 0, max: 100 },
+  { label: '100-300', color: '#dadaeb', min: 100, max: 300 },
+  { label: '300-500', color: '#bcbddc', min: 300, max: 500 },
+  { label: '500-1k', color: '#9e9ac8', min: 500, max: 1000 },
+  { label: '1k-2k', color: '#807dba', min: 1000, max: 2000 },
+  { label: '2k-5k', color: '#6a51a3', min: 2000, max: 5000 },
+  { label: '5k+', color: '#4a1486', min: 5000, max: 100000 },
+];
+
+export function getLegendBinsForMetric(metric: DisplayMetric): LegendBin[] {
+  switch (metric) {
+    case 'margin': return MARGIN_LEGEND_BINS;
+    case 'demPct': return DEM_PCT_LEGEND_BINS;
+    case 'repPct': return REP_PCT_LEGEND_BINS;
+    case 'totalVotes': return TOTAL_VOTES_LEGEND_BINS;
+    case 'turnout': return MARGIN_LEGEND_BINS;
+    default: return MARGIN_LEGEND_BINS;
+  }
+}
+
+export function getLegendTitleForMetric(metric: DisplayMetric): string {
+  switch (metric) {
+    case 'margin': return 'Vote Margin';
+    case 'demPct': return 'Democratic %';
+    case 'repPct': return 'Republican %';
+    case 'totalVotes': return 'Total Votes';
+    case 'turnout': return 'Turnout';
+    default: return 'Vote Margin';
+  }
+}

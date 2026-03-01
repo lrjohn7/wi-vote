@@ -1,7 +1,10 @@
+import re
+import time
+from collections import defaultdict
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,12 +15,41 @@ router = APIRouter(prefix="/ward-notes", tags=["ward-notes"])
 
 NOTE_CATEGORIES = ["local_knowledge", "correction", "context", "historical"]
 
+# Per-IP submission throttle: max 5 notes per 10 minutes
+_submit_log: dict[str, list[float]] = defaultdict(list)
+_SUBMIT_LIMIT = 5
+_SUBMIT_WINDOW = 600  # 10 minutes
+
+# Basic content filter — reject obviously inappropriate content
+_BLOCKED_PATTERNS = [
+    re.compile(r"https?://\S+", re.IGNORECASE),  # no URLs
+]
+
 
 class NoteCreate(BaseModel):
     ward_id: str = Field(..., min_length=1, max_length=50)
     author_name: str = Field(..., min_length=1, max_length=100)
-    content: str = Field(..., min_length=1, max_length=2000)
+    content: str = Field(..., min_length=10, max_length=2000)
     category: str | None = Field(None, pattern=r"^(local_knowledge|correction|context|historical)$")
+
+    @field_validator("content")
+    @classmethod
+    def check_content(cls, v: str) -> str:
+        for pat in _BLOCKED_PATTERNS:
+            if pat.search(v):
+                raise ValueError("Content must not contain URLs")
+        # Reject if mostly non-alphanumeric (spam heuristic)
+        alpha_ratio = sum(c.isalnum() or c.isspace() for c in v) / max(len(v), 1)
+        if alpha_ratio < 0.5:
+            raise ValueError("Content appears to be spam")
+        return v.strip()
+
+    @field_validator("author_name")
+    @classmethod
+    def check_author_name(cls, v: str) -> str:
+        if len(v.strip()) < 2:
+            raise ValueError("Author name too short")
+        return v.strip()
 
 
 class NoteResponse(BaseModel):
@@ -81,15 +113,27 @@ async def get_ward_notes(
 @router.post("", response_model=NoteResponse, status_code=201)
 async def create_ward_note(
     body: NoteCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> NoteResponse:
     """Submit a community note for a ward."""
+    # Per-IP submission throttle
+    client_ip = request.client.host if request.client else "unknown"
+    now = time.monotonic()
+    _submit_log[client_ip] = [t for t in _submit_log[client_ip] if now - t < _SUBMIT_WINDOW]
+    if len(_submit_log[client_ip]) >= _SUBMIT_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Too many submissions. Limit is {_SUBMIT_LIMIT} notes per {_SUBMIT_WINDOW // 60} minutes.",
+        )
+    _submit_log[client_ip].append(now)
+
     note = WardNote(
         ward_id=body.ward_id,
         author_name=body.author_name,
         content=body.content,
         category=body.category,
-        is_approved=True,  # Auto-approve for now
+        is_approved=False,  # Require moderation review
     )
     db.add(note)
     await db.commit()
