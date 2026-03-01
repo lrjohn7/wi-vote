@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback, memo } from 'react';
 import { WisconsinMap } from '@/shared/components/WisconsinMap';
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { useTrendClassifications } from '../hooks/useTrends';
 import type { MapDataResponse, WardMapEntry } from '@/features/election-map/hooks/useMapData';
 import type { TrendClassificationEntry } from '@/services/api';
@@ -126,7 +127,7 @@ const EMPTY_STATS: SummaryStats = {
 export const TrendMapOverlay = memo(function TrendMapOverlay() {
   const [hover, setHover] = useState<HoverState | null>(null);
   const [visibleWardIds, setVisibleWardIds] = useState<string[]>([]);
-  const { data: classData, isLoading: classLoading } = useTrendClassifications('president');
+  const { data: classData, isLoading: classLoading, isError: classError, error: classErrorObj, refetch: classRefetch } = useTrendClassifications('president');
 
   const mapData = useMemo(() => {
     if (!classData?.classifications) return undefined;
@@ -191,7 +192,13 @@ export const TrendMapOverlay = memo(function TrendMapOverlay() {
 
       <TrendInfoBanner />
 
-      <div className="relative flex-1">
+      {classError && (
+        <div className="flex flex-1 items-center justify-center">
+          <QueryErrorState error={classErrorObj!} onRetry={() => classRefetch()} />
+        </div>
+      )}
+
+      {!classError && <div className="relative flex-1">
         <WisconsinMap
           mapData={mapData}
           selectedWardId={null}
@@ -215,7 +222,7 @@ export const TrendMapOverlay = memo(function TrendMapOverlay() {
           properties={hover?.properties ?? null}
           classification={hoveredClassification}
         />
-      </div>
+      </div>}
     </div>
   );
 });

@@ -142,6 +142,7 @@ export default function SupremeCourt() {
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
             placeholder={viewMode === 'counties' ? 'Search counties...' : 'Search reporting units...'}
+            aria-label={viewMode === 'counties' ? 'Search counties' : 'Search reporting units'}
             className="pl-9"
           />
         </div>
@@ -151,6 +152,7 @@ export default function SupremeCourt() {
             value={countyFilter}
             onChange={(e) => { setCountyFilter(e.target.value); setPage(1); }}
             placeholder="Filter by county..."
+            aria-label="Filter by county"
             className="w-36 sm:w-48"
           />
         )}

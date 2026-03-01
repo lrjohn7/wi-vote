@@ -69,6 +69,11 @@ export function useComparisonData(
     };
   }, [queryA.data, queryB.data]);
 
+  const refetch = () => {
+    queryA.refetch();
+    queryB.refetch();
+  };
+
   return {
     mapDataA: queryA.data ?? null,
     mapDataB: queryB.data ?? null,
@@ -76,5 +81,6 @@ export function useComparisonData(
     isLoading: queryA.isLoading || queryB.isLoading,
     isError: queryA.isError || queryB.isError,
     error: (queryA.error ?? queryB.error) as Error | null,
+    refetch,
   };
 }

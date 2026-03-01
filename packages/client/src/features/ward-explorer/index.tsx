@@ -94,24 +94,28 @@ export default function WardExplorer() {
             {searchResults && searchResults.results.length > 0 && (
               <div className="space-y-1">
                 <p className="mb-2 text-xs text-muted-foreground">
-                  {searchResults.count} results for "{searchResults.query}"
+                  {searchResults.count} results for &ldquo;{searchResults.query}&rdquo;
                 </p>
-                {searchResults.results.map((ward) => (
-                  <button
-                    key={ward.ward_id}
-                    onClick={() => setSelectedWardId(ward.ward_id)}
-                    className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-content2 ${
-                      selectedWardId === ward.ward_id
-                        ? 'bg-content2 border-l-2 border-dem font-medium'
-                        : ''
-                    }`}
-                  >
-                    <div className="font-medium">{ward.ward_name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {ward.municipality}, {ward.county} County
-                    </div>
-                  </button>
-                ))}
+                <div role="listbox" aria-label="Ward search results">
+                  {searchResults.results.map((ward) => (
+                    <button
+                      key={ward.ward_id}
+                      role="option"
+                      aria-selected={selectedWardId === ward.ward_id}
+                      onClick={() => setSelectedWardId(ward.ward_id)}
+                      className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-content2 ${
+                        selectedWardId === ward.ward_id
+                          ? 'bg-content2 border-l-2 border-dem font-medium'
+                          : ''
+                      }`}
+                    >
+                      <div className="font-medium">{ward.ward_name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {ward.municipality}, {ward.county} County
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
             {searchResults && searchResults.results.length === 0 && searchQuery.length >= 2 && (

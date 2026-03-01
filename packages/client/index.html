@@ -35,7 +35,7 @@
     <script>
       // Anti-FOUC: apply dark mode class before first paint
       (function() {
-        var t = localStorage.getItem('wi-vote-theme');
+        try { var t = localStorage.getItem('wi-vote-theme'); } catch(e) { var t = null; }
         var dark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
         if (dark) document.documentElement.classList.add('dark');
       })();

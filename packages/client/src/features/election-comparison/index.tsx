@@ -21,7 +21,7 @@ export default function ElectionComparison() {
   const [viewMode, setViewMode] = useState<ViewMode>('side-by-side');
   const [syncedView, setSyncedView] = useState<MapViewState | null>(null);
 
-  const { mapDataA, mapDataB, diffData, isLoading, error } = useComparisonData(
+  const { mapDataA, mapDataB, diffData, isLoading, error, refetch } = useComparisonData(
     yearA, raceA, yearB, raceB,
   );
 
@@ -106,7 +106,7 @@ export default function ElectionComparison() {
       {/* Error state */}
       {error && (
         <div className="p-4">
-          <QueryErrorState error={error} />
+          <QueryErrorState error={error} onRetry={refetch} />
         </div>
       )}
 

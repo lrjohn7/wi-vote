@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, memo } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Protocol } from 'pmtiles';
@@ -22,7 +22,7 @@ interface DifferenceMapProps {
   diffData: DiffMapData | null;
 }
 
-export function DifferenceMap({ diffData }: DifferenceMapProps) {
+export const DifferenceMap = memo(function DifferenceMap({ diffData }: DifferenceMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const mapLoaded = useRef(false);
@@ -165,4 +165,4 @@ export function DifferenceMap({ diffData }: DifferenceMapProps) {
       </div>
     </div>
   );
-}
+});
