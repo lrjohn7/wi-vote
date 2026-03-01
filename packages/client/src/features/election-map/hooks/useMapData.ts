@@ -16,6 +16,8 @@ export interface MapDataResponse {
   year: number;
   raceType: string;
   wardCount: number;
+  demCandidate?: string | null;
+  repCandidate?: string | null;
   data: Record<string, WardMapEntry>;
 }
 

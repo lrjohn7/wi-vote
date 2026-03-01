@@ -150,13 +150,33 @@ export const totalVotesFillColor: maplibregl.ExpressionSpecification = [
   '#d4d4d4',
 ];
 
+// Turnout fill — sequential green scale (neutral, non-partisan)
+// Uses totalVotes as proxy since registered voter data is unavailable.
+export const turnoutFillColor: maplibregl.ExpressionSpecification = [
+  'case',
+  ['!=', ['feature-state', 'totalVotes'], null],
+  [
+    'interpolate',
+    ['linear'],
+    ['feature-state', 'totalVotes'],
+    0, '#f7fcf5',
+    100, '#e5f5e0',
+    300, '#c7e9c0',
+    500, '#a1d99b',
+    1000, '#74c476',
+    2000, '#41ab5d',
+    5000, '#006d2c',
+  ],
+  '#d4d4d4',
+];
+
 export function getFillColorForMetric(metric: DisplayMetric): maplibregl.ExpressionSpecification {
   switch (metric) {
     case 'margin': return marginFillColor;
     case 'demPct': return choroplethFillColor;
     case 'repPct': return repPctFillColor;
     case 'totalVotes': return totalVotesFillColor;
-    case 'turnout': return marginFillColor;
+    case 'turnout': return turnoutFillColor;
     default: return marginFillColor;
   }
 }
@@ -183,13 +203,23 @@ export const TOTAL_VOTES_LEGEND_BINS: LegendBin[] = [
   { label: '5k+', color: '#4a1486', min: 5000, max: 100000 },
 ];
 
+export const TURNOUT_LEGEND_BINS: LegendBin[] = [
+  { label: '0-100', color: '#f7fcf5', min: 0, max: 100 },
+  { label: '100-300', color: '#e5f5e0', min: 100, max: 300 },
+  { label: '300-500', color: '#c7e9c0', min: 300, max: 500 },
+  { label: '500-1k', color: '#a1d99b', min: 500, max: 1000 },
+  { label: '1k-2k', color: '#74c476', min: 1000, max: 2000 },
+  { label: '2k-5k', color: '#41ab5d', min: 2000, max: 5000 },
+  { label: '5k+', color: '#006d2c', min: 5000, max: 100000 },
+];
+
 export function getLegendBinsForMetric(metric: DisplayMetric): LegendBin[] {
   switch (metric) {
     case 'margin': return MARGIN_LEGEND_BINS;
     case 'demPct': return DEM_PCT_LEGEND_BINS;
     case 'repPct': return REP_PCT_LEGEND_BINS;
     case 'totalVotes': return TOTAL_VOTES_LEGEND_BINS;
-    case 'turnout': return MARGIN_LEGEND_BINS;
+    case 'turnout': return TURNOUT_LEGEND_BINS;
     default: return MARGIN_LEGEND_BINS;
   }
 }
@@ -200,7 +230,7 @@ export function getLegendTitleForMetric(metric: DisplayMetric): string {
     case 'demPct': return 'Democratic %';
     case 'repPct': return 'Republican %';
     case 'totalVotes': return 'Total Votes';
-    case 'turnout': return 'Turnout';
+    case 'turnout': return 'Turnout (Total Votes)';
     default: return 'Vote Margin';
   }
 }

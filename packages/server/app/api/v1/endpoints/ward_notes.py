@@ -9,6 +9,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.security import verify_admin_key
 from app.models.ward_note import WardNote
 
 router = APIRouter(prefix="/ward-notes", tags=["ward-notes"])
@@ -152,9 +153,10 @@ async def create_ward_note(
 @router.delete("/{note_id}", status_code=204)
 async def delete_ward_note(
     note_id: int,
+    _: None = Depends(verify_admin_key),
     db: AsyncSession = Depends(get_db),
 ) -> None:
-    """Delete a community note (admin only in production)."""
+    """Delete a community note. Requires X-Admin-Key header."""
     q = select(WardNote).where(WardNote.id == note_id)
     result = await db.execute(q)
     note = result.scalar_one_or_none()

@@ -442,6 +442,8 @@ export default function SwingModeler() {
               margin={hoveredWardData?.margin}
               totalVotes={hoveredWardData?.totalVotes}
               isEstimate={hoveredWardData?.isEstimate}
+              demCandidate={baseMapData?.demCandidate}
+              repCandidate={baseMapData?.repCandidate}
               x={tooltip.x}
               y={tooltip.y}
             />

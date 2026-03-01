@@ -1,8 +1,10 @@
 import { lazy, Suspense } from 'react';
-import { createBrowserRouter, Navigate } from 'react-router';
+import { createBrowserRouter } from 'react-router';
 import App from '@/App';
 import { MapPageSkeleton, SidebarPageSkeleton, ContentPageSkeleton } from '@/shared/components/PageSkeleton';
+import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 
+const LandingPage = lazy(() => import('@/features/landing'));
 const ElectionMap = lazy(() => import('@/features/election-map'));
 const WardExplorer = lazy(() => import('@/features/ward-explorer'));
 const Trends = lazy(() => import('@/features/trends'));
@@ -19,93 +21,124 @@ export const router = createBrowserRouter([
     path: '/',
     element: <App />,
     children: [
-      { index: true, element: <Navigate to="/map" replace /> },
+      {
+        index: true,
+        element: (
+          <ErrorBoundary featureName="Home">
+            <Suspense fallback={<ContentPageSkeleton />}>
+              <LandingPage />
+            </Suspense>
+          </ErrorBoundary>
+        ),
+      },
       {
         path: 'map',
         element: (
-          <Suspense fallback={<MapPageSkeleton />}>
-            <ElectionMap />
-          </Suspense>
+          <ErrorBoundary featureName="Election Map">
+            <Suspense fallback={<MapPageSkeleton />}>
+              <ElectionMap />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'wards',
         element: (
-          <Suspense fallback={<SidebarPageSkeleton />}>
-            <WardExplorer />
-          </Suspense>
+          <ErrorBoundary featureName="Ward Explorer">
+            <Suspense fallback={<SidebarPageSkeleton />}>
+              <WardExplorer />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'supreme-court',
         element: (
-          <Suspense fallback={<ContentPageSkeleton />}>
-            <SupremeCourt />
-          </Suspense>
+          <ErrorBoundary featureName="Supreme Court">
+            <Suspense fallback={<ContentPageSkeleton />}>
+              <SupremeCourt />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'wards/report',
         element: (
-          <Suspense fallback={<ContentPageSkeleton />}>
-            <WardReport />
-          </Suspense>
+          <ErrorBoundary featureName="Ward Report">
+            <Suspense fallback={<ContentPageSkeleton />}>
+              <WardReport />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'wards/:wardId/report',
         element: (
-          <Suspense fallback={<ContentPageSkeleton />}>
-            <WardReport />
-          </Suspense>
+          <ErrorBoundary featureName="Ward Report">
+            <Suspense fallback={<ContentPageSkeleton />}>
+              <WardReport />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'trends',
         element: (
-          <Suspense fallback={<ContentPageSkeleton />}>
-            <Trends />
-          </Suspense>
+          <ErrorBoundary featureName="Trends">
+            <Suspense fallback={<ContentPageSkeleton />}>
+              <Trends />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'modeler',
         element: (
-          <Suspense fallback={<MapPageSkeleton />}>
-            <SwingModeler />
-          </Suspense>
+          <ErrorBoundary featureName="Swing Modeler">
+            <Suspense fallback={<MapPageSkeleton />}>
+              <SwingModeler />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'compare',
         element: (
-          <Suspense fallback={<MapPageSkeleton />}>
-            <ElectionComparison />
-          </Suspense>
+          <ErrorBoundary featureName="Election Comparison">
+            <Suspense fallback={<MapPageSkeleton />}>
+              <ElectionComparison />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'live',
         element: (
-          <Suspense fallback={<MapPageSkeleton />}>
-            <ElectionNight />
-          </Suspense>
+          <ErrorBoundary featureName="Election Night">
+            <Suspense fallback={<MapPageSkeleton />}>
+              <ElectionNight />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'boundaries',
         element: (
-          <Suspense fallback={<MapPageSkeleton />}>
-            <BoundaryHistory />
-          </Suspense>
+          <ErrorBoundary featureName="Boundary History">
+            <Suspense fallback={<MapPageSkeleton />}>
+              <BoundaryHistory />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'data',
         element: (
-          <Suspense fallback={<ContentPageSkeleton />}>
-            <DataManager />
-          </Suspense>
+          <ErrorBoundary featureName="Data Manager">
+            <Suspense fallback={<ContentPageSkeleton />}>
+              <DataManager />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
     ],

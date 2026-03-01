@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router';
 import { Map, Search, TrendingUp, SlidersHorizontal, Scale, ClipboardList, GitCompareArrows, Radio, History, Sun, Moon, Monitor } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
+import { MobileNav } from '@/shared/components/MobileNav';
 
 const navItems = [
   { to: '/map', label: 'Election Map', icon: Map, end: false },
@@ -47,11 +48,16 @@ export default function App() {
         Skip to content
       </a>
       <header role="banner" className="sticky top-0 z-50 flex h-14 items-center gap-4 border-b border-border/40 bg-background/80 px-4 shadow-sm backdrop-blur-xl sm:px-6">
+        {/* Mobile hamburger menu */}
+        <MobileNav items={navItems} />
+
         <NavLink to="/" className="flex items-center gap-0.5 text-lg font-bold tracking-tight transition-transform hover:scale-105">
           <span className="text-wi-blue">WI</span>
           <span className="text-wi-red">-Vote</span>
         </NavLink>
-        <nav role="navigation" aria-label="Main navigation" className="flex items-center overflow-x-auto rounded-xl bg-content2/60 p-1">
+
+        {/* Desktop navigation — hidden on mobile */}
+        <nav role="navigation" aria-label="Main navigation" className="hidden items-center overflow-x-auto rounded-xl bg-content2/60 p-1 md:flex">
           {navItems.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
@@ -66,7 +72,7 @@ export default function App() {
               }
             >
               <Icon className="h-4 w-4" aria-hidden="true" />
-              {label}
+              <span className="hidden lg:inline">{label}</span>
             </NavLink>
           ))}
         </nav>

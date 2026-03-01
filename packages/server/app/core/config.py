@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     # MRP model traces directory
     mrp_traces_dir: str = "/data/mrp_traces"
 
+    # Admin
+    admin_api_key: str = ""  # Set via ADMIN_API_KEY env var; required for destructive endpoints
+
     # App
     app_name: str = "WI-Vote API"
     app_version: str = "0.1.0"

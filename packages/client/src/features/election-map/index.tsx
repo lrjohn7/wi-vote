@@ -115,6 +115,8 @@ export default function ElectionMap() {
             margin={hoveredWardData?.margin}
             totalVotes={hoveredWardData?.totalVotes}
             isEstimate={hoveredWardData?.isEstimate}
+            demCandidate={mapData?.demCandidate}
+            repCandidate={mapData?.repCandidate}
             x={tooltip.x}
             y={tooltip.y}
           />

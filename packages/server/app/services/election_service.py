@@ -87,7 +87,8 @@ class ElectionService:
     async def get_map_data(self, year: int, race_type: str) -> dict:
         """Get compact ward results optimized for map rendering via setFeatureState.
 
-        Returns {ward_id: {demPct, repPct, margin, totalVotes}} for all wards.
+        Returns {ward_id: {demPct, repPct, margin, totalVotes}} for all wards,
+        plus top-level candidate names (same for the entire election).
         """
         stmt = select(
             ElectionResult.ward_id,
@@ -96,6 +97,8 @@ class ElectionService:
             ElectionResult.other_votes,
             ElectionResult.total_votes,
             ElectionResult.is_estimate,
+            ElectionResult.dem_candidate,
+            ElectionResult.rep_candidate,
         ).where(
             ElectionResult.election_year == year,
             ElectionResult.race_type == race_type,
@@ -105,6 +108,8 @@ class ElectionService:
         rows = result.all()
 
         data = {}
+        dem_candidate: str | None = None
+        rep_candidate: str | None = None
         for row in rows:
             total = row.total_votes
             if total == 0:
@@ -118,10 +123,17 @@ class ElectionService:
                 "repVotes": row.rep_votes,
                 "isEstimate": row.is_estimate,
             }
+            # Capture candidate names from first row that has them
+            if dem_candidate is None and row.dem_candidate:
+                dem_candidate = row.dem_candidate
+            if rep_candidate is None and row.rep_candidate:
+                rep_candidate = row.rep_candidate
 
         return {
             "year": year,
             "raceType": race_type,
             "wardCount": len(data),
+            "demCandidate": dem_candidate,
+            "repCandidate": rep_candidate,
             "data": data,
         }

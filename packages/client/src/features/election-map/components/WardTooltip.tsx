@@ -9,6 +9,8 @@ interface WardTooltipProps {
   margin?: number;
   totalVotes?: number;
   isEstimate?: boolean;
+  demCandidate?: string | null;
+  repCandidate?: string | null;
   x: number;
   y: number;
 }
@@ -22,6 +24,8 @@ export const WardTooltip = memo(function WardTooltip({
   margin,
   totalVotes,
   isEstimate,
+  demCandidate,
+  repCandidate,
   x,
   y,
 }: WardTooltipProps) {
@@ -35,6 +39,9 @@ export const WardTooltip = memo(function WardTooltip({
       : null;
 
   const borderColor = margin != null ? (margin > 0 ? 'var(--dem)' : 'var(--rep)') : '#cccccc';
+
+  const demLabel = demCandidate || 'DEM';
+  const repLabel = repCandidate || 'REP';
 
   return (
     <div
@@ -54,14 +61,14 @@ export const WardTooltip = memo(function WardTooltip({
       {demPct != null && (
         <>
           {/* Mini two-party bar */}
-          <div className="my-1.5 flex h-1.5 overflow-hidden rounded-full" role="img" aria-label={`Vote split: Democrat ${demPct.toFixed(0)}%, Republican ${(repPct ?? 100 - demPct).toFixed(0)}%`}>
+          <div className="my-1.5 flex h-1.5 overflow-hidden rounded-full" role="img" aria-label={`Vote split: ${demLabel} ${demPct.toFixed(0)}%, ${repLabel} ${(repPct ?? 100 - demPct).toFixed(0)}%`}>
             <div style={{ width: `${demPct}%`, backgroundColor: 'var(--dem)' }} />
             <div style={{ width: `${repPct ?? 100 - demPct}%`, backgroundColor: 'var(--rep)' }} />
           </div>
           <div className="space-y-0.5 text-xs">
             <div className="flex justify-between gap-4">
-              <span className="text-dem">DEM {demPct.toFixed(1)}%</span>
-              <span className="text-rep">REP {repPct?.toFixed(1)}%</span>
+              <span className="text-dem">{demLabel} {demPct.toFixed(1)}%</span>
+              <span className="text-rep">{repLabel} {repPct?.toFixed(1)}%</span>
             </div>
             {marginLabel && (
               <div className={`font-medium ${margin && margin > 0 ? 'text-dem' : 'text-rep'}`}>
