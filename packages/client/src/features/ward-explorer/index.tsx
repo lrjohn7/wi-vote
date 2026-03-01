@@ -78,7 +78,7 @@ export default function WardExplorer() {
   return (
     <div className="flex h-full">
       {/* Left panel: Search */}
-      <div className="flex w-96 flex-col border-r">
+      <div className="flex w-96 flex-col border-r border-border/30 bg-content1">
         <div className="space-y-4 p-4">
           <h2 className="text-xl font-bold">Ward Explorer</h2>
 
@@ -129,9 +129,9 @@ export default function WardExplorer() {
                   <button
                     key={ward.ward_id}
                     onClick={() => setSelectedWardId(ward.ward_id)}
-                    className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-accent ${
+                    className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-content2 ${
                       selectedWardId === ward.ward_id
-                        ? 'bg-accent font-medium'
+                        ? 'bg-content2 border-l-2 border-dem font-medium'
                         : ''
                     }`}
                   >
@@ -158,27 +158,27 @@ export default function WardExplorer() {
       </div>
 
       {/* Right panel: Ward detail */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto bg-background p-6">
         {detailLoading && selectedWardId && (
           <div className="mx-auto max-w-3xl space-y-4 p-6">
-            <div className="h-8 w-64 animate-pulse rounded-lg bg-muted" />
-            <div className="h-4 w-48 animate-pulse rounded bg-muted" />
+            <div className="h-8 w-64 animate-pulse rounded-lg bg-content2" />
+            <div className="h-4 w-48 animate-pulse rounded bg-content2" />
             <div className="mt-4 flex gap-2">
-              <div className="h-6 w-16 animate-pulse rounded-full bg-muted" />
-              <div className="h-6 w-16 animate-pulse rounded-full bg-muted" />
-              <div className="h-6 w-16 animate-pulse rounded-full bg-muted" />
+              <div className="h-6 w-16 animate-pulse rounded-full bg-content2" />
+              <div className="h-6 w-16 animate-pulse rounded-full bg-content2" />
+              <div className="h-6 w-16 animate-pulse rounded-full bg-content2" />
             </div>
             <div className="grid gap-3 pt-4 sm:grid-cols-2">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="space-y-2 rounded-xl border p-4">
+                <div key={i} className="space-y-2 rounded-xl border border-border/30 p-4">
                   <div className="flex justify-between">
-                    <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-                    <div className="h-4 w-12 animate-pulse rounded bg-muted" />
+                    <div className="h-4 w-24 animate-pulse rounded bg-content2" />
+                    <div className="h-4 w-12 animate-pulse rounded bg-content2" />
                   </div>
-                  <div className="h-2.5 w-full animate-pulse rounded-full bg-muted" />
+                  <div className="h-2.5 w-full animate-pulse rounded-full bg-content2" />
                   <div className="flex justify-between">
-                    <div className="h-3 w-20 animate-pulse rounded bg-muted" />
-                    <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+                    <div className="h-3 w-20 animate-pulse rounded bg-content2" />
+                    <div className="h-3 w-20 animate-pulse rounded bg-content2" />
                   </div>
                 </div>
               ))}
@@ -189,7 +189,7 @@ export default function WardExplorer() {
         {!selectedWardId && (
           <div className="flex h-full items-center justify-center text-center">
             <div className="flex flex-col items-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-content2">
                 <SearchIcon className="h-7 w-7 text-muted-foreground/60" />
               </div>
               <h3 className="mt-4 text-lg font-medium text-muted-foreground">
@@ -284,8 +284,7 @@ export default function WardExplorer() {
                               {e.election_year} {RACE_LABELS[e.race_type] ?? e.race_type}
                             </span>
                             <span
-                              className="font-bold"
-                              style={{ color: e.margin > 0 ? '#2166ac' : '#b2182b' }}
+                              className={`font-bold ${e.margin > 0 ? 'text-dem' : 'text-rep'}`}
                             >
                               {marginLabel}
                             </span>
@@ -295,12 +294,12 @@ export default function WardExplorer() {
                           {/* Bar */}
                           <div className="mb-2 flex h-2.5 overflow-hidden rounded-full">
                             <div
-                              style={{ width: `${demBarPct}%`, backgroundColor: '#2166ac' }}
+                              style={{ width: `${demBarPct}%`, backgroundColor: 'var(--dem)' }}
                             />
                             <div
                               style={{
                                 width: `${100 - demBarPct}%`,
-                                backgroundColor: '#b2182b',
+                                backgroundColor: 'var(--rep)',
                               }}
                             />
                           </div>

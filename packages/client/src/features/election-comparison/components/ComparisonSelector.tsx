@@ -43,7 +43,7 @@ export function ComparisonSelector({
     .map((e) => e.race_type);
 
   return (
-    <div className="flex items-center gap-2 rounded-lg bg-muted/30 px-3 py-1.5">
+    <div className="flex items-center gap-2 rounded-lg border border-border/30 bg-content2/50 px-3 py-1.5">
       <span className="text-sm font-medium text-muted-foreground">{label}</span>
       <Select
         value={String(year)}

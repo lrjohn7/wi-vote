@@ -34,7 +34,7 @@ export const WardTooltip = memo(function WardTooltip({
           : 'Even'
       : null;
 
-  const borderColor = margin != null ? (margin > 0 ? '#2166ac' : '#b2182b') : '#cccccc';
+  const borderColor = margin != null ? (margin > 0 ? 'var(--dem)' : 'var(--rep)') : '#cccccc';
 
   return (
     <div
@@ -54,16 +54,16 @@ export const WardTooltip = memo(function WardTooltip({
         <>
           {/* Mini two-party bar */}
           <div className="my-1.5 flex h-1.5 overflow-hidden rounded-full">
-            <div style={{ width: `${demPct}%`, backgroundColor: '#2166ac' }} />
-            <div style={{ width: `${repPct ?? 100 - demPct}%`, backgroundColor: '#b2182b' }} />
+            <div style={{ width: `${demPct}%`, backgroundColor: 'var(--dem)' }} />
+            <div style={{ width: `${repPct ?? 100 - demPct}%`, backgroundColor: 'var(--rep)' }} />
           </div>
           <div className="space-y-0.5 text-xs">
             <div className="flex justify-between gap-4">
-              <span className="text-[#2166ac]">DEM {demPct.toFixed(1)}%</span>
-              <span className="text-[#b2182b]">REP {repPct?.toFixed(1)}%</span>
+              <span className="text-dem">DEM {demPct.toFixed(1)}%</span>
+              <span className="text-rep">REP {repPct?.toFixed(1)}%</span>
             </div>
             {marginLabel && (
-              <div className="font-medium" style={{ color: margin && margin > 0 ? '#2166ac' : '#b2182b' }}>
+              <div className={`font-medium ${margin && margin > 0 ? 'text-dem' : 'text-rep'}`}>
                 {marginLabel}
               </div>
             )}

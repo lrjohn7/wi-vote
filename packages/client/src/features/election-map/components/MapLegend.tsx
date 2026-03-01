@@ -4,7 +4,7 @@ import { MARGIN_LEGEND_BINS, NO_DATA_COLOR } from '@/shared/lib/colorScale';
 export const MapLegend = memo(function MapLegend() {
   return (
     <div
-      className="glass-panel p-3"
+      className="glass-panel rounded-lg p-3"
       role="img"
       aria-label="Election results color legend. Red shades indicate Republican-leaning wards, blue shades indicate Democratic-leaning wards."
     >

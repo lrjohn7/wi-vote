@@ -18,7 +18,7 @@ export function PartisanLeanCard({ lean }: PartisanLeanCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-3xl font-bold" style={{ color }}>
+        <div className="text-2xl font-bold tabular-nums" style={{ color }}>
           {lean.label}
         </div>
         {lean.percentile != null && (

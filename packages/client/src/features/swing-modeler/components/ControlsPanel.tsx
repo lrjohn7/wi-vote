@@ -120,8 +120,8 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
   };
 
   return (
-    <div className="flex w-80 shrink-0 flex-col border-r bg-background">
-      <div className="overflow-y-auto p-4">
+    <div className="flex w-80 shrink-0 flex-col border-r border-border/30 bg-content1">
+      <div className="overflow-y-auto p-4 space-y-0">
         {/* Model Selector */}
         {allModels.length > 1 && (
           <>
@@ -148,7 +148,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
         )}
 
         {/* Base Election Selection */}
-        <div className="space-y-3 rounded-lg bg-muted/30 p-3">
+        <div className="space-y-3 rounded-lg border border-border/30 bg-content2/50 p-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Base Election</h3>
 
           <div className="space-y-2">
@@ -203,7 +203,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
         <Separator className="my-4" />
 
         {/* Swing Sliders */}
-        <div className="space-y-3 rounded-lg bg-muted/30 p-3">
+        <div className="space-y-3 rounded-lg border border-border/30 bg-content2/50 p-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Adjustments</h3>
 
           {isMrp ? (
@@ -222,8 +222,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
                   <div className="flex items-center justify-between">
                     <label className="text-xs text-muted-foreground">{label}</label>
                     <span
-                      className="text-sm font-semibold"
-                      style={{ color: value > 0 ? '#2166ac' : value < 0 ? '#b2182b' : undefined }}
+                      className={`text-sm font-semibold ${value > 0 ? 'text-dem' : value < 0 ? 'text-rep' : ''}`}
                     >
                       {formatSwing(value)}
                     </span>
@@ -256,8 +255,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
                   <div className="flex items-center justify-between">
                     <label className="text-xs text-muted-foreground">{label}</label>
                     <span
-                      className="text-sm font-semibold"
-                      style={{ color: value > 0 ? '#2166ac' : value < 0 ? '#b2182b' : undefined }}
+                      className={`text-sm font-semibold ${value > 0 ? 'text-dem' : value < 0 ? 'text-rep' : ''}`}
                     >
                       {formatSwing(value)}
                     </span>
@@ -285,8 +283,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
                 <div className="flex items-center justify-between">
                   <label className="text-xs text-muted-foreground">Statewide Swing</label>
                   <span
-                    className="text-sm font-semibold"
-                    style={{ color: swingPoints > 0 ? '#2166ac' : swingPoints < 0 ? '#b2182b' : undefined }}
+                    className={`text-sm font-semibold ${swingPoints > 0 ? 'text-dem' : swingPoints < 0 ? 'text-rep' : ''}`}
                   >
                     {formatSwing(swingPoints)}
                   </span>
@@ -379,8 +376,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
                         {REGION_LABELS[region]}
                       </label>
                       <span
-                        className="text-xs font-semibold"
-                        style={{ color: val > 0 ? '#2166ac' : val < 0 ? '#b2182b' : undefined }}
+                        className={`text-xs font-semibold ${val > 0 ? 'text-dem' : val < 0 ? 'text-rep' : ''}`}
                       >
                         {formatSwing(val)}
                       </span>

@@ -63,7 +63,7 @@ export default function SupremeCourt() {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="border-b bg-background px-6 py-4">
+      <div className="border-b border-border/30 bg-content1 px-6 py-4">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-bold">Wisconsin Supreme Court Elections</h2>
@@ -108,7 +108,7 @@ export default function SupremeCourt() {
       </div>
 
       {/* Controls */}
-      <div className="flex items-center gap-3 border-b px-6 py-3">
+      <div className="flex items-center gap-3 border-b border-border/30 px-6 py-3">
         <Select value={String(selectedYear)} onValueChange={handleYearChange}>
           <SelectTrigger className="w-[100px]">
             <SelectValue placeholder="Year" />
@@ -157,7 +157,7 @@ export default function SupremeCourt() {
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto px-6 py-4">
         {viewMode === 'reporting-units' && resultsData && (
           <ReportingUnitTable
             results={resultsData.results}
@@ -171,7 +171,7 @@ export default function SupremeCourt() {
 
       {/* Pagination (reporting units only) */}
       {viewMode === 'reporting-units' && resultsData && totalPages > 1 && (
-        <div className="flex items-center justify-between border-t px-6 py-3">
+        <div className="flex items-center justify-between border-t border-border/30 px-6 py-3">
           <span className="text-sm text-muted-foreground">
             {resultsData.total.toLocaleString()} reporting units
           </span>
@@ -213,22 +213,22 @@ function StatewideSummary({ contest }: { contest: SpringContest }) {
   const c1Bar = twoParty > 0 ? (contest.candidate_1_total / twoParty) * 100 : 50;
 
   return (
-    <div className="mt-4 rounded-lg border p-4">
+    <div className="mt-4 rounded-xl border border-border/30 bg-content2 p-4">
       <div className="mb-2 flex items-center justify-between">
-        <span className="font-medium" style={{ color: '#b2182b' }}>
+        <span className="font-medium text-rep">
           {contest.candidate_1_name}
         </span>
-        <span className="font-medium" style={{ color: '#2166ac' }}>
+        <span className="font-medium text-dem">
           {contest.candidate_2_name}
         </span>
       </div>
       <div className="mb-2 flex h-4 overflow-hidden rounded-full">
         <div
-          style={{ width: `${c1Bar}%`, backgroundColor: '#b2182b' }}
+          style={{ width: `${c1Bar}%`, backgroundColor: 'var(--rep)' }}
           className="transition-all"
         />
         <div
-          style={{ width: `${100 - c1Bar}%`, backgroundColor: '#2166ac' }}
+          style={{ width: `${100 - c1Bar}%`, backgroundColor: 'var(--dem)' }}
           className="transition-all"
         />
       </div>
@@ -269,24 +269,25 @@ function ReportingUnitTable({
   contest?: SpringContest;
 }) {
   return (
+    <div className="rounded-xl border border-border/30 overflow-hidden">
     <table className="w-full text-sm">
-      <thead className="sticky top-0 bg-muted/80 backdrop-blur">
-        <tr className="border-b text-left">
-          <th className="px-4 py-2.5 font-medium">County</th>
-          <th className="px-4 py-2.5 font-medium">Reporting Unit</th>
-          <th className="px-4 py-2.5 font-medium text-right">
+      <thead className="sticky top-0 bg-content1/95 backdrop-blur-sm">
+        <tr className="border-b border-border/30 text-left">
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider">County</th>
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider">Reporting Unit</th>
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">
             {contest?.candidate_1_name.split(' ').pop() ?? 'Cand. 1'}
           </th>
-          <th className="px-4 py-2.5 font-medium text-right">
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">
             {contest?.candidate_2_name.split(' ').pop() ?? 'Cand. 2'}
           </th>
-          <th className="px-4 py-2.5 font-medium text-right">Total</th>
-          <th className="px-4 py-2.5 font-medium w-40">Result</th>
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">Total</th>
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider w-40">Result</th>
         </tr>
       </thead>
       <tbody>
         {results.map((r) => (
-          <tr key={r.id} className="border-b hover:bg-muted/30">
+          <tr key={r.id} className="border-b border-border/30 hover:bg-content2 transition-colors">
             <td className="px-4 py-2 font-medium">{r.county}</td>
             <td className="px-4 py-2">{r.reporting_unit}</td>
             <td className="px-4 py-2 text-right tabular-nums">
@@ -311,6 +312,7 @@ function ReportingUnitTable({
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 
@@ -331,19 +333,20 @@ function CountyTable({
   if (counties.length === 0) return null;
 
   return (
+    <div className="rounded-xl border border-border/30 overflow-hidden">
     <table className="w-full text-sm">
-      <thead className="sticky top-0 bg-muted/80 backdrop-blur">
-        <tr className="border-b text-left">
-          <th className="px-4 py-2.5 font-medium">County</th>
-          <th className="px-4 py-2.5 font-medium text-right">
+      <thead className="sticky top-0 bg-content1/95 backdrop-blur-sm">
+        <tr className="border-b border-border/30 text-left">
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider">County</th>
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">
             {counties[0].candidate_1_name.split(' ').pop()}
           </th>
-          <th className="px-4 py-2.5 font-medium text-right">
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">
             {counties[0].candidate_2_name.split(' ').pop()}
           </th>
-          <th className="px-4 py-2.5 font-medium text-right">Total</th>
-          <th className="px-4 py-2.5 font-medium text-right">Units</th>
-          <th className="px-4 py-2.5 font-medium w-48">Result</th>
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">Total</th>
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">Units</th>
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider w-48">Result</th>
         </tr>
       </thead>
       <tbody>
@@ -351,7 +354,7 @@ function CountyTable({
           const c1Pct = c.total_votes > 0 ? (c.candidate_1_votes / c.total_votes) * 100 : 0;
           const c2Pct = c.total_votes > 0 ? (c.candidate_2_votes / c.total_votes) * 100 : 0;
           return (
-            <tr key={c.county} className="border-b hover:bg-muted/30">
+            <tr key={c.county} className="border-b border-border/30 hover:bg-content2 transition-colors">
               <td className="px-4 py-2 font-medium">{c.county}</td>
               <td className="px-4 py-2 text-right tabular-nums">
                 {c.candidate_1_votes.toLocaleString()}
@@ -377,6 +380,7 @@ function CountyTable({
         })}
       </tbody>
     </table>
+    </div>
   );
 }
 
@@ -396,7 +400,7 @@ function MarginBar({ margin }: { margin: number }) {
               className="h-full rounded-l"
               style={{
                 width: `${(barWidth / 60) * 100}%`,
-                backgroundColor: '#b2182b',
+                backgroundColor: 'var(--rep)',
               }}
             />
           )}
@@ -410,15 +414,14 @@ function MarginBar({ margin }: { margin: number }) {
               className="h-full rounded-r"
               style={{
                 width: `${(barWidth / 60) * 100}%`,
-                backgroundColor: '#2166ac',
+                backgroundColor: 'var(--dem)',
               }}
             />
           )}
         </div>
       </div>
       <span
-        className="w-14 text-right text-xs font-medium tabular-nums"
-        style={{ color: isC1 ? '#b2182b' : '#2166ac' }}
+        className={`w-14 text-right text-xs font-medium tabular-nums ${isC1 ? 'text-rep' : 'text-dem'}`}
       >
         {isC1 ? '+' : ''}{margin.toFixed(1)}
       </span>

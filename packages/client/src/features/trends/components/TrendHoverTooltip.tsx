@@ -21,9 +21,9 @@ export const TrendHoverTooltip = memo(function TrendHoverTooltip({
 
   const borderColor =
     classification?.direction === 'more_democratic'
-      ? '#2166ac'
+      ? 'var(--dem)'
       : classification?.direction === 'more_republican'
-        ? '#b2182b'
+        ? 'var(--rep)'
         : '#a3a3a3';
 
   return (

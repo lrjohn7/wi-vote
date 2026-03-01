@@ -948,3 +948,28 @@ VITE_FF_PWA=false
 
 **Files:**
 - `packages/client/vite.config.ts` — workbox `cacheableResponse` + `skipWaiting` config
+
+---
+
+## Documentation Handbook
+
+A `documentation/` directory contains audited, structured docs for every feature and cross-cutting concern. **Read the relevant doc before modifying any code.**
+
+### Lookup Table
+
+| Before you touch… | Read this first |
+|---|---|
+| Election Map (`/map`), map data, ward click/hover, election switching | `documentation/01-election-map.md` |
+| Ward Explorer (`/wards`), ward search, address geocoding | `documentation/02-ward-explorer.md` |
+| Ward Report Card (`/wards/report`), partisan lean, comparisons | `documentation/03-ward-report.md` |
+| Trends (`/trends`), trend map, sparklines, area trends | `documentation/04-trends.md` |
+| Swing Modeler (`/modeler`), model worker, predictions, scenarios | `documentation/05-swing-modeler.md` |
+| Election Comparison (`/compare`), side-by-side, diff map | `documentation/06-election-comparison.md` |
+| Supreme Court (`/supreme-court`), spring elections | `documentation/07-supreme-court.md` |
+| `WisconsinMap.tsx`, PMTiles, `setFeatureState`, viewport sync | `documentation/08-shared-map.md` |
+| Zustand stores, TanStack Query, query keys, cross-feature hooks | `documentation/09-state-management.md` |
+| FastAPI endpoints, service layer, database models, geocoding | `documentation/10-api-architecture.md` |
+| Color scales, `colorScale.ts`, `diffColorScale.ts`, legend bins | `documentation/11-color-scales.md` |
+| Service worker, workbox, caching, PWA config | `documentation/12-pwa-service-worker.md` |
+| Railway deployment, nginx, Dockerfile, Docker Compose, env vars | `documentation/13-deployment.md` |
+| Audit findings, PASS/WARN/FAIL items, prioritized fix plan | `documentation/00-audit-report.md` |

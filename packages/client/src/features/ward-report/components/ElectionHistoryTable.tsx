@@ -37,7 +37,7 @@ export function ElectionHistoryTable({ elections }: ElectionHistoryTableProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Election History</CardTitle>
+        <CardTitle className="text-lg font-semibold">Election History</CardTitle>
         <div className="flex flex-wrap gap-1 pt-2">
           {FILTER_TABS.map((tab) => (
             <button
@@ -46,7 +46,7 @@ export function ElectionHistoryTable({ elections }: ElectionHistoryTableProps) {
               className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
                 activeFilter === tab.key
                   ? 'bg-foreground text-background'
-                  : 'bg-muted text-muted-foreground hover:text-foreground'
+                  : 'bg-content2 text-muted-foreground hover:text-foreground'
               }`}
             >
               {tab.label}
@@ -80,7 +80,7 @@ export function ElectionHistoryTable({ elections }: ElectionHistoryTableProps) {
                       : e.margin < 0
                         ? `R+${Math.abs(e.margin).toFixed(1)}`
                         : 'Even';
-                  const marginColor = e.margin > 0 ? '#2166ac' : e.margin < 0 ? '#b2182b' : '#888';
+                  const marginClass = e.margin > 0 ? 'text-dem' : e.margin < 0 ? 'text-rep' : 'text-muted-foreground';
 
                   return (
                     <tr
@@ -105,18 +105,17 @@ export function ElectionHistoryTable({ elections }: ElectionHistoryTableProps) {
                       </td>
                       <td className="py-2 pr-2">
                         <div className="flex items-center gap-2">
-                          <div className="h-2 w-16 overflow-hidden rounded-full bg-muted">
+                          <div className="h-2 w-16 overflow-hidden rounded-full bg-content2">
                             <div
                               className="h-full rounded-full"
                               style={{
                                 width: `${demBarPct}%`,
-                                backgroundColor: '#2166ac',
+                                backgroundColor: 'var(--dem)',
                               }}
                             />
                           </div>
                           <span
-                            className="text-xs font-semibold"
-                            style={{ color: marginColor }}
+                            className={`text-xs font-semibold ${marginClass}`}
                           >
                             {marginLabel}
                           </span>

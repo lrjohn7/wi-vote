@@ -36,7 +36,7 @@ function AggregationTable({ rows }: { rows: AggregatedResult[] }) {
   return (
     <div className="max-h-64 overflow-y-auto">
       <table className="w-full text-xs">
-        <thead className="sticky top-0 bg-background">
+        <thead className="sticky top-0 bg-content1">
           <tr className="border-b text-left text-muted-foreground">
             <th className="py-1 pr-2 font-medium">Area</th>
             <th className="py-1 pr-2 text-right font-medium">Margin</th>
@@ -51,10 +51,7 @@ function AggregationTable({ rows }: { rows: AggregatedResult[] }) {
               </td>
               <td className="py-1 pr-2 text-right">
                 <span
-                  className="font-semibold"
-                  style={{
-                    color: r.margin > 0 ? '#2166ac' : r.margin < 0 ? '#b2182b' : undefined,
-                  }}
+                  className={`font-semibold ${r.margin > 0 ? 'text-dem' : r.margin < 0 ? 'text-rep' : ''}`}
                 >
                   {formatMargin(r.margin)}
                 </span>
@@ -103,7 +100,7 @@ export const ResultsSummary = memo(function ResultsSummary({ predictions, baseMa
 
   const shift = baselineMargin != null ? margin - baselineMargin : null;
   const winner = margin > 0 ? 'DEM' : margin < 0 ? 'REP' : 'TIE';
-  const winnerColor = margin > 0 ? '#2166ac' : '#b2182b';
+  const winnerColorClass = margin > 0 ? 'text-dem' : 'text-rep';
 
   // Aggregations by geography
   const meta = wardMetadata ?? {};
@@ -124,13 +121,11 @@ export const ResultsSummary = memo(function ResultsSummary({ predictions, baseMa
 
       {/* Winner + Margin */}
       <div
-        className="rounded-lg border p-3 shadow-sm"
-        style={{ backgroundColor: `${winnerColor}08` }}
+        className={`rounded-lg border border-border/30 p-3 shadow-sm ${margin > 0 ? 'bg-dem-bg' : 'bg-rep-bg'}`}
       >
         <div className="text-center">
           <div
-            className="text-3xl font-extrabold"
-            style={{ color: winnerColor }}
+            className={`text-3xl font-extrabold ${winnerColorClass}`}
           >
             {formatMargin(margin)}
           </div>
@@ -143,11 +138,11 @@ export const ResultsSummary = memo(function ResultsSummary({ predictions, baseMa
         <div className="mt-2 flex h-3 overflow-hidden rounded-full">
           <div
             className="transition-all duration-150"
-            style={{ width: `${demBarPct}%`, backgroundColor: '#2166ac' }}
+            style={{ width: `${demBarPct}%`, backgroundColor: 'var(--dem)' }}
           />
           <div
             className="transition-all duration-150"
-            style={{ width: `${100 - demBarPct}%`, backgroundColor: '#b2182b' }}
+            style={{ width: `${100 - demBarPct}%`, backgroundColor: 'var(--rep)' }}
           />
         </div>
         <div className="mt-1 flex justify-between text-xs text-muted-foreground">
@@ -159,11 +154,11 @@ export const ResultsSummary = memo(function ResultsSummary({ predictions, baseMa
       {/* Vote Totals */}
       <div className="space-y-1.5 text-sm">
         <div className="flex justify-between">
-          <span className="text-[#2166ac] font-medium">DEM</span>
+          <span className="text-dem font-medium">DEM</span>
           <span>{formatNumber(totalDem)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-[#b2182b] font-medium">REP</span>
+          <span className="text-rep font-medium">REP</span>
           <span>{formatNumber(totalRep)}</span>
         </div>
         <div className="flex justify-between text-muted-foreground">
@@ -174,11 +169,10 @@ export const ResultsSummary = memo(function ResultsSummary({ predictions, baseMa
 
       {/* Shift from baseline */}
       {shift != null && (
-        <div className="rounded-lg border p-2 text-center">
+        <div className="rounded-lg border border-border/30 bg-content2/50 p-2 text-center">
           <div className="text-xs text-muted-foreground">Shift from baseline</div>
           <div
-            className="text-sm font-semibold"
-            style={{ color: shift > 0 ? '#2166ac' : shift < 0 ? '#b2182b' : undefined }}
+            className={`text-sm font-semibold ${shift > 0 ? 'text-dem' : shift < 0 ? 'text-rep' : ''}`}
           >
             {shift > 0 ? '+' : ''}{shift.toFixed(1)} points
           </div>
@@ -189,11 +183,11 @@ export const ResultsSummary = memo(function ResultsSummary({ predictions, baseMa
       <div className="space-y-1 text-xs text-muted-foreground">
         <div className="flex justify-between">
           <span>Wards won (DEM)</span>
-          <span className="font-medium text-[#2166ac]">{formatNumber(wardsWonDem)}</span>
+          <span className="font-medium text-dem">{formatNumber(wardsWonDem)}</span>
         </div>
         <div className="flex justify-between">
           <span>Wards won (REP)</span>
-          <span className="font-medium text-[#b2182b]">{formatNumber(wardsWonRep)}</span>
+          <span className="font-medium text-rep">{formatNumber(wardsWonRep)}</span>
         </div>
         {wardsTied > 0 && (
           <div className="flex justify-between">

@@ -28,7 +28,7 @@ export function WardDetailPanel() {
   if (!selectedWardId) return null;
 
   return (
-    <div className="absolute right-0 top-0 z-10 flex h-full w-[420px] flex-col border-l bg-background/95 shadow-lg backdrop-blur-sm animate-in slide-in-from-right-full duration-300">
+    <div className="absolute right-0 top-0 z-30 flex h-full w-[420px] flex-col border-l border-border/30 bg-content1/95 shadow-lg backdrop-blur-sm animate-in slide-in-from-right-full duration-300">
       {/* Header */}
       <div className="flex items-start justify-between px-5 py-4">
         <div className="min-w-0 flex-1">
@@ -118,15 +118,14 @@ export function WardDetailPanel() {
                     return (
                       <div
                         key={`${e.election_year}-${e.race_type}`}
-                        className="rounded-xl border p-3 transition-shadow duration-200 hover:shadow-md"
+                        className="rounded-xl border border-border/30 bg-content2/50 p-3 transition-shadow duration-200 hover:shadow-md"
                       >
                         <div className="mb-1.5 flex items-center justify-between">
                           <span className="text-sm font-medium">
                             {e.election_year} {RACE_LABELS[e.race_type] ?? e.race_type}
                           </span>
                           <span
-                            className="text-sm font-semibold"
-                            style={{ color: e.margin > 0 ? '#2166ac' : '#b2182b' }}
+                            className={`text-sm font-semibold ${e.margin > 0 ? 'text-dem' : 'text-rep'}`}
                           >
                             {marginLabel}
                           </span>
@@ -138,14 +137,14 @@ export function WardDetailPanel() {
                             className="transition-all"
                             style={{
                               width: `${demBarPct}%`,
-                              backgroundColor: '#2166ac',
+                              backgroundColor: 'var(--dem)',
                             }}
                           />
                           <div
                             className="transition-all"
                             style={{
                               width: `${100 - demBarPct}%`,
-                              backgroundColor: '#b2182b',
+                              backgroundColor: 'var(--rep)',
                             }}
                           />
                         </div>

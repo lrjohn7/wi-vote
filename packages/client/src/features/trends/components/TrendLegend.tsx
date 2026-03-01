@@ -25,21 +25,21 @@ export const TrendLegend = memo(function TrendLegend({
       <div className="space-y-1 text-[11px]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-3 w-5 rounded" style={{ backgroundColor: '#2166ac' }} />
+            <div className="h-3 w-5 rounded" style={{ backgroundColor: 'var(--dem)' }} />
             <span>Trending Democratic</span>
           </div>
           <span className="tabular-nums text-muted-foreground">{demCount.toLocaleString()}</span>
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-3 w-5 rounded" style={{ backgroundColor: '#d4d4d4' }} />
+            <div className="h-3 w-5 rounded" style={{ backgroundColor: 'var(--content3)' }} />
             <span>Inconclusive</span>
           </div>
           <span className="tabular-nums text-muted-foreground">{incCount.toLocaleString()}</span>
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-3 w-5 rounded" style={{ backgroundColor: '#b2182b' }} />
+            <div className="h-3 w-5 rounded" style={{ backgroundColor: 'var(--rep)' }} />
             <span>Trending Republican</span>
           </div>
           <span className="tabular-nums text-muted-foreground">{repCount.toLocaleString()}</span>
@@ -51,7 +51,7 @@ export const TrendLegend = memo(function TrendLegend({
         <div
           className="h-2.5 w-full rounded-full"
           style={{
-            background: 'linear-gradient(to right, #b2182b, #ef8a62, #d4d4d4, #67a9cf, #2166ac)',
+            background: 'linear-gradient(to right, var(--rep), var(--rep-light), var(--content3), var(--dem-light), var(--dem))',
           }}
         />
         <div className="mt-0.5 flex justify-between text-[9px] text-muted-foreground">

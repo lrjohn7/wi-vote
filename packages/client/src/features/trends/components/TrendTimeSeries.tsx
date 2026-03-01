@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import type { TrendElection, WardTrendInfo } from '@/services/api';
+import { useChartTheme } from '@/shared/hooks/useChartTheme';
 
 interface TrendTimeSeriesProps {
   elections: TrendElection[];
@@ -18,6 +19,8 @@ interface TrendTimeSeriesProps {
 }
 
 export const TrendTimeSeries = memo(function TrendTimeSeries({ elections, raceType, trend }: TrendTimeSeriesProps) {
+  const chart = useChartTheme();
+
   // Filter elections to the selected race type
   const filtered = elections
     .filter((e) => e.race_type === raceType)
@@ -51,27 +54,29 @@ export const TrendTimeSeries = memo(function TrendTimeSeries({ elections, raceTy
 
   const directionColor =
     trend?.direction === 'more_democratic'
-      ? '#2166ac'
+      ? chart.dem
       : trend?.direction === 'more_republican'
-        ? '#b2182b'
-        : '#888';
+        ? chart.rep
+        : chart.neutral;
 
   return (
-    <div className="rounded-xl border bg-card p-4 shadow-sm">
+    <div className="rounded-xl border border-border/30 bg-content1 p-4 shadow-sm">
     <ResponsiveContainer width="100%" height={280}>
       <LineChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+        <CartesianGrid strokeDasharray="3 3" stroke={chart.gridColor} opacity={0.5} />
         <XAxis
           dataKey="year"
-          tick={{ fontSize: 11 }}
+          tick={{ fontSize: 11, fill: chart.textColor }}
           tickFormatter={(y: number) => String(y)}
+          stroke={chart.axisColor}
         />
         <YAxis
-          tick={{ fontSize: 11 }}
+          tick={{ fontSize: 11, fill: chart.textColor }}
           tickFormatter={(v: number) =>
             v > 0 ? `D+${v}` : v < 0 ? `R+${Math.abs(v)}` : '0'
           }
           domain={['auto', 'auto']}
+          stroke={chart.axisColor}
         />
         <Tooltip
           formatter={(value) => {
@@ -79,8 +84,11 @@ export const TrendTimeSeries = memo(function TrendTimeSeries({ elections, raceTy
             return v > 0 ? `D+${v.toFixed(1)}` : v < 0 ? `R+${Math.abs(v).toFixed(1)}` : 'Even';
           }}
           labelFormatter={(label) => `${label}`}
+          contentStyle={{ backgroundColor: chart.tooltipBg, borderColor: chart.tooltipBorder, borderRadius: 8 }}
+          itemStyle={{ color: chart.textColor }}
+          labelStyle={{ color: chart.textColor }}
         />
-        <ReferenceLine y={0} stroke="#666" strokeDasharray="4 4" />
+        <ReferenceLine y={0} stroke={chart.zeroLine} strokeDasharray="4 4" />
         <Line
           type="monotone"
           dataKey="margin"

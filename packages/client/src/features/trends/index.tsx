@@ -87,11 +87,11 @@ export default function Trends() {
                 placeholder="Search wards by name, municipality, or county..."
               />
               {wardSearchResults && wardSearchResults.results.length > 0 && wardSearchQuery.length >= 2 && !selectedWardId && (
-                <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-y-auto rounded-lg border bg-background shadow-lg">
+                <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-y-auto rounded-xl border border-border/30 bg-content1 shadow-lg">
                   {wardSearchResults.results.slice(0, 8).map((ward) => (
                     <button
                       key={ward.ward_id}
-                      className="w-full px-3 py-2 text-left text-sm transition-colors hover:bg-accent"
+                      className="w-full px-3 py-2 text-left text-sm transition-colors hover:bg-content2 rounded-lg"
                       onClick={() => {
                         setSelectedWardId(ward.ward_id);
                         setWardSearchQuery('');
@@ -130,8 +130,8 @@ export default function Trends() {
 
             {wardLoading && (
               <div className="space-y-3 py-4">
-                <div className="h-4 w-40 animate-pulse rounded bg-muted" />
-                <div className="h-64 w-full animate-pulse rounded-xl bg-muted" />
+                <div className="h-4 w-40 animate-pulse rounded bg-content2" />
+                <div className="h-64 w-full animate-pulse rounded-xl bg-content2" />
               </div>
             )}
 

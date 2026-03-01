@@ -2,6 +2,7 @@ import { useState, useMemo, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { useBulkWardElections } from '../hooks/useBulkWardElections';
 import type { AreaTrendEntry, TrendElection } from '@/services/api';
+import { POLITICAL_COLORS } from '@/shared/lib/politicalColors';
 
 interface TrendSparklineGridProps {
   trends: AreaTrendEntry[];
@@ -24,10 +25,10 @@ const MiniSparkline = memo(function MiniSparkline({
 }) {
   const color =
     direction === 'more_democratic'
-      ? '#2166ac'
+      ? POLITICAL_COLORS.dem
       : direction === 'more_republican'
-        ? '#b2182b'
-        : '#999';
+        ? POLITICAL_COLORS.rep
+        : POLITICAL_COLORS.neutral;
 
   // Filter elections for the given race type and sort by year
   const points = useMemo(() => {
@@ -70,7 +71,7 @@ const MiniSparkline = memo(function MiniSparkline({
             y1={height - padY - (0 - minMargin) * yScale}
             x2={width - padX}
             y2={height - padY - (0 - minMargin) * yScale}
-            stroke="#ddd"
+            stroke="#d4d4d4"
             strokeWidth={0.5}
             strokeDasharray="2,2"
           />
@@ -158,7 +159,7 @@ export function TrendSparklineGrid({
             <button
               key={mode}
               className={`rounded px-2 py-0.5 text-xs transition-colors ${
-                sortMode === mode ? 'bg-accent font-medium' : 'text-muted-foreground hover:bg-muted'
+                sortMode === mode ? 'bg-content2 font-medium' : 'text-muted-foreground hover:bg-content2'
               }`}
               onClick={() => { setSortMode(mode); setPage(0); }}
             >
@@ -172,11 +173,11 @@ export function TrendSparklineGrid({
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {displayed.map((t) => (
           <div
             key={t.ward_id}
-            className="rounded-lg border bg-card p-2 shadow-sm transition-shadow duration-200 hover:shadow-md"
+            className="rounded-xl border border-border/30 bg-content1 p-2 shadow-sm transition-shadow duration-200 hover:shadow-md"
             title={`${t.ward_id}: ${t.direction} (slope: ${t.slope?.toFixed(2) ?? 'N/A'})`}
           >
             <MiniSparkline

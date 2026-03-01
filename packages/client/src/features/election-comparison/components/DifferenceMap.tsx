@@ -135,7 +135,7 @@ export function DifferenceMap({ diffData }: DifferenceMapProps) {
       <div ref={mapContainer} className="h-full w-full" style={{ minHeight: '400px' }} />
 
       {/* Diff Legend */}
-      <div className="absolute bottom-6 left-4 z-10 rounded-lg bg-white/90 p-3 shadow-md backdrop-blur-sm">
+      <div className="glass-panel absolute bottom-6 left-4 z-20 rounded-lg p-3">
         <div className="mb-2 flex justify-between text-xs font-medium text-muted-foreground">
           <span>Shifted R</span>
           <span>Shifted D</span>

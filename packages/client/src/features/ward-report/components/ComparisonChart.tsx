@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useChartTheme } from '@/shared/hooks/useChartTheme';
 import type { ReportCardComparison } from '@/services/api';
 
 interface ComparisonChartProps {
@@ -18,6 +19,8 @@ interface ComparisonChartProps {
 }
 
 export function ComparisonChart({ comparisons, county }: ComparisonChartProps) {
+  const chart = useChartTheme();
+
   if (comparisons.length === 0) {
     return null;
   }
@@ -38,22 +41,24 @@ export function ComparisonChart({ comparisons, county }: ComparisonChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">
+        <CardTitle className="text-lg font-semibold">
           Presidential Margin: Ward vs. {county} Co. vs. State
         </CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+            <CartesianGrid strokeDasharray="3 3" stroke={chart.gridColor} />
             <XAxis
               dataKey="year"
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 12, fill: chart.textColor }}
               tickFormatter={(v) => String(v)}
+              stroke={chart.axisColor}
             />
             <YAxis
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 12, fill: chart.textColor }}
               tickFormatter={formatMargin}
+              stroke={chart.axisColor}
             />
             <Tooltip
               formatter={(value, name) => [
@@ -61,24 +66,27 @@ export function ComparisonChart({ comparisons, county }: ComparisonChartProps) {
                 name === 'ward' ? 'Ward' : name === 'county' ? `${county} Co.` : 'Wisconsin',
               ]}
               labelFormatter={(label) => `${label} Presidential`}
+              contentStyle={{ backgroundColor: chart.tooltipBg, borderColor: chart.tooltipBorder, borderRadius: 8 }}
+              itemStyle={{ color: chart.textColor }}
+              labelStyle={{ color: chart.textColor }}
             />
             <Legend
               formatter={(value) =>
                 value === 'ward' ? 'Ward' : value === 'county' ? `${county} Co.` : 'Wisconsin'
               }
             />
-            <ReferenceLine y={0} stroke="#999" strokeDasharray="3 3" />
+            <ReferenceLine y={0} stroke={chart.zeroLine} strokeDasharray="3 3" />
             <Line
               type="monotone"
               dataKey="ward"
-              stroke="#333"
+              stroke={chart.line1}
               strokeWidth={2.5}
               dot={{ r: 4 }}
             />
             <Line
               type="monotone"
               dataKey="county"
-              stroke="#8884d8"
+              stroke={chart.line2}
               strokeWidth={1.5}
               strokeDasharray="6 3"
               dot={{ r: 3 }}
@@ -86,7 +94,7 @@ export function ComparisonChart({ comparisons, county }: ComparisonChartProps) {
             <Line
               type="monotone"
               dataKey="state"
-              stroke="#82ca9d"
+              stroke={chart.line3}
               strokeWidth={1.5}
               strokeDasharray="2 2"
               dot={{ r: 3 }}

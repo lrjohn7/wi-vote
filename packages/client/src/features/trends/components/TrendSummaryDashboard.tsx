@@ -39,28 +39,28 @@ export const TrendSummaryDashboard = memo(function TrendSummaryDashboard({
         {repPct > 0 && (
           <div
             className="h-full"
-            style={{ width: `${repPct}%`, backgroundColor: '#b2182b' }}
+            style={{ width: `${repPct}%`, backgroundColor: 'var(--rep)' }}
           />
         )}
         {incPct > 0 && (
           <div
             className="h-full"
-            style={{ width: `${incPct}%`, backgroundColor: '#d4d4d4' }}
+            style={{ width: `${incPct}%`, backgroundColor: 'var(--content3)' }}
           />
         )}
         {demPct > 0 && (
           <div
             className="h-full"
-            style={{ width: `${demPct}%`, backgroundColor: '#2166ac' }}
+            style={{ width: `${demPct}%`, backgroundColor: 'var(--dem)' }}
           />
         )}
       </div>
 
       {/* Percentage labels */}
       <div className="mt-1 flex justify-between text-[10px] tabular-nums text-muted-foreground">
-        <span className="text-red-700">{repPct.toFixed(1)}% R</span>
+        <span className="text-rep">{repPct.toFixed(1)}% R</span>
         <span>{incPct.toFixed(1)}% Inc</span>
-        <span className="text-blue-700">{demPct.toFixed(1)}% D</span>
+        <span className="text-dem">{demPct.toFixed(1)}% D</span>
       </div>
 
       {/* Average slopes */}
@@ -68,7 +68,7 @@ export const TrendSummaryDashboard = memo(function TrendSummaryDashboard({
         {stats.avgDemSlope != null && (
           <div className="flex justify-between">
             <span>Avg D-trending slope:</span>
-            <span className="font-medium text-blue-700">
+            <span className="font-medium text-dem">
               +{Math.abs(stats.avgDemSlope).toFixed(2)}/cycle
             </span>
           </div>
@@ -76,7 +76,7 @@ export const TrendSummaryDashboard = memo(function TrendSummaryDashboard({
         {stats.avgRepSlope != null && (
           <div className="flex justify-between">
             <span>Avg R-trending slope:</span>
-            <span className="font-medium text-red-700">
+            <span className="font-medium text-rep">
               +{Math.abs(stats.avgRepSlope).toFixed(2)}/cycle
             </span>
           </div>

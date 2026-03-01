@@ -77,8 +77,9 @@ export default function WardReport() {
                 Avg. Turnout
               </CardTitle>
             </CardHeader>
+
             <CardContent>
-              <div className="text-3xl font-bold">
+              <div className="text-2xl font-bold tabular-nums">
                 {avgTurnout != null ? avgTurnout.toLocaleString() : 'N/A'}
               </div>
               <p className="mt-1 text-sm text-muted-foreground">

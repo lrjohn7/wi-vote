@@ -10,17 +10,17 @@ const TREND_CONFIG = {
   more_democratic: {
     label: 'Trending Democratic',
     Icon: TrendingUp,
-    color: '#2166ac',
+    colorClass: 'text-dem',
   },
   more_republican: {
     label: 'Trending Republican',
     Icon: TrendingDown,
-    color: '#b2182b',
+    colorClass: 'text-rep',
   },
   inconclusive: {
     label: 'No Clear Trend',
     Icon: Minus,
-    color: '#888',
+    colorClass: 'text-muted-foreground',
   },
 } as const;
 
@@ -37,8 +37,8 @@ export function TrendCard({ trend }: TrendCardProps) {
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-2">
-          <Icon className="h-6 w-6" style={{ color: config.color }} />
-          <span className="text-lg font-semibold" style={{ color: config.color }}>
+          <Icon className={`h-6 w-6 ${config.colorClass}`} />
+          <span className={`text-lg font-semibold ${config.colorClass}`}>
             {config.label}
           </span>
         </div>

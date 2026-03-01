@@ -303,7 +303,7 @@ export default function SwingModeler() {
   return (
     <div className="flex h-full flex-col">
       {/* Top bar */}
-      <div className="flex items-center gap-4 border-b border-border/50 bg-background/80 px-5 py-2.5 backdrop-blur-sm">
+      <div className="glass-panel flex items-center gap-4 rounded-none border-x-0 border-t-0 px-5 py-2.5">
         <h2 className="text-lg font-semibold">Swing Modeler</h2>
         {isComputing && (
           <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -350,7 +350,7 @@ export default function SwingModeler() {
         <div className="relative flex-1">
           {boundariesLoading && (
             <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/50">
-              <div className="rounded-lg bg-white p-4 shadow-lg">
+              <div className="glass-panel p-4">
                 Loading ward boundaries...
               </div>
             </div>
@@ -365,7 +365,7 @@ export default function SwingModeler() {
           />
 
           {/* Legend */}
-          <div className="absolute bottom-6 left-4 z-10">
+          <div className="absolute bottom-6 left-4 z-20">
             <MapLegend />
           </div>
 

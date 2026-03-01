@@ -30,7 +30,7 @@ export default function ElectionComparison() {
   return (
     <div className="flex h-full flex-col">
       {/* Top bar */}
-      <div className="flex flex-wrap items-center gap-4 border-b border-border/50 bg-background/80 px-5 py-2.5 backdrop-blur-sm">
+      <div className="glass-panel flex flex-wrap items-center gap-4 rounded-none border-x-0 border-t-0 px-5 py-2.5">
         <h2 className="text-lg font-semibold">Compare Elections</h2>
 
         <ComparisonSelector
@@ -51,10 +51,10 @@ export default function ElectionComparison() {
           onRaceChange={setRaceB}
         />
 
-        <div className="ml-auto flex items-center gap-1 rounded-md border bg-muted p-0.5">
+        <div className="ml-auto flex items-center gap-1 rounded-md border border-border/30 bg-content2/50 p-0.5">
           <button
             className={`rounded px-3 py-1 text-sm transition-colors ${
-              viewMode === 'side-by-side' ? 'bg-background font-medium shadow-sm' : 'text-muted-foreground'
+              viewMode === 'side-by-side' ? 'bg-content1 font-medium shadow-sm' : 'text-muted-foreground'
             }`}
             onClick={() => setViewMode('side-by-side')}
           >
@@ -62,7 +62,7 @@ export default function ElectionComparison() {
           </button>
           <button
             className={`rounded px-3 py-1 text-sm transition-colors ${
-              viewMode === 'difference' ? 'bg-background font-medium shadow-sm' : 'text-muted-foreground'
+              viewMode === 'difference' ? 'bg-content1 font-medium shadow-sm' : 'text-muted-foreground'
             }`}
             onClick={() => setViewMode('difference')}
           >
@@ -83,7 +83,7 @@ export default function ElectionComparison() {
         {viewMode === 'side-by-side' && (
           <div className="flex h-full">
             {/* Election A */}
-            <div className="relative flex-1 border-r">
+            <div className="relative flex-1 border-r border-border/30">
               <div className="glass-panel absolute left-2 top-2 z-10 px-3 py-1.5 text-sm font-semibold">
                 {yearA} {raceA}
               </div>

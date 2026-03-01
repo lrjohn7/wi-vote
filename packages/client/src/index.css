@@ -64,10 +64,24 @@ body {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Surface layering tokens (HeroUI content1/2/3/4 pattern) */
+  --color-content1: var(--content1);
+  --color-content2: var(--content2);
+  --color-content3: var(--content3);
+  --color-content4: var(--content4);
+
+  /* Political color tokens (for DOM — NOT for MapLibre expressions) */
+  --color-dem: var(--dem);
+  --color-dem-light: var(--dem-light);
+  --color-dem-bg: var(--dem-bg);
+  --color-rep: var(--rep);
+  --color-rep-light: var(--rep-light);
+  --color-rep-bg: var(--rep-bg);
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.75rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -99,6 +113,20 @@ body {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Surface layering (light) */
+  --content1: oklch(0.99 0 0);
+  --content2: oklch(0.965 0 0);
+  --content3: oklch(0.94 0 0);
+  --content4: oklch(0.915 0 0);
+
+  /* Political colors (light) */
+  --dem: #2166ac;
+  --dem-light: #67a9cf;
+  --dem-bg: oklch(0.92 0.03 250);
+  --rep: #b2182b;
+  --rep-light: #ef8a62;
+  --rep-bg: oklch(0.94 0.03 25);
 }
 
 .dark {
@@ -133,6 +161,20 @@ body {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* Surface layering (dark) */
+  --content1: oklch(0.22 0 0);
+  --content2: oklch(0.26 0 0);
+  --content3: oklch(0.30 0 0);
+  --content4: oklch(0.34 0 0);
+
+  /* Political colors (dark — lighter variants for readability) */
+  --dem: #67a9cf;
+  --dem-light: #92c5de;
+  --dem-bg: oklch(0.25 0.04 250);
+  --rep: #ef8a62;
+  --rep-light: #f4a582;
+  --rep-bg: oklch(0.25 0.04 25);
 }
 
 @layer base {
@@ -140,12 +182,12 @@ body {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-200;
   }
 }
 
 @layer utilities {
   .glass-panel {
-    @apply rounded-xl border border-white/20 bg-white/85 shadow-lg backdrop-blur-md;
+    @apply rounded-xl border border-white/20 bg-white/85 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-content1/80;
   }
 }

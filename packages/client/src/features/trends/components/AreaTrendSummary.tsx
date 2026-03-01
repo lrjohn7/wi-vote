@@ -23,7 +23,7 @@ export function AreaTrendSummary({ summary, totalWards }: AreaTrendSummaryProps)
         {demPct > 0 && (
           <div
             className="flex items-center justify-center text-[10px] font-medium text-white"
-            style={{ width: `${demPct}%`, backgroundColor: '#2166ac' }}
+            style={{ width: `${demPct}%`, backgroundColor: 'var(--dem)' }}
           >
             {demPct >= 8 ? `${summary.more_democratic}` : ''}
           </div>
@@ -31,7 +31,7 @@ export function AreaTrendSummary({ summary, totalWards }: AreaTrendSummaryProps)
         {incPct > 0 && (
           <div
             className="flex items-center justify-center text-[10px] font-medium text-gray-700"
-            style={{ width: `${incPct}%`, backgroundColor: '#d4d4d4' }}
+            style={{ width: `${incPct}%`, backgroundColor: 'var(--content3)' }}
           >
             {incPct >= 8 ? `${summary.inconclusive}` : ''}
           </div>
@@ -39,7 +39,7 @@ export function AreaTrendSummary({ summary, totalWards }: AreaTrendSummaryProps)
         {repPct > 0 && (
           <div
             className="flex items-center justify-center text-[10px] font-medium text-white"
-            style={{ width: `${repPct}%`, backgroundColor: '#b2182b' }}
+            style={{ width: `${repPct}%`, backgroundColor: 'var(--rep)' }}
           >
             {repPct >= 8 ? `${summary.more_republican}` : ''}
           </div>
@@ -49,15 +49,15 @@ export function AreaTrendSummary({ summary, totalWards }: AreaTrendSummaryProps)
       {/* Legend */}
       <div className="flex gap-4 text-xs text-muted-foreground">
         <span>
-          <span className="inline-block h-2 w-2 rounded-full mr-1" style={{ backgroundColor: '#2166ac' }} />
+          <span className="inline-block h-2 w-2 rounded-full mr-1" style={{ backgroundColor: 'var(--dem)' }} />
           Trending D: {summary.more_democratic}
         </span>
         <span>
-          <span className="inline-block h-2 w-2 rounded-full mr-1" style={{ backgroundColor: '#b2182b' }} />
+          <span className="inline-block h-2 w-2 rounded-full mr-1" style={{ backgroundColor: 'var(--rep)' }} />
           Trending R: {summary.more_republican}
         </span>
         <span>
-          <span className="inline-block h-2 w-2 rounded-full mr-1" style={{ backgroundColor: '#d4d4d4' }} />
+          <span className="inline-block h-2 w-2 rounded-full mr-1" style={{ backgroundColor: 'var(--content3)' }} />
           Inconclusive: {summary.inconclusive}
         </span>
       </div>
