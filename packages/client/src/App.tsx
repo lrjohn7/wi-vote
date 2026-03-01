@@ -1,8 +1,11 @@
+import { useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router';
 import { Map, Search, TrendingUp, SlidersHorizontal, Scale, ClipboardList, GitCompareArrows, Radio, History, Sun, Moon, Monitor } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
 import { MobileNav } from '@/shared/components/MobileNav';
 import { OfflineIndicator } from '@/shared/components/OfflineIndicator';
+import { initAnalytics } from '@/shared/lib/analytics';
+import { useAnalytics } from '@/shared/hooks/useAnalytics';
 
 const navItems = [
   { to: '/map', label: 'Election Map', icon: Map, end: false },
@@ -40,6 +43,9 @@ function ThemeToggle() {
 }
 
 export default function App() {
+  useEffect(() => { initAnalytics(); }, []);
+  useAnalytics();
+
   return (
     <div className="flex h-dvh flex-col" style={{ height: '100dvh' }}>
       <a

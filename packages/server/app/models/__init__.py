@@ -8,6 +8,7 @@ from app.models.scenario import Scenario
 from app.models.ward_note import WardNote
 from app.models.voter_registration import VoterRegistration
 from app.models.live_result import LiveResult, LiveElection
+from app.models.analytics_event import AnalyticsEvent
 
 __all__ = [
     "Ward",
@@ -21,4 +22,5 @@ __all__ = [
     "VoterRegistration",
     "LiveResult",
     "LiveElection",
+    "AnalyticsEvent",
 ]

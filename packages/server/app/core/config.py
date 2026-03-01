@@ -23,6 +23,7 @@ class Settings(BaseSettings):
 
     # Admin
     admin_api_key: str = ""  # Set via ADMIN_API_KEY env var; required for destructive endpoints
+    admin_analytics_key: str = ""  # Set via ADMIN_ANALYTICS_KEY env var; required for analytics dashboard
 
     # App
     app_name: str = "WI-Vote API"

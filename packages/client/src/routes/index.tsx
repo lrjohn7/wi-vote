@@ -16,6 +16,7 @@ const ElectionComparison = lazy(() => import('@/features/election-comparison'));
 const ElectionNight = lazy(() => import('@/features/election-night'));
 const BoundaryHistory = lazy(() => import('@/features/boundary-history'));
 const DataManager = lazy(() => import('@/features/data-manager'));
+const AnalyticsDashboard = lazy(() => import('@/features/analytics-dashboard'));
 
 export const router = createBrowserRouter([
   {
@@ -138,6 +139,16 @@ export const router = createBrowserRouter([
           <ErrorBoundary featureName="Data Manager">
             <Suspense fallback={<ContentPageSkeleton />}>
               <DataManager />
+            </Suspense>
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: 'admin/analytics',
+        element: (
+          <ErrorBoundary featureName="Analytics">
+            <Suspense fallback={<ContentPageSkeleton />}>
+              <AnalyticsDashboard />
             </Suspense>
           </ErrorBoundary>
         ),

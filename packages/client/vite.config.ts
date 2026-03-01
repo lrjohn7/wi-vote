@@ -23,7 +23,7 @@ export default defineConfig({
         // Exclude PMTiles from service worker — Range requests are
         // incompatible with CacheFirst (wrong bytes served from cache).
         // Nginx already sets Cache-Control: public, immutable on /tiles/.
-        navigateFallbackDenylist: [/\/tiles\//],
+        navigateFallbackDenylist: [/\/tiles\//, /\/api\/v1\/analytics\//],
         runtimeCaching: [
           {
             // HTML navigation — always try network first so deploys are
