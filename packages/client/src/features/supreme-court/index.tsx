@@ -163,7 +163,7 @@ export default function SupremeCourt() {
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto px-3 py-4 sm:px-4 md:px-6">
+      <div className="min-h-0 flex-1 overflow-auto px-3 py-4 sm:px-4 md:px-6">
         {contestsError && (
           <QueryErrorState error={contestsErrorObj!} />
         )}

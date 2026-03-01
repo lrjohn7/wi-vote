@@ -94,7 +94,7 @@ export function WardDetailPanel() {
           <Separator />
 
           {/* Election Results */}
-          <ScrollArea className="flex-1">
+          <ScrollArea className="min-h-0 flex-1">
             {/* Demographics */}
             {demographics && (
               <div className="border-b border-border/30 px-4 py-3">

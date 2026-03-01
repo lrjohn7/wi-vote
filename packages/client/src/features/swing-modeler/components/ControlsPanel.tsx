@@ -250,7 +250,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
   };
 
   const panelContent = (
-    <div className="overflow-y-auto p-4 space-y-0">
+    <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-0">
       {/* Mobile close button */}
       <div className="mb-3 flex items-center justify-between md:hidden">
         <h3 className="text-sm font-semibold">Controls</h3>

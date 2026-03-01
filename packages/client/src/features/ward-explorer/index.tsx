@@ -89,7 +89,7 @@ export default function WardExplorer() {
         <Separator />
 
         {/* Search results */}
-        <ScrollArea className="max-h-48 flex-1 md:max-h-none">
+        <ScrollArea className="min-h-0 max-h-48 flex-1 md:max-h-none">
           <div className="p-4">
             {searchLoading && (
               <p className="text-sm text-muted-foreground">Searching...</p>
