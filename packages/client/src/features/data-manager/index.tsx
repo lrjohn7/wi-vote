@@ -14,9 +14,10 @@ function useDataStats() {
     queryKey: ['data-stats'],
     queryFn: async () => {
       // Aggregate stats from elections endpoint
-      const elections = await api.getElections();
-      const years = elections.map((e: { year: number }) => e.year);
-      const raceTypes = [...new Set(elections.map((e: { raceType: string }) => e.raceType))];
+      const response = await api.getElections();
+      const elections = response.elections;
+      const years = elections.map((e) => e.year);
+      const raceTypes = [...new Set(elections.map((e) => e.race_type))];
       return {
         totalWards: 0, // Would come from wards endpoint
         totalElections: elections.length,
