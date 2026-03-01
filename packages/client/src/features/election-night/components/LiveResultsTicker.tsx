@@ -1,17 +1,6 @@
 import { memo } from 'react';
 import type { LiveRaceSummary } from '../hooks/useLiveResults';
-
-const RACE_LABELS: Record<string, string> = {
-  president: 'President',
-  governor: 'Governor',
-  us_senate: 'US Senate',
-  us_house: 'US House',
-  state_senate: 'State Senate',
-  state_assembly: 'State Assembly',
-  attorney_general: 'Attorney General',
-  secretary_of_state: 'Secretary of State',
-  treasurer: 'Treasurer',
-};
+import { RACE_LABELS } from '@/shared/lib/raceLabels';
 
 interface LiveResultsTickerProps {
   races: LiveRaceSummary[];

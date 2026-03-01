@@ -5,18 +5,19 @@ import { MapLegend } from '@/features/election-map/components/MapLegend';
 import { LiveResultsTicker } from './components/LiveResultsTicker';
 import { ReportingProgress } from './components/ReportingProgress';
 import { useLiveElections, useLiveResults } from './hooks/useLiveResults';
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import type { MapDataResponse, WardMapEntry } from '@/features/election-map/hooks/useMapData';
 
 export default function ElectionNight() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { data: elections, isLoading: electionsLoading } = useLiveElections();
+  const { data: elections, isLoading: electionsLoading, isError: electionsError, error: electionsErrorObj, refetch: electionsRefetch } = useLiveElections();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   // Auto-select active election or most recent
   const activeElection = elections?.find((e) => e.is_active);
   const effectiveDate = selectedDate ?? activeElection?.election_date ?? elections?.[0]?.election_date ?? null;
 
-  const { data: liveData, isLoading: resultsLoading } = useLiveResults(effectiveDate);
+  const { data: liveData, isLoading: resultsLoading, isError: resultsError, error: resultsErrorObj, refetch: resultsRefetch } = useLiveResults(effectiveDate);
 
   // Convert live results to map data format
   const mapData: MapDataResponse | null = liveData
@@ -113,7 +114,15 @@ export default function ElectionNight() {
               <X className="h-4 w-4" />
             </button>
           </div>
-          {noActiveElection && (
+          {(electionsError || resultsError) && (
+            <div className="p-2">
+              <QueryErrorState
+                error={(electionsErrorObj ?? resultsErrorObj)!}
+                onRetry={() => { electionsRefetch(); resultsRefetch(); }}
+              />
+            </div>
+          )}
+          {noActiveElection && !electionsError && (
             <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
               <div className="text-4xl">🗳️</div>
               <h3 className="text-lg font-semibold">No Active Election</h3>

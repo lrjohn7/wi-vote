@@ -90,7 +90,7 @@ const PIPELINE_STEPS = [
 ];
 
 export default function DataManager() {
-  const { data: stats, isLoading, isError } = useDataStats();
+  const { data: stats, isLoading, isError, refetch } = useDataStats();
 
   return (
     <div className="mx-auto max-w-4xl p-6">
@@ -109,7 +109,13 @@ export default function DataManager() {
         )}
         {isError && (
           <div className="rounded-lg border border-amber-500/30 bg-amber-50 p-6 text-sm text-amber-800 dark:bg-amber-950/20 dark:text-amber-200">
-            Unable to connect to API. Ensure the backend is running.
+            <p>Unable to connect to API. Ensure the backend is running.</p>
+            <button
+              onClick={() => refetch()}
+              className="mt-3 rounded-md bg-amber-200 px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-300 dark:bg-amber-900 dark:text-amber-200 dark:hover:bg-amber-800"
+            >
+              Retry
+            </button>
           </div>
         )}
         {stats && (

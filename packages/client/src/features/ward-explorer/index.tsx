@@ -13,6 +13,7 @@ import { useWardSearch } from './hooks/useWardSearch';
 import { useWardDetail } from '@/features/election-map/hooks/useWardDetail';
 import { useMapStore } from '@/stores/mapStore';
 import { useGeocodeAddress } from '@/shared/hooks/useGeocodeAddress';
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { RACE_LABELS_SHORT } from '@/shared/lib/raceLabels';
 
 export default function WardExplorer() {
@@ -24,8 +25,8 @@ export default function WardExplorer() {
   const [addressInput, setAddressInput] = useState('');
   const { geocode, isLoading: geocodeLoading, error: geocodeError } = useGeocodeAddress();
 
-  const { data: searchResults, isLoading: searchLoading } = useWardSearch(searchQuery);
-  const { data: wardDetail, isLoading: detailLoading } = useWardDetail(selectedWardId);
+  const { data: searchResults, isLoading: searchLoading, isError: searchError, error: searchErrorObj, refetch: searchRefetch } = useWardSearch(searchQuery);
+  const { data: wardDetail, isLoading: detailLoading, isError: detailError, error: detailErrorObj, refetch: detailRefetch } = useWardDetail(selectedWardId);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
@@ -91,6 +92,9 @@ export default function WardExplorer() {
             {searchLoading && (
               <p className="text-sm text-muted-foreground">Searching...</p>
             )}
+            {searchError && searchQuery.length >= 2 && (
+              <QueryErrorState error={searchErrorObj!} onRetry={() => searchRefetch()} compact />
+            )}
             {searchResults && searchResults.results.length > 0 && (
               <div className="space-y-1">
                 <p className="mb-2 text-xs text-muted-foreground">
@@ -134,7 +138,12 @@ export default function WardExplorer() {
 
       {/* Right panel: Ward detail */}
       <div className="flex-1 overflow-auto bg-background p-6">
-        {detailLoading && selectedWardId && (
+        {detailError && selectedWardId && (
+          <div className="p-6">
+            <QueryErrorState error={detailErrorObj!} onRetry={() => detailRefetch()} />
+          </div>
+        )}
+        {detailLoading && selectedWardId && !detailError && (
           <div className="mx-auto max-w-3xl space-y-4 p-6">
             <div className="h-8 w-64 animate-pulse rounded-lg bg-content2" />
             <div className="h-4 w-48 animate-pulse rounded bg-content2" />
