@@ -41,6 +41,7 @@ wi-vote/
 │       ├── pyproject.toml
 │       ├── app/
 │       │   ├── main.py
+│       │   ├── core/            # Config, database, rate limiting
 │       │   ├── api/
 │       │   │   └── v1/
 │       │   ├── models/          # SQLAlchemy/Pydantic models
@@ -756,65 +757,61 @@ export const queryKeys = {
 
 ## Build Phases
 
-### Phase 1: Foundation + Static Map (Weeks 1-6)
-**Goal:** Ward map with historical election results, ward lookup.
+### Phase 1: Foundation + Static Map ✅
+**Status:** Complete
 
-Tasks:
-1. Set up monorepo with Vite + React + TypeScript + Tailwind
-2. Set up FastAPI + PostgreSQL + PostGIS with Docker Compose
-3. Write data ingestion scripts for LTSB ArcGIS data (2020 ward vintage, all available elections)
-4. Generate PMTiles from ward boundaries via Tippecanoe
-5. Build MapLibre choropleth with ward polygons
-6. Build election year/race selector dropdown
-7. Implement `setFeatureState` for dynamic election switching
-8. Build ward detail sidebar (click ward → show all elections)
-9. Build address search → geocode → ward identification
-10. Build basic ward search by name/municipality
-11. Deploy as static frontend + API backend
+- Monorepo with Vite + React + TypeScript + Tailwind
+- FastAPI + PostgreSQL + PostGIS with Docker Compose
+- LTSB ArcGIS data ingestion (2020 ward vintage, all elections)
+- PMTiles ward boundary tiles via Tippecanoe
+- MapLibre choropleth with `setFeatureState` for dynamic election switching
+- Ward detail sidebar, address geocoding, ward search
+- Deployed on Railway (client + API services)
 
-**Definition of Done:** User can view a map of all ~7,000 Wisconsin wards colored by election results, switch between any available election, click any ward to see its full election history, and search for wards by name or address.
+### Phase 2: Modeling + Trends ✅
+**Status:** Complete
 
-### Phase 2: Modeling + Trends (Weeks 7-12)
-**Goal:** Uniform swing modeling and partisan trend analysis.
+- Uniform swing model (client-side Web Worker)
+- Proportional swing model
+- Swing slider UI with real-time map updates
+- Turnout adjustment slider + regional swing sliders
+- Results summary panel (ward/county/district/state aggregations)
+- Ward-level trend analysis via linear regression
+- Trend classification (more D, more R, inconclusive)
+- Recharts time series + trend map overlay
+- Pre-built scenario presets + URL parameter encoding
 
-Tasks:
-1. Implement uniform swing model (client-side, Web Worker)
-2. Build swing slider UI with real-time map updates
-3. Implement proportional swing as second model
-4. Build turnout adjustment slider
-5. Build results summary panel (projected winner, margins at all aggregation levels)
-6. Compute ward-level trends via linear regression (backend batch job)
-7. Build trend classification logic (more D, more R, inconclusive)
-8. Build Recharts time series for ward trends
-9. Build trend map overlay (color by trend direction/magnitude)
-10. Add regional swing sliders (Milwaukee, Madison, Fox Valley, rural)
-11. Add pre-built scenario presets
-12. Add URL parameter encoding for sharing scenarios
+### Phase 3: Advanced Features ✅
+**Status:** Complete
 
-**Definition of Done:** User can adjust swing sliders and see the map update in real-time with projected results. User can view trend charts showing how any ward has shifted over time.
+- Side-by-side election comparison view + difference map
+- PWA manifest + service worker with offline caching
+- Performance optimization (bundle splitting, tile caching, manual chunks)
+- Accessibility audit (skip links, ARIA labels, keyboard navigation, screen reader support)
+- Supreme Court / spring election feature
 
-### Phase 3: Advanced Features (Weeks 13-20)
-**Goal:** Demographic regression, comparison views, PWA.
+### Phase 4: Extended Features ✅
+**Status:** Complete (core items)
 
-Tasks:
-1. Ingest Census/ACS demographic data at ward level
-2. Build demographic regression model (urban/suburban/rural differential swing)
-3. Build side-by-side election comparison view
-4. Build difference map (Election A minus Election B)
-5. Build small multiples view for trend sparklines
-6. Add urban/suburban/rural differential swing sliders
-7. Implement PWA manifest + service worker for offline caching
-8. Add ward-level uncertainty visualization (confidence bands)
-9. Performance optimization pass (bundle splitting, tile caching)
-10. Accessibility audit and improvements
+- ✅ Election Night live results UI (`/live`) — polling, race summaries, county breakdown
+- ✅ Ward Boundary History (`/boundaries`) — vintage timeline, comparison overlay
+- ✅ Voter Registration data overlay — registration stats, party breakdown hooks
+- ✅ Community Notes — ward-level user-submitted notes with moderation
+- ⏳ Server-side MRP model (PyMC/Stan) — deferred, requires real demographic training data
+- ⏳ Mobile app via Capacitor — deferred, PWA covers mobile use case
 
-### Phase 4: Future Enhancements (Ongoing)
-- Server-side MRP (multilevel regression with poststratification) model via PyMC/Stan
-- Real-time election night data integration
-- Voter registration data overlay
-- Historical ward boundary animation (show how boundaries changed)
-- Community features (user-submitted notes, local knowledge)
-- Mobile app via Capacitor (if app store presence needed)
+### Phase 5: Polish & Quality ✅
+**Status:** Complete
+
+- Display metric toggle (margin / Dem% / Rep% / total votes) on Election Map
+- WisconsinMap `setPaintProperty` for dynamic metric switching
+- Boundary comparison GeoJSON overlay (amber dashed lines)
+- Ward search deduplication (window function, most recent vintage only)
+- Dead code removal (idbCache.ts)
+- Data Manager full implementation (database stats, pipeline reference)
+- API rate limiting middleware (120 req/min, 30/min expensive endpoints)
+- Ward notes moderation (content filtering, URL blocking, per-IP throttle, require approval)
+- Client-side test suite: Vitest + Testing Library (30 tests, 3 files)
 
 ---
 
@@ -842,7 +839,8 @@ Tasks:
 
 ### Git
 - Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`
-- Feature branches off `main`
+- Feature branches off `master`
+- Railway deploys from `master` branch automatically
 - Each phase is a milestone with issues
 
 ---
@@ -891,8 +889,17 @@ VITE_FF_PWA=false
 
 ## Testing Strategy
 
-- **Unit tests:** Model implementations, data transformations, utility functions (Vitest)
-- **Component tests:** Feature components with mocked data (Testing Library)
+### Client Tests (Implemented)
+- **Framework:** Vitest + jsdom + @testing-library/react + @testing-library/user-event
+- **Config:** `packages/client/vitest.config.ts` (separate from vite.config.ts)
+- **Setup:** `packages/client/src/test/setup.ts` (imports jest-dom matchers)
+- **Run:** `npm test` (single run) or `npm run test:watch` (watch mode)
+- **Current test files:**
+  - `src/shared/lib/colorScale.test.ts` — color scale utilities, legend bins, metric helpers (17 tests)
+  - `src/stores/mapStore.test.ts` — Zustand store state and actions (9 tests)
+  - `src/features/election-map/components/MetricToggle.test.tsx` — component rendering and user interaction (4 tests)
+
+### Other Test Layers
 - **Integration tests:** API endpoints with test database (Pytest + httpx)
 - **E2E tests:** Critical user flows — ward lookup, election switching, modeling (Playwright)
 - **Visual regression:** Map rendering at key zoom levels (Playwright screenshots)
@@ -948,6 +955,26 @@ VITE_FF_PWA=false
 
 **Files:**
 - `packages/client/vite.config.ts` — workbox `cacheableResponse` + `skipWaiting` config
+
+### API Rate Limiting
+**Implementation:** In-memory fixed-window rate limiter middleware (`packages/server/app/core/rate_limit.py`), wired into `packages/server/app/main.py`.
+
+**Limits:**
+- Default: 120 requests/minute per IP
+- Expensive endpoints (`/api/v1/wards/boundaries`, `/api/v1/elections/map-data`): 30 requests/minute per IP
+- Returns HTTP 429 with `Retry-After` header when exceeded
+- Adds `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` headers to all responses
+
+**Note:** Uses in-memory storage, so rate limit counters reset on service restart. For multi-instance deployments, replace with Redis-backed limiter.
+
+### Ward Notes Moderation
+**Implementation:** `packages/server/app/api/v1/endpoints/ward_notes.py`
+
+**Rules:**
+- Notes require moderation approval before appearing (`is_approved=False` by default)
+- Content validation: rejects URLs, low-alphanumeric-ratio spam, minimum 10 characters
+- Per-IP submission throttle: 5 notes per 10 minutes
+- Author name minimum 2 characters after trimming
 
 ---
 
