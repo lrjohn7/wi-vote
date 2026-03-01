@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { WisconsinMap, type MapViewState } from '@/shared/components/WisconsinMap';
 import { MapLegend } from '@/features/election-map/components/MapLegend';
+import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import { ComparisonSelector } from './components/ComparisonSelector';
 import { DifferenceMap } from './components/DifferenceMap';
 import { useComparisonData } from './hooks/useComparisonData';
@@ -9,6 +10,8 @@ import type { RaceType } from '@/types/election';
 type ViewMode = 'side-by-side' | 'difference';
 
 export default function ElectionComparison() {
+  usePageTitle('Compare Elections');
+
   const [yearA, setYearA] = useState(2024);
   const [raceA, setRaceA] = useState<RaceType>('president');
   const [yearB, setYearB] = useState(2020);

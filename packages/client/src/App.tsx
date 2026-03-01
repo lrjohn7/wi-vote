@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router';
 import { Map, Search, TrendingUp, SlidersHorizontal, Scale, ClipboardList, GitCompareArrows, Radio, History, Sun, Moon, Monitor } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
 import { MobileNav } from '@/shared/components/MobileNav';
+import { OfflineIndicator } from '@/shared/components/OfflineIndicator';
 
 const navItems = [
   { to: '/map', label: 'Election Map', icon: Map, end: false },
@@ -83,6 +84,7 @@ export default function App() {
       <main id="main-content" role="main" className="flex-1 overflow-hidden">
         <Outlet />
       </main>
+      <OfflineIndicator />
     </div>
   );
 }

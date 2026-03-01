@@ -1,8 +1,9 @@
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router';
 import App from '@/App';
-import { MapPageSkeleton, SidebarPageSkeleton, ContentPageSkeleton } from '@/shared/components/PageSkeleton';
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
+import { NotFoundPage } from '@/shared/components/NotFoundPage';
+import { MapPageSkeleton, SidebarPageSkeleton, ContentPageSkeleton } from '@/shared/components/PageSkeleton';
 
 const LandingPage = lazy(() => import('@/features/landing'));
 const ElectionMap = lazy(() => import('@/features/election-map'));
@@ -140,6 +141,10 @@ export const router = createBrowserRouter([
             </Suspense>
           </ErrorBoundary>
         ),
+      },
+      {
+        path: '*',
+        element: <NotFoundPage />,
       },
     ],
   },

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { WisconsinMap } from '@/shared/components/WisconsinMap';
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { useMapStore } from '@/stores/mapStore';
 import { useModelStore } from '@/stores/modelStore';
 import { useWardBoundaries } from '@/features/election-map/hooks/useWardBoundaries';
@@ -15,6 +16,7 @@ import { extractWardMetadata } from '@/shared/lib/wardMetadata';
 import { buildWardRegionMap } from '@/shared/lib/regionMapping';
 import { uncertaintyToOpacityMap } from './lib/computeUncertainty';
 import { fetchMrpPrediction, mrpResponseToPredictions } from '@/services/mrpApi';
+import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import type { RaceType, Prediction, UncertaintyBand } from '@/types/election';
 import type { MapDataResponse, WardMapEntry } from '@/features/election-map/hooks/useMapData';
 
@@ -106,6 +108,9 @@ export default function SwingModeler() {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [showUncertainty, setShowUncertainty] = useState(false);
   const [uncertainty, setUncertainty] = useState<UncertaintyBand[] | null>(null);
+  const [mrpError, setMrpError] = useState<string | null>(null);
+
+  usePageTitle('Swing Modeler');
 
   // URL state sync
   useModelerUrlState();
@@ -226,6 +231,12 @@ export default function SwingModeler() {
       setIsComputing(false);
     };
 
+    workerRef.current.onerror = (e: ErrorEvent) => {
+      console.error('Model worker error:', e.message);
+      setMrpError(`Worker error: ${e.message}`);
+      setIsComputing(false);
+    };
+
     return () => {
       workerRef.current?.terminate();
       workerRef.current = null;
@@ -250,6 +261,7 @@ export default function SwingModeler() {
         mrpAbortRef.current = controller;
 
         setIsComputing(true);
+        setMrpError(null);
         fetchMrpPrediction({
           baseElectionYear: baseYear,
           baseRaceType: baseRace,
@@ -264,11 +276,13 @@ export default function SwingModeler() {
             const { predictions: preds, uncertainty: unc } = mrpResponseToPredictions(response);
             setPredictions(preds);
             setUncertainty(unc);
+            setMrpError(null);
             setIsComputing(false);
           })
           .catch((err) => {
             if (controller.signal.aborted) return;
             console.error('MRP prediction failed:', err);
+            setMrpError(err instanceof Error ? err.message : 'MRP prediction failed');
             setIsComputing(false);
           });
       }, 300); // Longer debounce for server calls
@@ -410,6 +424,12 @@ export default function SwingModeler() {
 
         {/* Map area */}
         <div className="relative flex-1">
+          {mrpError && (
+            <div className="absolute inset-x-0 top-2 z-30 mx-auto max-w-sm px-2">
+              <QueryErrorState error={new Error(mrpError)} onRetry={() => setMrpError(null)} compact />
+            </div>
+          )}
+
           {boundariesLoading && (
             <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/50">
               <div className="glass-panel p-4">
