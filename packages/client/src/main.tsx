@@ -14,11 +14,10 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
-// Register service worker (PWA)
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
-      // Service worker registration failed — app works fine without it
-    });
-  });
-}
+// Service worker registration is handled automatically by vite-plugin-pwa
+// (registerType: 'autoUpdate' with skipWaiting: true).
+// VitePWA injects registerSW.js into index.html, which handles:
+// - SW registration
+// - Update detection (new SW available)
+// - Auto-reload when new SW activates (via controllerchange event)
+// Do NOT manually register here — it conflicts with the auto-update lifecycle.

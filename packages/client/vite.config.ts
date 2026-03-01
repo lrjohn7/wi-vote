@@ -13,15 +13,33 @@ export default defineConfig({
       manifest: false, // We use our own manifest.json in public/
       workbox: {
         skipWaiting: true,
-        // Only precache the app shell (HTML + core vendor chunks).
-        // Feature-specific chunks (recharts, trends, modeler, etc.) load on demand
-        // via runtime caching — this cuts initial precache from ~2 MB to ~200-400 KB.
-        globPatterns: ['index.html', 'assets/vendor-react-*.js', 'assets/vendor-state-*.js', 'assets/index-*.css'],
+        clientsClaim: true,
+        // Precache core vendor chunks only — NOT index.html.
+        // HTML is handled via NetworkFirst navigation route below so users
+        // always get the latest app shell after deploys (no stale flash).
+        globPatterns: ['assets/vendor-react-*.js', 'assets/vendor-state-*.js', 'assets/index-*.css'],
+        // Disable precache-based navigation fallback since we use NetworkFirst for HTML.
+        navigateFallback: null,
         // Exclude PMTiles from service worker — Range requests are
         // incompatible with CacheFirst (wrong bytes served from cache).
         // Nginx already sets Cache-Control: public, immutable on /tiles/.
         navigateFallbackDenylist: [/\/tiles\//],
         runtimeCaching: [
+          {
+            // HTML navigation — always try network first so deploys are
+            // picked up immediately. Falls back to cache for offline use.
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-cache',
+              expiration: {
+                maxEntries: 5,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
           {
             // Lazy-loaded JS/CSS chunks — cache after first visit
             urlPattern: /\/assets\/.+\.(js|css)$/,
