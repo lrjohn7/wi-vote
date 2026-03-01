@@ -70,7 +70,7 @@ export default function ElectionMap() {
   return (
     <div className="flex h-full flex-col">
       {/* Top bar */}
-      <div className="glass-panel flex items-center gap-4 rounded-none border-x-0 border-t-0 px-5 py-2.5">
+      <div className="glass-panel flex flex-wrap items-center gap-x-4 gap-y-1 rounded-none border-x-0 border-t-0 px-5 py-2.5">
         <h2 className="text-lg font-semibold">Election Map</h2>
         <ElectionSelector />
         {mapDataLoading && (

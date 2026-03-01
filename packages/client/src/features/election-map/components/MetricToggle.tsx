@@ -20,7 +20,7 @@ export const MetricToggle = memo(function MetricToggle() {
           key={value}
           onClick={() => setDisplayMetric(value)}
           aria-pressed={displayMetric === value}
-          className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+          className={`rounded-md px-2.5 py-2 text-xs font-medium transition-all ${
             displayMetric === value
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:bg-background/50 hover:text-foreground'

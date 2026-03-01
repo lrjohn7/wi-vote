@@ -30,7 +30,7 @@ export function WardDetailPanel() {
 
   return (
     <aside
-      className="absolute right-0 top-0 z-30 flex h-full w-[420px] flex-col border-l border-border/30 bg-content1/95 shadow-lg backdrop-blur-sm animate-in slide-in-from-right-full duration-300"
+      className="absolute right-0 top-0 z-30 flex h-full w-full flex-col border-l border-border/30 bg-content1/95 shadow-lg backdrop-blur-sm animate-in slide-in-from-right-full duration-300 md:w-[420px]"
       aria-label={ward ? `Ward detail: ${ward.ward_name}` : 'Ward detail panel'}
     >
       {/* Header */}

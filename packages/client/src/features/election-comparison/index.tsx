@@ -85,9 +85,9 @@ export default function ElectionComparison() {
       {/* Map content */}
       <div className="flex-1 overflow-hidden">
         {viewMode === 'side-by-side' && (
-          <div className="flex h-full">
+          <div className="flex h-full flex-col md:flex-row">
             {/* Election A */}
-            <div className="relative flex-1 border-r border-border/30">
+            <div className="relative flex-1 border-b border-border/30 md:border-b-0 md:border-r">
               <div className="glass-panel absolute left-2 top-2 z-10 px-3 py-1.5 text-sm font-semibold">
                 {yearA} {raceA}
               </div>

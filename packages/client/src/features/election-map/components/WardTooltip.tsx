@@ -43,14 +43,21 @@ export const WardTooltip = memo(function WardTooltip({
   const demLabel = demCandidate || 'DEM';
   const repLabel = repCandidate || 'REP';
 
+  // Clamp tooltip to viewport edges
+  const tooltipWidth = 220;
+  const tooltipHeight = 120;
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 800;
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 600;
+  const clampedLeft = x + 12 + tooltipWidth > vw ? x - tooltipWidth - 12 : x + 12;
+  const clampedTop = Math.max(8, Math.min(y - tooltipHeight / 2, vh - tooltipHeight - 8));
+
   return (
     <div
       className="pointer-events-none absolute z-50 glass-panel border-l-4 px-3 py-2 text-sm transition-opacity duration-150"
       role="tooltip"
       style={{
-        left: x + 12,
-        top: y + 12,
-        transform: 'translate(0, -50%)',
+        left: clampedLeft,
+        top: clampedTop,
         borderLeftColor: borderColor,
       }}
     >

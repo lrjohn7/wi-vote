@@ -76,9 +76,9 @@ export default function WardExplorer() {
   };
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full flex-col md:flex-row">
       {/* Left panel: Search */}
-      <div className="flex w-96 flex-col border-r border-border/30 bg-content1">
+      <div className="flex w-full shrink-0 flex-col border-b border-border/30 bg-content1 md:w-96 md:border-b-0 md:border-r">
         <div className="space-y-4 p-4">
           <h2 className="text-xl font-bold">Ward Explorer</h2>
 
@@ -115,7 +115,7 @@ export default function WardExplorer() {
         <Separator />
 
         {/* Search results */}
-        <ScrollArea className="flex-1">
+        <ScrollArea className="max-h-48 flex-1 md:max-h-none">
           <div className="p-4">
             {searchLoading && (
               <p className="text-sm text-muted-foreground">Searching...</p>

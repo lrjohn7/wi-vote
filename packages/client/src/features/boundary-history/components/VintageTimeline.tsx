@@ -104,7 +104,7 @@ export const VintageTimeline = memo(function VintageTimeline({
           <button
             onClick={() => onComparisonSelect(null)}
             aria-pressed={comparisonVintage === null}
-            className={`rounded px-2 py-0.5 transition-colors ${
+            className={`rounded px-2.5 py-1.5 transition-colors ${
               comparisonVintage === null
                 ? 'bg-foreground text-background'
                 : 'bg-content2 text-muted-foreground hover:text-foreground'
@@ -119,7 +119,7 @@ export const VintageTimeline = memo(function VintageTimeline({
                 key={v}
                 onClick={() => onComparisonSelect(v)}
                 aria-pressed={comparisonVintage === v}
-                className={`rounded px-2 py-0.5 transition-colors ${
+                className={`rounded px-2.5 py-1.5 transition-colors ${
                   comparisonVintage === v
                     ? 'bg-amber-500 text-white'
                     : 'bg-content2 text-muted-foreground hover:text-foreground'

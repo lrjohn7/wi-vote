@@ -108,7 +108,7 @@ export default function SupremeCourt() {
       </div>
 
       {/* Controls */}
-      <div className="flex items-center gap-3 border-b border-border/30 px-6 py-3">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border/30 px-4 py-3 md:px-6">
         <Select value={String(selectedYear)} onValueChange={handleYearChange}>
           <SelectTrigger className="w-[100px]">
             <SelectValue placeholder="Year" />

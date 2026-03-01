@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { BarChart3, X } from 'lucide-react';
 import { WisconsinMap } from '@/shared/components/WisconsinMap';
 import { MapLegend } from '@/features/election-map/components/MapLegend';
 import { LiveResultsTicker } from './components/LiveResultsTicker';
@@ -7,6 +8,7 @@ import { useLiveElections, useLiveResults } from './hooks/useLiveResults';
 import type { MapDataResponse, WardMapEntry } from '@/features/election-map/hooks/useMapData';
 
 export default function ElectionNight() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: elections, isLoading: electionsLoading } = useLiveElections();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
@@ -87,9 +89,30 @@ export default function ElectionNight() {
       </div>
 
       {/* Main content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left sidebar: results ticker */}
-        <aside className="flex w-[360px] shrink-0 flex-col gap-4 overflow-y-auto border-r border-border/30 bg-content1/50 p-4">
+      <div className="relative flex flex-1 overflow-hidden">
+        {/* Mobile toggle */}
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="absolute bottom-20 left-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-content1 shadow-lg border border-border/30 md:hidden"
+          aria-label="Show results"
+        >
+          <BarChart3 className="h-5 w-5" />
+        </button>
+
+        {/* Mobile overlay */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setSidebarOpen(false)} />
+        )}
+
+        {/* Sidebar — mobile drawer + desktop static */}
+        <aside className={`fixed inset-y-0 left-0 z-50 flex w-[85vw] max-w-sm flex-col gap-4 overflow-y-auto border-r border-border/30 bg-content1 p-4 transition-transform duration-300 md:relative md:inset-auto md:z-auto md:w-[360px] md:max-w-none md:translate-x-0 md:bg-content1/50 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          {/* Mobile close */}
+          <div className="flex items-center justify-between md:hidden">
+            <h3 className="text-sm font-semibold">Results</h3>
+            <button onClick={() => setSidebarOpen(false)} className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-content2" aria-label="Close results">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
           {noActiveElection && (
             <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
               <div className="text-4xl">🗳️</div>

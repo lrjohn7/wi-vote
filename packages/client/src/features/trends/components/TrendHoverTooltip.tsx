@@ -26,13 +26,19 @@ export const TrendHoverTooltip = memo(function TrendHoverTooltip({
         ? 'var(--rep)'
         : '#a3a3a3';
 
+  // Clamp to viewport edges
+  const tooltipWidth = 240;
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 800;
+  const clampedLeft = point.x + 12 + tooltipWidth > vw ? point.x - tooltipWidth - 12 : point.x + 12;
+  const clampedTop = Math.max(8, point.y - 10);
+
   return (
     <div
       role="tooltip"
       className="glass-panel pointer-events-none fixed z-50 min-w-[180px] max-w-[240px] border-l-4 p-2.5"
       style={{
-        left: point.x + 12,
-        top: point.y - 10,
+        left: clampedLeft,
+        top: clampedTop,
         borderLeftColor: borderColor,
       }}
     >

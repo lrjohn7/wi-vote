@@ -1,5 +1,5 @@
 import { useState, memo, useCallback } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, SlidersHorizontal, X } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -161,6 +161,7 @@ interface ControlsPanelProps {
 }
 
 export function ControlsPanel({ children }: ControlsPanelProps) {
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { data: electionsData, isLoading: electionsLoading } = useElections();
   const parameters = useModelStore((s) => s.parameters);
   const activeModelId = useModelStore((s) => s.activeModelId);
@@ -250,9 +251,19 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
     setParameters(scenario.parameters as Record<string, unknown>);
   };
 
-  return (
-    <div className="flex w-80 shrink-0 flex-col border-r border-border/30 bg-content1">
-      <div className="overflow-y-auto p-4 space-y-0">
+  const panelContent = (
+    <div className="overflow-y-auto p-4 space-y-0">
+      {/* Mobile close button */}
+      <div className="mb-3 flex items-center justify-between md:hidden">
+        <h3 className="text-sm font-semibold">Controls</h3>
+        <button
+          onClick={() => setMobileOpen(false)}
+          className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-content2"
+          aria-label="Close controls"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
         {/* Model Selector */}
         {allModels.length > 1 && (
           <>
@@ -574,8 +585,42 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
 
         {/* Results summary slot */}
         {children}
-      </div>
     </div>
+  );
+
+  return (
+    <>
+      {/* Mobile toggle button */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="absolute bottom-20 left-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-content1 shadow-lg border border-border/30 md:hidden"
+        aria-label="Open controls"
+      >
+        <SlidersHorizontal className="h-5 w-5" />
+      </button>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile drawer */}
+      <div
+        className={`fixed inset-y-0 left-0 z-50 w-[85vw] max-w-sm flex-col border-r border-border/30 bg-content1 transition-transform duration-300 md:hidden ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {panelContent}
+      </div>
+
+      {/* Desktop sidebar */}
+      <div className="hidden w-80 shrink-0 flex-col border-r border-border/30 bg-content1 md:flex">
+        {panelContent}
+      </div>
+    </>
   );
 }
 
