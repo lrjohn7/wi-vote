@@ -1026,9 +1026,25 @@ A `documentation/` directory contains audited, structured docs for every feature
 | Voter Registration data, registration overlay, hooks | `documentation/17-voter-registration.md` |
 | Community Notes, ward notes, user submissions | `documentation/18-community-notes.md` |
 | Audit findings, PASS/WARN/FAIL items, prioritized fix plan | `documentation/00-audit-report.md` |
+| Shared race labels, error classes, geocode hook | `src/shared/lib/raceLabels.ts`, `src/shared/lib/errors.ts`, `src/shared/hooks/useGeocodeAddress.ts` |
 
 ### Auto-Documentation Rule
 
 When implementing a **new feature**, create a corresponding `documentation/XX-feature-name.md` file following the existing format (title, tagline, route, data model, API endpoints, dashboard elements, business rules, edge cases, files) and add an entry to the lookup table above.
 
 When **modifying an existing feature**, update the corresponding documentation file to reflect the changes (new endpoints, UI elements, business rules, files, etc.).
+
+---
+
+## Audit Process
+
+When performing a codebase audit, follow this pattern:
+
+1. **Identify duplication.** Extract repeated constants (e.g., `RACE_LABELS`) and logic (e.g., geocoding) into shared modules under `src/shared/lib/` or `src/shared/hooks/`.
+2. **Type-safe error handling.** Use `ApiError` / `NetworkError` classes from `src/shared/lib/errors.ts` instead of string-based error detection. Wrap `fetch` calls in try/catch and throw typed errors.
+3. **Accessibility (a11y).** Add ARIA attributes (`role`, `aria-label`, `aria-selected`, `tabIndex`) to interactive elements. Use `role="tablist"` with keyboard arrow navigation for tab groups. Add `sr-only` labels for screen readers.
+4. **Keyboard navigation.** Map container should respond to Arrow keys (pan), +/- (zoom), Escape (reset). Mobile nav should close on Escape and lock body scroll.
+5. **Error boundaries.** Every data-fetching component should handle `isError` state with `<QueryErrorState>` and offer a retry button.
+6. **Performance.** Wrap expensive components in `memo()`. Extract magic numbers to named constants. Use Web Workers for heavy computation.
+7. **Dark mode.** Verify contrast ratios in both light and dark themes. Use `dark:` Tailwind variants where needed.
+8. **SEO.** Add canonical links, JSON-LD structured data, and update `<title>` per route via `usePageTitle`.

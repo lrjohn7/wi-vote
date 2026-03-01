@@ -108,7 +108,7 @@ export default function SwingModeler() {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [showUncertainty, setShowUncertainty] = useState(false);
   const [uncertainty, setUncertainty] = useState<UncertaintyBand[] | null>(null);
-  const [mrpError, setMrpError] = useState<string | null>(null);
+  const [workerError, setWorkerError] = useState<string | null>(null);
 
   usePageTitle('Swing Modeler');
 
@@ -223,7 +223,14 @@ export default function SwingModeler() {
       { type: 'module' },
     );
 
-    workerRef.current.onmessage = (e: MessageEvent<{ predictions: Prediction[]; uncertainty?: UncertaintyBand[] }>) => {
+    workerRef.current.onmessage = (e: MessageEvent<{ predictions: Prediction[]; uncertainty?: UncertaintyBand[]; error?: string }>) => {
+      if (e.data.error) {
+        console.error('Model worker returned error:', e.data.error);
+        setWorkerError(e.data.error);
+        setIsComputing(false);
+        return;
+      }
+      setWorkerError(null);
       setPredictions(e.data.predictions);
       if (e.data.uncertainty) {
         setUncertainty(e.data.uncertainty);
@@ -233,7 +240,7 @@ export default function SwingModeler() {
 
     workerRef.current.onerror = (e: ErrorEvent) => {
       console.error('Model worker error:', e.message);
-      setMrpError(`Worker error: ${e.message}`);
+      setWorkerError(`Worker error: ${e.message}`);
       setIsComputing(false);
     };
 
@@ -261,7 +268,7 @@ export default function SwingModeler() {
         mrpAbortRef.current = controller;
 
         setIsComputing(true);
-        setMrpError(null);
+        setWorkerError(null);
         fetchMrpPrediction({
           baseElectionYear: baseYear,
           baseRaceType: baseRace,
@@ -276,13 +283,13 @@ export default function SwingModeler() {
             const { predictions: preds, uncertainty: unc } = mrpResponseToPredictions(response);
             setPredictions(preds);
             setUncertainty(unc);
-            setMrpError(null);
+            setWorkerError(null);
             setIsComputing(false);
           })
           .catch((err) => {
             if (controller.signal.aborted) return;
             console.error('MRP prediction failed:', err);
-            setMrpError(err instanceof Error ? err.message : 'MRP prediction failed');
+            setWorkerError(err instanceof Error ? err.message : 'MRP prediction failed');
             setIsComputing(false);
           });
       }, 300); // Longer debounce for server calls
@@ -424,9 +431,9 @@ export default function SwingModeler() {
 
         {/* Map area */}
         <div className="relative flex-1">
-          {mrpError && (
+          {workerError && (
             <div className="absolute inset-x-0 top-2 z-30 mx-auto max-w-sm px-2">
-              <QueryErrorState error={new Error(mrpError)} onRetry={() => setMrpError(null)} compact />
+              <QueryErrorState error={new Error(workerError)} onRetry={() => setWorkerError(null)} compact />
             </div>
           )}
 

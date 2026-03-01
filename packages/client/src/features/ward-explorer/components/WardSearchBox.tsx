@@ -23,14 +23,17 @@ export function WardSearchBox({
 
   return (
     <div className="relative" role="search" aria-label="Ward search">
+      <label htmlFor="ward-search-input" className="sr-only">Search wards</label>
       <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
       <Input
+        id="ward-search-input"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
         className="pl-9"
         aria-label="Search wards"
         type="search"
+        autoComplete="off"
       />
     </div>
   );

@@ -75,5 +75,6 @@ export function useComparisonData(
     diffData,
     isLoading: queryA.isLoading || queryB.isLoading,
     isError: queryA.isError || queryB.isError,
+    error: (queryA.error ?? queryB.error) as Error | null,
   };
 }

@@ -7,24 +7,14 @@ import { Separator } from '@/components/ui/separator';
 import { useWardDetail } from '../hooks/useWardDetail';
 import { useMapStore } from '@/stores/mapStore';
 import { WardNotes } from './WardNotes';
-
-const RACE_LABELS: Record<string, string> = {
-  president: 'President',
-  governor: 'Governor',
-  us_senate: 'US Senate',
-  us_house: 'US House',
-  state_senate: 'State Senate',
-  state_assembly: 'State Assembly',
-  attorney_general: 'AG',
-  secretary_of_state: 'SoS',
-  treasurer: 'Treasurer',
-};
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
+import { RACE_LABELS_SHORT } from '@/shared/lib/raceLabels';
 
 export function WardDetailPanel() {
   const navigate = useNavigate();
   const selectedWardId = useMapStore((s) => s.selectedWardId);
   const setSelectedWard = useMapStore((s) => s.setSelectedWard);
-  const { data: ward, isLoading } = useWardDetail(selectedWardId);
+  const { data: ward, isLoading, isError, error, refetch } = useWardDetail(selectedWardId);
 
   if (!selectedWardId) return null;
 
@@ -41,6 +31,8 @@ export function WardDetailPanel() {
               <div className="h-6 w-48 animate-pulse rounded bg-muted" />
               <div className="h-4 w-32 animate-pulse rounded bg-muted" />
             </div>
+          ) : isError ? (
+            <QueryErrorState error={error!} onRetry={() => refetch()} compact />
           ) : ward ? (
             <>
               <h3 className="truncate text-lg font-semibold">{ward.ward_name}</h3>
@@ -127,7 +119,7 @@ export function WardDetailPanel() {
                       >
                         <div className="mb-1.5 flex items-center justify-between">
                           <span className="text-sm font-medium">
-                            {e.election_year} {RACE_LABELS[e.race_type] ?? e.race_type}
+                            {e.election_year} {RACE_LABELS_SHORT[e.race_type] ?? e.race_type}
                           </span>
                           <span
                             className={`text-sm font-semibold ${e.margin > 0 ? 'text-dem' : 'text-rep'}`}

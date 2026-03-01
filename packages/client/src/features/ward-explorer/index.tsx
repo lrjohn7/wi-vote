@@ -12,18 +12,8 @@ import { WardSearchBox } from './components/WardSearchBox';
 import { useWardSearch } from './hooks/useWardSearch';
 import { useWardDetail } from '@/features/election-map/hooks/useWardDetail';
 import { useMapStore } from '@/stores/mapStore';
-
-const RACE_LABELS: Record<string, string> = {
-  president: 'President',
-  governor: 'Governor',
-  us_senate: 'US Senate',
-  us_house: 'US House',
-  state_senate: 'State Senate',
-  state_assembly: 'State Assembly',
-  attorney_general: 'AG',
-  secretary_of_state: 'SoS',
-  treasurer: 'Treasurer',
-};
+import { useGeocodeAddress } from '@/shared/hooks/useGeocodeAddress';
+import { RACE_LABELS_SHORT } from '@/shared/lib/raceLabels';
 
 export default function WardExplorer() {
   usePageTitle('Ward Explorer');
@@ -32,8 +22,7 @@ export default function WardExplorer() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedWardId, setSelectedWardId] = useState<string | null>(null);
   const [addressInput, setAddressInput] = useState('');
-  const [geocodeLoading, setGeocodeLoading] = useState(false);
-  const [geocodeError, setGeocodeError] = useState<string | null>(null);
+  const { geocode, isLoading: geocodeLoading, error: geocodeError } = useGeocodeAddress();
 
   const { data: searchResults, isLoading: searchLoading } = useWardSearch(searchQuery);
   const { data: wardDetail, isLoading: detailLoading } = useWardDetail(selectedWardId);
@@ -44,31 +33,9 @@ export default function WardExplorer() {
   }, []);
 
   const handleGeocodeAddress = async () => {
-    if (!addressInput.trim()) return;
-    setGeocodeLoading(true);
-    setGeocodeError(null);
-    try {
-      const res = await fetch(
-        `/api/v1/wards/geocode?address=${encodeURIComponent(addressInput)}&lat=0&lng=0`,
-      );
-      if (!res.ok) {
-        if (res.status === 400) {
-          setGeocodeError('This address is not in Wisconsin. Please enter a Wisconsin address.');
-        } else {
-          setGeocodeError('Address not found. Please enter a valid street address.');
-        }
-        return;
-      }
-      const data = await res.json();
-      if (data.ward) {
-        setSelectedWardId(data.ward.ward_id);
-      } else {
-        setGeocodeError('No ward found at that address.');
-      }
-    } catch {
-      setGeocodeError('Geocoding failed. Please try again.');
-    } finally {
-      setGeocodeLoading(false);
+    const result = await geocode(addressInput);
+    if (result) {
+      setSelectedWardId(result.ward_id);
     }
   };
 
@@ -88,16 +55,18 @@ export default function WardExplorer() {
           <WardSearchBox onSearch={handleSearch} />
 
           {/* Address lookup */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground">
+          <div className="space-y-2" role="search" aria-label="Address lookup">
+            <label htmlFor="address-input" className="text-sm font-medium text-muted-foreground">
               Or look up by address
             </label>
             <div className="flex gap-2">
               <Input
+                id="address-input"
                 value={addressInput}
                 onChange={(e) => setAddressInput(e.target.value)}
                 placeholder="123 Main St, Madison, WI"
                 onKeyDown={(e) => e.key === 'Enter' && handleGeocodeAddress()}
+                aria-label="Wisconsin street address"
               />
               <Button
                 onClick={handleGeocodeAddress}
@@ -283,7 +252,7 @@ export default function WardExplorer() {
                         <CardHeader className="pb-2">
                           <CardTitle className="flex items-center justify-between text-sm">
                             <span>
-                              {e.election_year} {RACE_LABELS[e.race_type] ?? e.race_type}
+                              {e.election_year} {RACE_LABELS_SHORT[e.race_type] ?? e.race_type}
                             </span>
                             <span
                               className={`font-bold ${e.margin > 0 ? 'text-dem' : 'text-rep'}`}

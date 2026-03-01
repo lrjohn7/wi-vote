@@ -1,17 +1,28 @@
 import chroma from 'chroma-js';
 
+// ── Color constants ──
 // ColorBrewer RdBu diverging palette — red=Republican, blue=Democratic
 // Centered at 50% (even split)
+const STRONG_R  = '#b2182b';
+const SOLID_R   = '#d6604d';
+const LEAN_R    = '#f4a582';
+const TILT_R    = '#fddbc7';
+const EVEN      = '#f7f7f7';
+const TILT_D    = '#d1e5f0';
+const LEAN_D    = '#92c5de';
+const SOLID_D   = '#4393c3';
+const STRONG_D  = '#2166ac';
+
 const RD_BU_COLORS = [
-  '#b2182b', // Strong R (0-35%)
-  '#d6604d', // Solid R (35-42%)
-  '#f4a582', // Lean R (42-46%)
-  '#fddbc7', // Tilt R (46-48%)
-  '#f7f7f7', // Even (48-52%)
-  '#d1e5f0', // Tilt D (52-54%)
-  '#92c5de', // Lean D (54-58%)
-  '#4393c3', // Solid D (58-65%)
-  '#2166ac', // Strong D (65-100%)
+  STRONG_R, // Strong R (0-35%)
+  SOLID_R,  // Solid R (35-42%)
+  LEAN_R,   // Lean R (42-46%)
+  TILT_R,   // Tilt R (46-48%)
+  EVEN,     // Even (48-52%)
+  TILT_D,   // Tilt D (52-54%)
+  LEAN_D,   // Lean D (54-58%)
+  SOLID_D,  // Solid D (58-65%)
+  STRONG_D, // Strong D (65-100%)
 ];
 
 const scale = chroma.scale(RD_BU_COLORS).domain([0, 12.5, 25, 37.5, 50, 62.5, 75, 87.5, 100]);

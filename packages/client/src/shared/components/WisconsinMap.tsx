@@ -489,6 +489,56 @@ export const WisconsinMap = memo(function WisconsinMap({
     m.setPaintProperty(WARD_LAYER_FILL, 'fill-color', expression);
   }, [displayMetric]);
 
+  // Keyboard navigation handler
+  useEffect(() => {
+    const container = mapContainer.current;
+    const m = map.current;
+    if (!container || !m) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const PAN_AMOUNT = 100;
+      switch (e.key) {
+        case 'ArrowUp':
+          e.preventDefault();
+          m.panBy([0, -PAN_AMOUNT]);
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          m.panBy([0, PAN_AMOUNT]);
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          m.panBy([-PAN_AMOUNT, 0]);
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          m.panBy([PAN_AMOUNT, 0]);
+          break;
+        case '+':
+        case '=':
+          e.preventDefault();
+          m.zoomIn({ duration: 200 });
+          break;
+        case '-':
+          e.preventDefault();
+          m.zoomOut({ duration: 200 });
+          break;
+        case 'Escape':
+          e.preventDefault();
+          m.jumpTo({ center: WISCONSIN_CENTER, zoom: 9 });
+          break;
+      }
+    };
+
+    container.addEventListener('keydown', handleKeyDown);
+    return () => container.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Reset view handler
+  const handleResetView = useCallback(() => {
+    map.current?.jumpTo({ center: WISCONSIN_CENTER, zoom: 9 });
+  }, []);
+
   // Render GeoJSON comparison overlay
   useEffect(() => {
     const m = map.current;
@@ -527,13 +577,21 @@ export const WisconsinMap = memo(function WisconsinMap({
   }, [overlayGeoJSON]);
 
   return (
-    <div
-      ref={mapContainer}
-      className="h-full w-full"
-      style={{ minHeight: 'min(400px, 50vh)' }}
-      role="application"
-      aria-label="Wisconsin election map"
-      tabIndex={0}
-    />
+    <div className="relative h-full w-full" style={{ minHeight: 'min(400px, 50vh)' }}>
+      <div
+        ref={mapContainer}
+        className="h-full w-full"
+        role="application"
+        aria-label="Wisconsin election map. Use arrow keys to pan, +/- to zoom, Escape to reset view."
+        tabIndex={0}
+      />
+      <button
+        onClick={handleResetView}
+        className="absolute right-2 top-24 z-10 rounded-md border border-border/50 bg-background/90 px-2 py-1 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-background hover:text-foreground"
+        aria-label="Reset map to default view"
+      >
+        Reset View
+      </button>
+    </div>
   );
 });

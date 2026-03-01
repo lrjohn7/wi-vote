@@ -1,18 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RACE_LABELS_SHORT } from '@/shared/lib/raceLabels';
 import type { ReportCardElection } from '@/services/api';
-
-const RACE_LABELS: Record<string, string> = {
-  president: 'President',
-  governor: 'Governor',
-  us_senate: 'US Senate',
-  us_house: 'US House',
-  state_senate: 'State Senate',
-  state_assembly: 'State Assembly',
-  attorney_general: 'AG',
-  secretary_of_state: 'SoS',
-  treasurer: 'Treasurer',
-};
 
 const FILTER_TABS = [
   { key: 'all', label: 'All' },
@@ -38,12 +27,13 @@ export function ElectionHistoryTable({ elections }: ElectionHistoryTableProps) {
     <Card>
       <CardHeader>
         <CardTitle className="text-lg font-semibold">Election History</CardTitle>
-        <div className="flex flex-wrap gap-1 pt-2" role="group" aria-label="Filter by race type">
+        <div className="flex flex-wrap gap-1 pt-2" role="tablist" aria-label="Filter by race type">
           {FILTER_TABS.map((tab) => (
             <button
               key={tab.key}
+              role="tab"
               onClick={() => setActiveFilter(tab.key)}
-              aria-pressed={activeFilter === tab.key}
+              aria-selected={activeFilter === tab.key}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 activeFilter === tab.key
                   ? 'bg-foreground text-background'
@@ -90,7 +80,7 @@ export function ElectionHistoryTable({ elections }: ElectionHistoryTableProps) {
                     >
                       <td className="py-2 pr-4 font-medium">{e.election_year}</td>
                       <td className="py-2 pr-4 text-muted-foreground">
-                        {RACE_LABELS[e.race_type] ?? e.race_type}
+                        {RACE_LABELS_SHORT[e.race_type] ?? e.race_type}
                       </td>
                       <td className="py-2 pr-4 text-right tabular-nums">
                         {e.dem_votes.toLocaleString()}

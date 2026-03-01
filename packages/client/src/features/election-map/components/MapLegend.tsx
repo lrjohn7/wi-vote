@@ -30,7 +30,7 @@ export const MapLegend = memo(function MapLegend() {
       )}
       <div className="flex">
         {bins.map((bin) => (
-          <div key={bin.label} className="flex-1" title={bin.label}>
+          <div key={bin.label} className="flex-1" aria-label={bin.label}>
             <div
               className="h-5 border border-white/50"
               style={{ backgroundColor: bin.color }}

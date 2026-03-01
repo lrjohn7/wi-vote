@@ -18,14 +18,7 @@ import { TrendClassificationBadge } from './components/TrendClassificationBadge'
 import { AreaTrendSummary } from './components/AreaTrendSummary';
 import { TrendSparklineGrid } from './components/TrendSparklineGrid';
 import { TrendMapOverlay } from './components/TrendMapOverlay';
-
-const RACE_OPTIONS = [
-  { label: 'President', value: 'president' },
-  { label: 'Governor', value: 'governor' },
-  { label: 'US Senate', value: 'us_senate' },
-  { label: 'State Senate', value: 'state_senate' },
-  { label: 'State Assembly', value: 'state_assembly' },
-];
+import { RACE_OPTIONS } from '@/shared/lib/raceLabels';
 
 export default function Trends() {
   usePageTitle('Partisan Trends');

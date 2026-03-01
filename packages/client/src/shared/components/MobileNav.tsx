@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { NavLink } from 'react-router';
 import { Menu, X } from 'lucide-react';
 
@@ -17,6 +17,22 @@ export function MobileNav({ items }: MobileNavProps) {
   const [open, setOpen] = useState(false);
 
   const close = useCallback(() => setOpen(false), []);
+
+  // Scroll lock + Escape key when open
+  useEffect(() => {
+    if (!open) return;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open, close]);
 
   return (
     <>

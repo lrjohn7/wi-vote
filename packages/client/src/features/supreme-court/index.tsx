@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import {
   useSpringContests,
   useSpringResults,
@@ -23,7 +24,7 @@ type ViewMode = 'reporting-units' | 'counties';
 export default function SupremeCourt() {
   usePageTitle('Supreme Court Elections');
 
-  const { data: contestsData } = useSpringContests();
+  const { data: contestsData, isError: contestsError, error: contestsErrorObj } = useSpringContests();
 
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [viewMode, setViewMode] = useState<ViewMode>('counties');
@@ -35,7 +36,7 @@ export default function SupremeCourt() {
     (c) => c.year === selectedYear,
   );
 
-  const { data: resultsData, isLoading: resultsLoading } = useSpringResults(
+  const { data: resultsData, isLoading: resultsLoading, isError: resultsError, error: resultsErrorObj } = useSpringResults(
     viewMode === 'reporting-units' ? selectedYear : null,
     countyFilter || undefined,
     searchQuery || undefined,
@@ -43,7 +44,7 @@ export default function SupremeCourt() {
     50,
   );
 
-  const { data: countyData, isLoading: countyLoading } = useSpringCountySummary(
+  const { data: countyData, isLoading: countyLoading, isError: countyError, error: countyErrorObj } = useSpringCountySummary(
     viewMode === 'counties' ? selectedYear : null,
   );
 
@@ -161,20 +162,35 @@ export default function SupremeCourt() {
 
       {/* Table */}
       <div className="flex-1 overflow-auto px-3 py-4 sm:px-4 md:px-6">
-        {viewMode === 'reporting-units' && resultsData && (
+        {contestsError && (
+          <QueryErrorState error={contestsErrorObj!} />
+        )}
+        {viewMode === 'reporting-units' && resultsError && (
+          <QueryErrorState error={resultsErrorObj!} />
+        )}
+        {viewMode === 'counties' && countyError && (
+          <QueryErrorState error={countyErrorObj!} />
+        )}
+        {viewMode === 'reporting-units' && resultsData && resultsData.results.length === 0 && (
+          <p className="py-8 text-center text-muted-foreground">No reporting units found matching your filters.</p>
+        )}
+        {viewMode === 'reporting-units' && resultsData && resultsData.results.length > 0 && (
           <ReportingUnitTable
             results={resultsData.results}
             contest={contest}
           />
         )}
-        {viewMode === 'counties' && countyData && (
+        {viewMode === 'counties' && countyData && filteredCounties.length === 0 && (
+          <p className="py-8 text-center text-muted-foreground">No counties found matching your search.</p>
+        )}
+        {viewMode === 'counties' && countyData && filteredCounties.length > 0 && (
           <CountyTable counties={filteredCounties} />
         )}
       </div>
 
       {/* Pagination (reporting units only) */}
       {viewMode === 'reporting-units' && resultsData && totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-border/30 px-3 py-3 sm:px-4 md:px-6">
+        <nav aria-label="Reporting units pagination" className="flex items-center justify-between border-t border-border/30 px-3 py-3 sm:px-4 md:px-6">
           <span className="text-sm text-muted-foreground">
             {resultsData.total.toLocaleString()} reporting units
           </span>
@@ -184,6 +200,7 @@ export default function SupremeCourt() {
               size="sm"
               disabled={page <= 1}
               onClick={() => setPage(page - 1)}
+              aria-label="Previous page"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -195,11 +212,12 @@ export default function SupremeCourt() {
               size="sm"
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
+              aria-label="Next page"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-        </div>
+        </nav>
       )}
     </div>
   );
@@ -216,16 +234,16 @@ function StatewideSummary({ contest }: { contest: SpringContest }) {
   const c1Bar = twoParty > 0 ? (contest.candidate_1_total / twoParty) * 100 : 50;
 
   return (
-    <div className="mt-4 rounded-xl border border-border/30 bg-content2 p-4">
+    <div className="mt-4 rounded-xl border border-border/30 bg-content2 p-4" aria-label={`Statewide results: ${contest.candidate_1_name} vs ${contest.candidate_2_name}`}>
       <div className="mb-2 flex items-center justify-between">
-        <span className="font-medium text-rep">
+        <span className="font-medium text-rep" aria-label={`Conservative candidate: ${contest.candidate_1_name}`}>
           {contest.candidate_1_name}
         </span>
-        <span className="font-medium text-dem">
+        <span className="font-medium text-dem" aria-label={`Liberal candidate: ${contest.candidate_2_name}`}>
           {contest.candidate_2_name}
         </span>
       </div>
-      <div className="mb-2 flex h-4 overflow-hidden rounded-full">
+      <div className="mb-2 flex h-4 overflow-hidden rounded-full" role="img" aria-label={`Vote bar: ${c1Pct.toFixed(1)}% to ${c2Pct.toFixed(1)}%`}>
         <div
           style={{ width: `${c1Bar}%`, backgroundColor: 'var(--rep)' }}
           className="transition-all"
@@ -397,7 +415,7 @@ function MarginBar({ margin }: { margin: number }) {
   const isC1 = margin > 0;
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1" role="img" aria-label={`Margin: ${isC1 ? '+' : ''}${margin.toFixed(1)} points`}>
       <div className="hidden h-3 w-full items-center sm:flex">
         {/* Left half (conservative) */}
         <div className="flex h-full w-1/2 justify-end">
