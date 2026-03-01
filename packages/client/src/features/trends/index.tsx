@@ -109,7 +109,7 @@ export default function Trends() {
 
             {/* Race type selector */}
             <Select value={wardRaceType} onValueChange={setWardRaceType}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

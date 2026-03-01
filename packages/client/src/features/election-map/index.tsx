@@ -68,8 +68,8 @@ export default function ElectionMap() {
   return (
     <div className="flex h-full flex-col">
       {/* Top bar */}
-      <div className="glass-panel flex items-center gap-4 rounded-none border-x-0 border-t-0 px-5 py-2.5">
-        <h2 className="text-lg font-semibold">Election Map</h2>
+      <div className="glass-panel flex flex-wrap items-center gap-2 rounded-none border-x-0 border-t-0 px-3 py-2 sm:gap-4 sm:px-5 sm:py-2.5">
+        <h2 className="text-base font-semibold sm:text-lg">Election Map</h2>
         <ElectionSelector />
         {mapDataLoading && (
           <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -94,7 +94,7 @@ export default function ElectionMap() {
         />
 
         {/* Legend */}
-        <div className="absolute bottom-6 left-4 z-20">
+        <div className="absolute bottom-3 left-2 z-20 max-w-[calc(100%-1rem)] sm:bottom-6 sm:left-4">
           <MapLegend />
         </div>
 

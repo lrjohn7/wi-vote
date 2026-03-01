@@ -474,7 +474,7 @@ export const WisconsinMap = memo(function WisconsinMap({
     <div
       ref={mapContainer}
       className="h-full w-full"
-      style={{ minHeight: '400px' }}
+      style={{ minHeight: 'min(400px, 50vh)' }}
       role="application"
       aria-label="Wisconsin election map"
       tabIndex={0}

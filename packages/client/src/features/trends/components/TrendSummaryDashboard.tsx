@@ -28,7 +28,7 @@ export const TrendSummaryDashboard = memo(function TrendSummaryDashboard({
   const incPct = (stats.incCount / total) * 100;
 
   return (
-    <div className="glass-panel absolute right-4 top-16 z-10 w-56 p-3">
+    <div className="glass-panel absolute right-2 top-14 z-10 hidden w-48 p-2 sm:block sm:right-4 sm:top-16 sm:w-56 sm:p-3">
       <h4 className="mb-0.5 text-xs font-semibold text-foreground">Trend Summary</h4>
       <p className="mb-2 text-[9px] text-muted-foreground">
         {total.toLocaleString()} wards in view

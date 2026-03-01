@@ -365,8 +365,8 @@ export default function SwingModeler() {
   return (
     <div className="flex h-full flex-col">
       {/* Top bar */}
-      <div className="glass-panel flex items-center gap-4 rounded-none border-x-0 border-t-0 px-5 py-2.5">
-        <h2 className="text-lg font-semibold">Swing Modeler</h2>
+      <div className="glass-panel flex flex-wrap items-center gap-2 rounded-none border-x-0 border-t-0 px-3 py-2 sm:gap-4 sm:px-5 sm:py-2.5">
+        <h2 className="text-base font-semibold sm:text-lg">Swing Modeler</h2>
         {isComputing && (
           <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
@@ -385,12 +385,12 @@ export default function SwingModeler() {
           </span>
         )}
         <div className="ml-auto flex items-center gap-2">
-          <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <label className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-content2/50">
             <input
               type="checkbox"
               checked={showUncertainty}
               onChange={(e) => setShowUncertainty(e.target.checked)}
-              className="h-3.5 w-3.5 rounded border"
+              className="h-4 w-4 rounded border"
             />
             Uncertainty
           </label>
@@ -398,7 +398,7 @@ export default function SwingModeler() {
       </div>
 
       {/* Main content: sidebar + map */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
         {/* Left sidebar: controls + results */}
         <ControlsPanel>
           <ResultsSummary
@@ -427,7 +427,7 @@ export default function SwingModeler() {
           />
 
           {/* Legend */}
-          <div className="absolute bottom-6 left-4 z-20">
+          <div className="absolute bottom-3 left-2 z-20 max-w-[calc(100%-1rem)] sm:bottom-6 sm:left-4">
             <MapLegend />
           </div>
 

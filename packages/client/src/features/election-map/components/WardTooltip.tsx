@@ -36,12 +36,18 @@ export const WardTooltip = memo(function WardTooltip({
 
   const borderColor = margin != null ? (margin > 0 ? 'var(--dem)' : 'var(--rep)') : '#cccccc';
 
+  // Clamp tooltip to viewport bounds
+  const tooltipWidth = 220;
+  const tooltipHeight = 140;
+  const clampedX = Math.min(x + 12, (typeof window !== 'undefined' ? window.innerWidth : 800) - tooltipWidth);
+  const clampedY = Math.min(Math.max(y + 12, tooltipHeight / 2), (typeof window !== 'undefined' ? window.innerHeight : 600) - tooltipHeight / 2);
+
   return (
     <div
-      className="pointer-events-none absolute z-50 glass-panel border-l-4 px-3 py-2 text-sm transition-opacity duration-150"
+      className="pointer-events-none absolute z-50 hidden glass-panel border-l-4 px-3 py-2 text-sm transition-opacity duration-150 md:block"
       style={{
-        left: x + 12,
-        top: y + 12,
+        left: clampedX,
+        top: clampedY,
         transform: 'translate(0, -50%)',
         borderLeftColor: borderColor,
       }}

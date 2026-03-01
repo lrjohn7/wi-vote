@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router';
-import { Map, Search, TrendingUp, SlidersHorizontal, Scale, ClipboardList, GitCompareArrows, Sun, Moon, Monitor } from 'lucide-react';
+import { Map, Search, TrendingUp, SlidersHorizontal, Scale, ClipboardList, GitCompareArrows, Sun, Moon, Monitor, Menu, X } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
+import { useIsMobile } from '@/shared/hooks/useIsMobile';
 
 const navItems = [
   { to: '/map', label: 'Election Map', icon: Map, end: false },
@@ -26,7 +28,7 @@ function ThemeToggle() {
   return (
     <button
       onClick={cycle}
-      className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-content2 hover:text-foreground"
+      className="flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-content2 hover:text-foreground"
       aria-label={label}
       title={label}
     >
@@ -36,8 +38,11 @@ function ThemeToggle() {
 }
 
 export default function App() {
+  const isMobile = useIsMobile();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-dvh flex-col" style={{ height: '100dvh' }}>
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-background focus:px-4 focus:py-2 focus:shadow-lg"
@@ -49,14 +54,16 @@ export default function App() {
           <span className="text-wi-blue">WI</span>
           <span className="text-wi-red">-Vote</span>
         </NavLink>
-        <nav role="navigation" aria-label="Main navigation" className="flex items-center overflow-x-auto rounded-xl bg-content2/60 p-1">
+
+        {/* Desktop nav */}
+        <nav role="navigation" aria-label="Main navigation" className="hidden items-center rounded-xl bg-content2/60 p-1 md:flex">
           {navItems.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition-all duration-200 ${
+                `flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-sm transition-all duration-200 ${
                   isActive
                     ? 'bg-background font-medium text-foreground shadow-md'
                     : 'text-muted-foreground hover:bg-background/50 hover:text-foreground'
@@ -64,14 +71,51 @@ export default function App() {
               }
             >
               <Icon className="h-4 w-4" aria-hidden="true" />
-              {label}
+              <span className="hidden lg:inline">{label}</span>
             </NavLink>
           ))}
         </nav>
-        <div className="ml-auto">
+
+        <div className="ml-auto flex items-center gap-1">
           <ThemeToggle />
+          {/* Mobile hamburger */}
+          <button
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-content2 hover:text-foreground md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </header>
+
+      {/* Mobile nav overlay */}
+      {isMobile && mobileMenuOpen && (
+        <div className="fixed inset-0 top-14 z-40 bg-background/95 backdrop-blur-md md:hidden">
+          <nav role="navigation" aria-label="Mobile navigation" className="flex flex-col p-4">
+            {navItems.map(({ to, label, icon: Icon, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 rounded-lg px-4 py-3 text-base transition-all ${
+                    isActive
+                      ? 'bg-content2 font-medium text-foreground'
+                      : 'text-muted-foreground hover:bg-content2/50 hover:text-foreground'
+                  }`
+                }
+              >
+                <Icon className="h-5 w-5" aria-hidden="true" />
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+      )}
+
       <main id="main-content" role="main" className="flex-1 overflow-hidden">
         <Outlet />
       </main>

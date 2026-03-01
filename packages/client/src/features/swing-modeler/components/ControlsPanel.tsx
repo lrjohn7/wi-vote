@@ -251,7 +251,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
   };
 
   return (
-    <div className="flex w-80 shrink-0 flex-col border-r border-border/30 bg-content1">
+    <div className="flex w-full shrink-0 flex-col border-b border-border/30 bg-content1 md:w-80 md:border-b-0 md:border-r">
       <div className="overflow-y-auto p-4 space-y-0">
         {/* Model Selector */}
         {allModels.length > 1 && (

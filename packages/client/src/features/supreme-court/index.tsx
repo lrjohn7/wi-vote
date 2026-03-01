@@ -64,15 +64,15 @@ export default function SupremeCourt() {
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
       <div className="border-b border-border/30 bg-content1 px-6 py-4">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Wisconsin Supreme Court Elections</h2>
+            <h2 className="text-xl font-bold sm:text-2xl">Wisconsin Supreme Court Elections</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Spring election results by reporting unit
             </p>
           </div>
           {contest && (
-            <div className="text-right">
+            <div className="sm:text-right">
               <div className="text-sm text-muted-foreground">
                 {contest.election_date
                   ? new Date(contest.election_date + 'T00:00:00').toLocaleDateString('en-US', {
@@ -108,9 +108,9 @@ export default function SupremeCourt() {
       </div>
 
       {/* Controls */}
-      <div className="flex items-center gap-3 border-b border-border/30 px-6 py-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border/30 px-4 py-3 sm:gap-3 sm:px-6">
         <Select value={String(selectedYear)} onValueChange={handleYearChange}>
-          <SelectTrigger className="w-[100px]">
+          <SelectTrigger className="w-20 sm:w-[100px]">
             <SelectValue placeholder="Year" />
           </SelectTrigger>
           <SelectContent>
@@ -123,7 +123,7 @@ export default function SupremeCourt() {
         </Select>
 
         <Select value={viewMode} onValueChange={(v) => { setViewMode(v as ViewMode); setPage(1); }}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[140px] sm:w-[180px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -132,7 +132,7 @@ export default function SupremeCourt() {
           </SelectContent>
         </Select>
 
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative min-w-0 flex-1 basis-40 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={searchQuery}
@@ -147,7 +147,7 @@ export default function SupremeCourt() {
             value={countyFilter}
             onChange={(e) => { setCountyFilter(e.target.value); setPage(1); }}
             placeholder="Filter by county..."
-            className="w-48"
+            className="w-full sm:w-48"
           />
         )}
 
@@ -269,8 +269,8 @@ function ReportingUnitTable({
   contest?: SpringContest;
 }) {
   return (
-    <div className="rounded-xl border border-border/30 overflow-hidden">
-    <table className="w-full text-sm">
+    <div className="rounded-xl border border-border/30 overflow-x-auto">
+    <table className="w-full min-w-[640px] text-sm">
       <thead className="sticky top-0 bg-content1/95 backdrop-blur-sm">
         <tr className="border-b border-border/30 text-left">
           <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider">County</th>
@@ -333,8 +333,8 @@ function CountyTable({
   if (counties.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-border/30 overflow-hidden">
-    <table className="w-full text-sm">
+    <div className="rounded-xl border border-border/30 overflow-x-auto">
+    <table className="w-full min-w-[640px] text-sm">
       <thead className="sticky top-0 bg-content1/95 backdrop-blur-sm">
         <tr className="border-b border-border/30 text-left">
           <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider">County</th>

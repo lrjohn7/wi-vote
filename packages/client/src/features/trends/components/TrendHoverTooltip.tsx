@@ -29,10 +29,10 @@ export const TrendHoverTooltip = memo(function TrendHoverTooltip({
   return (
     <div
       role="tooltip"
-      className="glass-panel pointer-events-none fixed z-50 min-w-[180px] max-w-[240px] border-l-4 p-2.5"
+      className="glass-panel pointer-events-none fixed z-50 hidden min-w-[180px] max-w-[240px] border-l-4 p-2.5 md:block"
       style={{
-        left: point.x + 12,
-        top: point.y - 10,
+        left: Math.min(point.x + 12, (typeof window !== 'undefined' ? window.innerWidth : 800) - 250),
+        top: Math.min(point.y - 10, (typeof window !== 'undefined' ? window.innerHeight : 600) - 150),
         borderLeftColor: borderColor,
       }}
     >

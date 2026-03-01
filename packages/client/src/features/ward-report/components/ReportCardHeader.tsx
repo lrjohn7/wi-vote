@@ -30,14 +30,14 @@ export function ReportCardHeader({ metadata, hasEstimates }: ReportCardHeaderPro
 
   return (
     <div>
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0">
           <h1 className="text-2xl font-bold">{metadata.ward_name}</h1>
           <p className="text-muted-foreground">
             {metadata.municipality}, {metadata.county} County
           </p>
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={handleShare}>
             <Share2 className="mr-1 h-4 w-4" />
             Share

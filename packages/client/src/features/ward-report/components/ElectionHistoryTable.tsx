@@ -43,7 +43,7 @@ export function ElectionHistoryTable({ elections }: ElectionHistoryTableProps) {
             <button
               key={tab.key}
               onClick={() => setActiveFilter(tab.key)}
-              className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+              className={`rounded-md px-3 py-2 text-xs font-medium transition-colors sm:py-1.5 ${
                 activeFilter === tab.key
                   ? 'bg-foreground text-background'
                   : 'bg-content2 text-muted-foreground hover:text-foreground'

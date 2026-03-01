@@ -28,7 +28,7 @@ export function WardDetailPanel() {
   if (!selectedWardId) return null;
 
   return (
-    <div className="absolute right-0 top-0 z-30 flex h-full w-[420px] flex-col border-l border-border/30 bg-content1/95 shadow-lg backdrop-blur-sm animate-in slide-in-from-right-full duration-300">
+    <div className="absolute right-0 top-0 z-30 flex h-full w-full flex-col border-l border-border/30 bg-content1/95 shadow-lg backdrop-blur-sm animate-in slide-in-from-right-full duration-300 sm:w-[420px]">
       {/* Header */}
       <div className="flex items-start justify-between px-5 py-4">
         <div className="min-w-0 flex-1">

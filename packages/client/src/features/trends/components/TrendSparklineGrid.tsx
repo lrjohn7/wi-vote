@@ -158,7 +158,7 @@ export function TrendSparklineGrid({
           ] as const).map(([mode, label]) => (
             <button
               key={mode}
-              className={`rounded px-2 py-0.5 text-xs transition-colors ${
+              className={`rounded px-3 py-1.5 text-xs transition-colors ${
                 sortMode === mode ? 'bg-content2 font-medium' : 'text-muted-foreground hover:bg-content2'
               }`}
               onClick={() => { setSortMode(mode); setPage(0); }}
