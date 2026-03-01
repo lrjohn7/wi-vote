@@ -593,7 +593,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
       {/* Mobile toggle button */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="absolute bottom-20 left-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-content1 shadow-lg border border-border/30 md:hidden"
+        className="absolute bottom-36 left-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-content1 shadow-lg border border-border/30 md:hidden"
         aria-label="Open controls"
       >
         <SlidersHorizontal className="h-5 w-5" />
