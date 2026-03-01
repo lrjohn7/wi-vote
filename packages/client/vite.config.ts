@@ -13,12 +13,45 @@ export default defineConfig({
       manifest: false, // We use our own manifest.json in public/
       workbox: {
         skipWaiting: true,
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Only precache the app shell (HTML + core vendor chunks).
+        // Feature-specific chunks (recharts, trends, modeler, etc.) load on demand
+        // via runtime caching — this cuts initial precache from ~2 MB to ~200-400 KB.
+        globPatterns: ['index.html', 'assets/vendor-react-*.js', 'assets/vendor-state-*.js', 'assets/index-*.css'],
         // Exclude PMTiles from service worker — Range requests are
         // incompatible with CacheFirst (wrong bytes served from cache).
         // Nginx already sets Cache-Control: public, immutable on /tiles/.
         navigateFallbackDenylist: [/\/tiles\//],
         runtimeCaching: [
+          {
+            // Lazy-loaded JS/CSS chunks — cache after first visit
+            urlPattern: /\/assets\/.+\.(js|css)$/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'app-chunks',
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            // Static assets (images, fonts, icons)
+            urlPattern: /\/assets\/.+\.(svg|png|woff2|ico)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'static-assets',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
           {
             // Cache ward boundaries API (still used by swing modeler for metadata)
             urlPattern: /\/api\/v1\/wards\/boundaries/,
