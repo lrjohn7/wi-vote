@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react';
 import { WisconsinMap, type MapViewState } from '@/shared/components/WisconsinMap';
 import { MapLegend } from '@/features/election-map/components/MapLegend';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
+import { formatElectionLabel } from '@/shared/lib/raceLabels';
 import { ComparisonSelector } from './components/ComparisonSelector';
 import { DifferenceMap } from './components/DifferenceMap';
 import { useComparisonData } from './hooks/useComparisonData';
@@ -18,13 +20,18 @@ export default function ElectionComparison() {
   const [raceB, setRaceB] = useState<RaceType>('president');
   const [viewMode, setViewMode] = useState<ViewMode>('side-by-side');
   const [syncedView, setSyncedView] = useState<MapViewState | null>(null);
+  const [, setSelectedWardId] = useState<string | null>(null);
 
-  const { mapDataA, mapDataB, diffData, isLoading } = useComparisonData(
+  const { mapDataA, mapDataB, diffData, isLoading, isError, error, refetch } = useComparisonData(
     yearA, raceA, yearB, raceB,
   );
 
-  const handleWardClickA = useCallback(() => {}, []);
-  const handleWardClickB = useCallback(() => {}, []);
+  const handleWardClickA = useCallback((wardId: string | null) => {
+    setSelectedWardId((prev) => (prev === wardId ? null : wardId));
+  }, []);
+  const handleWardClickB = useCallback((wardId: string | null) => {
+    setSelectedWardId((prev) => (prev === wardId ? null : wardId));
+  }, []);
 
   const handleMapMove = useCallback((vs: MapViewState) => {
     setSyncedView(vs);
@@ -54,10 +61,21 @@ export default function ElectionComparison() {
           onRaceChange={setRaceB}
         />
 
-        <div className="ml-auto flex items-center gap-1 rounded-md border border-border/30 bg-content2/50 p-0.5" role="tablist" aria-label="View mode">
+        <div
+          className="ml-auto flex items-center gap-1 rounded-md border border-border/30 bg-content2/50 p-0.5"
+          role="tablist"
+          aria-label="View mode"
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+              e.preventDefault();
+              setViewMode((prev) => (prev === 'side-by-side' ? 'difference' : 'side-by-side'));
+            }
+          }}
+        >
           <button
             role="tab"
             aria-selected={viewMode === 'side-by-side'}
+            tabIndex={viewMode === 'side-by-side' ? 0 : -1}
             className={`rounded px-3 py-1 text-sm transition-colors ${
               viewMode === 'side-by-side' ? 'bg-content1 font-medium shadow-sm' : 'text-muted-foreground'
             }`}
@@ -68,6 +86,7 @@ export default function ElectionComparison() {
           <button
             role="tab"
             aria-selected={viewMode === 'difference'}
+            tabIndex={viewMode === 'difference' ? 0 : -1}
             className={`rounded px-3 py-1 text-sm transition-colors ${
               viewMode === 'difference' ? 'bg-content1 font-medium shadow-sm' : 'text-muted-foreground'
             }`}
@@ -87,12 +106,17 @@ export default function ElectionComparison() {
 
       {/* Map content */}
       <div className="flex-1 overflow-hidden">
-        {viewMode === 'side-by-side' && (
+        {isError && (
+          <div className="flex h-full items-center justify-center">
+            <QueryErrorState error={error!} onRetry={refetch} />
+          </div>
+        )}
+        {!isError && viewMode === 'side-by-side' && (
           <div className="flex h-full flex-col md:flex-row">
             {/* Election A */}
             <div className="relative flex-1 border-b border-border/30 md:border-b-0 md:border-r">
               <div className="glass-panel absolute left-2 top-2 z-10 px-3 py-1.5 text-sm font-semibold">
-                {yearA} {raceA}
+                {formatElectionLabel(yearA, raceA)}
               </div>
               <WisconsinMap
                 mapData={mapDataA}
@@ -108,7 +132,7 @@ export default function ElectionComparison() {
             {/* Election B */}
             <div className="relative flex-1">
               <div className="glass-panel absolute left-2 top-2 z-10 px-3 py-1.5 text-sm font-semibold">
-                {yearB} {raceB}
+                {formatElectionLabel(yearB, raceB)}
               </div>
               <WisconsinMap
                 mapData={mapDataB}
@@ -123,7 +147,7 @@ export default function ElectionComparison() {
           </div>
         )}
 
-        {viewMode === 'difference' && (
+        {!isError && viewMode === 'difference' && (
           <DifferenceMap
             diffData={diffData}
           />

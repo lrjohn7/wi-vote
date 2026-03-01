@@ -1,7 +1,8 @@
-import { useEffect, useRef, useCallback, memo } from 'react';
+import { useEffect, useRef, useCallback, memo, type KeyboardEvent } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Protocol } from 'pmtiles';
+import { RotateCcw } from 'lucide-react';
 import { choroplethFillColor } from '@/shared/lib/colorScale';
 import type { MapDataResponse } from '@/features/election-map/hooks/useMapData';
 
@@ -26,7 +27,7 @@ export interface MapViewState {
 interface WisconsinMapProps {
   mapData?: MapDataResponse | null;
   selectedWardId?: string | null;
-  onWardClick?: (wardId: string, properties: Record<string, unknown>) => void;
+  onWardClick?: (wardId: string | null, properties: Record<string, unknown>) => void;
   onWardHover?: (
     wardId: string | null,
     properties: Record<string, unknown> | null,
@@ -172,6 +173,52 @@ export const WisconsinMap = memo(function WisconsinMap({
     };
   }, []);
 
+  // Keyboard navigation handler
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLDivElement>) => {
+      const m = map.current;
+      if (!m) return;
+
+      switch (e.key) {
+        case 'ArrowUp':
+          e.preventDefault();
+          m.panBy([0, -100]);
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          m.panBy([0, 100]);
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          m.panBy([-100, 0]);
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          m.panBy([100, 0]);
+          break;
+        case '+':
+        case '=':
+          e.preventDefault();
+          m.zoomIn();
+          break;
+        case '-':
+          e.preventDefault();
+          m.zoomOut();
+          break;
+        case 'Escape':
+          e.preventDefault();
+          onWardClick?.(null, {});
+          break;
+      }
+    },
+    [onWardClick],
+  );
+
+  // Reset map to full Wisconsin view
+  const handleResetView = useCallback(() => {
+    map.current?.flyTo({ center: WISCONSIN_CENTER, zoom: 7 });
+  }, []);
+
   // Helper: check if map data has materially changed
   const hasDataChanged = useCallback((prev: MapDataResponse | null, next: MapDataResponse | null | undefined): boolean => {
     if (!prev && !next) return false;
@@ -197,32 +244,47 @@ export const WisconsinMap = memo(function WisconsinMap({
     return false;
   }, []);
 
-  // Helper: apply current mapData to the map via setFeatureState
+  // Helper: apply current mapData to the map via setFeatureState (differential)
   const applyMapData = useCallback((m: maplibregl.Map, data: MapDataResponse | null | undefined) => {
     // Skip if data hasn't actually changed
     if (!hasDataChanged(prevMapDataRef.current, data)) return;
 
-    // Clear previous feature states
-    if (prevMapDataRef.current) {
-      for (const wardId of Object.keys(prevMapDataRef.current.data)) {
+    const prev = prevMapDataRef.current?.data ?? {};
+    const next = data?.data ?? {};
+    const prevKeys = new Set(Object.keys(prev));
+    const nextKeys = new Set(Object.keys(next));
+
+    // Remove feature states for wards no longer in the data
+    for (const wardId of prevKeys) {
+      if (!nextKeys.has(wardId)) {
         m.removeFeatureState({ source: WARD_SOURCE, sourceLayer: WARD_SOURCE_LAYER, id: wardId });
       }
     }
 
-    // Apply new data
-    if (data) {
-      for (const [wardId, entry] of Object.entries(data.data)) {
-        m.setFeatureState(
-          { source: WARD_SOURCE, sourceLayer: WARD_SOURCE_LAYER, id: wardId },
-          {
-            demPct: entry.demPct,
-            repPct: entry.repPct,
-            margin: entry.margin,
-            totalVotes: entry.totalVotes,
-            isEstimate: entry.isEstimate,
-          },
-        );
+    // Apply / update feature states only for wards that changed
+    for (const [wardId, entry] of Object.entries(next)) {
+      const prevEntry = prev[wardId];
+      if (
+        prevEntry &&
+        prevEntry.demPct === entry.demPct &&
+        prevEntry.repPct === entry.repPct &&
+        prevEntry.margin === entry.margin &&
+        prevEntry.totalVotes === entry.totalVotes &&
+        prevEntry.isEstimate === entry.isEstimate
+      ) {
+        continue; // No change for this ward — skip
       }
+
+      m.setFeatureState(
+        { source: WARD_SOURCE, sourceLayer: WARD_SOURCE_LAYER, id: wardId },
+        {
+          demPct: entry.demPct,
+          repPct: entry.repPct,
+          margin: entry.margin,
+          totalVotes: entry.totalVotes,
+          isEstimate: entry.isEstimate,
+        },
+      );
     }
 
     prevMapDataRef.current = data ?? null;
@@ -471,13 +533,22 @@ export const WisconsinMap = memo(function WisconsinMap({
   }, [viewState]);
 
   return (
-    <div
-      ref={mapContainer}
-      className="h-full w-full"
-      style={{ minHeight: 'min(400px, 50vh)' }}
-      role="application"
-      aria-label="Wisconsin election map"
-      tabIndex={0}
-    />
+    <div className="relative h-full w-full" style={{ minHeight: 'min(400px, 50vh)' }}>
+      <div
+        ref={mapContainer}
+        className="h-full w-full"
+        role="application"
+        aria-label="Wisconsin election map. Use arrow keys to pan, plus/minus to zoom, Escape to deselect."
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+      />
+      <button
+        onClick={handleResetView}
+        className="glass-panel absolute right-12 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-content2"
+        aria-label="Reset map to Wisconsin view"
+      >
+        <RotateCcw className="h-4 w-4" />
+      </button>
+    </div>
   );
 });

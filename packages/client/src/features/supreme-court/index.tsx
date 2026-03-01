@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import {
   useSpringContests,
   useSpringResults,
@@ -23,7 +24,7 @@ type ViewMode = 'reporting-units' | 'counties';
 export default function SupremeCourt() {
   usePageTitle('Supreme Court Elections');
 
-  const { data: contestsData } = useSpringContests();
+  const { data: contestsData, isError: contestsError, error: contestsErr, refetch: refetchContests } = useSpringContests();
 
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [viewMode, setViewMode] = useState<ViewMode>('counties');
@@ -35,7 +36,7 @@ export default function SupremeCourt() {
     (c) => c.year === selectedYear,
   );
 
-  const { data: resultsData, isLoading: resultsLoading } = useSpringResults(
+  const { data: resultsData, isLoading: resultsLoading, isError: resultsError, error: resultsErr, refetch: refetchResults } = useSpringResults(
     viewMode === 'reporting-units' ? selectedYear : null,
     countyFilter || undefined,
     searchQuery || undefined,
@@ -43,7 +44,7 @@ export default function SupremeCourt() {
     50,
   );
 
-  const { data: countyData, isLoading: countyLoading } = useSpringCountySummary(
+  const { data: countyData, isLoading: countyLoading, isError: countyError, error: countyErr, refetch: refetchCounty } = useSpringCountySummary(
     viewMode === 'counties' ? selectedYear : null,
   );
 
@@ -161,14 +162,25 @@ export default function SupremeCourt() {
 
       {/* Table */}
       <div className="flex-1 overflow-auto px-6 py-4">
-        {viewMode === 'reporting-units' && resultsData && (
-          <ReportingUnitTable
-            results={resultsData.results}
-            contest={contest}
+        {(contestsError || resultsError || countyError) && (
+          <QueryErrorState
+            error={(contestsErr ?? resultsErr ?? countyErr)!}
+            onRetry={() => {
+              if (contestsError) refetchContests();
+              if (resultsError) refetchResults();
+              if (countyError) refetchCounty();
+            }}
           />
         )}
-        {viewMode === 'counties' && countyData && (
-          <CountyTable counties={filteredCounties} />
+        {!contestsError && !resultsError && !countyError && viewMode === 'reporting-units' && resultsData && (
+          resultsData.results.length === 0
+            ? <p className="py-8 text-center text-sm text-muted-foreground">No results found for this election.</p>
+            : <ReportingUnitTable results={resultsData.results} contest={contest} />
+        )}
+        {!contestsError && !resultsError && !countyError && viewMode === 'counties' && countyData && (
+          filteredCounties.length === 0
+            ? <p className="py-8 text-center text-sm text-muted-foreground">No results found for this election.</p>
+            : <CountyTable counties={filteredCounties} />
         )}
       </div>
 
@@ -184,6 +196,7 @@ export default function SupremeCourt() {
               size="sm"
               disabled={page <= 1}
               onClick={() => setPage(page - 1)}
+              aria-label="Go to previous page"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -195,6 +208,7 @@ export default function SupremeCourt() {
               size="sm"
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
+              aria-label="Go to next page"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -278,10 +292,10 @@ function ReportingUnitTable({
         <tr className="border-b border-border/30 text-left">
           <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider">County</th>
           <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider">Reporting Unit</th>
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right" aria-label={contest?.candidate_1_name ?? 'Candidate 1'}>
             {contest?.candidate_1_name.split(' ').pop() ?? 'Cand. 1'}
           </th>
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right" aria-label={contest?.candidate_2_name ?? 'Candidate 2'}>
             {contest?.candidate_2_name.split(' ').pop() ?? 'Cand. 2'}
           </th>
           <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">Total</th>
@@ -333,18 +347,16 @@ function CountyTable({
     reporting_units: number;
   }>;
 }) {
-  if (counties.length === 0) return null;
-
   return (
     <div className="rounded-xl border border-border/30 overflow-x-auto">
     <table className="w-full min-w-[640px] text-sm">
       <thead className="sticky top-0 bg-content1/95 backdrop-blur-sm">
         <tr className="border-b border-border/30 text-left">
           <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider">County</th>
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right" aria-label={counties[0].candidate_1_name}>
             {counties[0].candidate_1_name.split(' ').pop()}
           </th>
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">
+          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right" aria-label={counties[0].candidate_2_name}>
             {counties[0].candidate_2_name.split(' ').pop()}
           </th>
           <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">Total</th>
@@ -392,9 +404,12 @@ function MarginBar({ margin }: { margin: number }) {
   const absMargin = Math.abs(margin);
   const barWidth = Math.min(absMargin, 60); // Cap at 60% width for visual
   const isC1 = margin > 0;
+  const marginLabel = isC1
+    ? `Margin: R+${absMargin.toFixed(1)} points`
+    : `Margin: D+${absMargin.toFixed(1)} points`;
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1.5" role="img" aria-label={marginLabel}>
       <div className="flex h-3 w-full items-center">
         {/* Left half (conservative) */}
         <div className="flex h-full w-1/2 justify-end">

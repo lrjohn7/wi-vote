@@ -1,4 +1,5 @@
 import { AlertTriangle, RefreshCw, WifiOff } from 'lucide-react';
+import { isApiError, isNetworkError as checkNetworkError } from '@/shared/lib/errors';
 
 interface QueryErrorStateProps {
   error: Error;
@@ -7,26 +8,23 @@ interface QueryErrorStateProps {
 }
 
 export function QueryErrorState({ error, onRetry, compact }: QueryErrorStateProps) {
-  const isNetworkError =
-    error.message.includes('Failed to fetch') ||
-    error.message.includes('NetworkError') ||
-    error.message.includes('Network request failed');
+  const networkError = checkNetworkError(error);
 
-  const is404 = error.message.includes('404');
+  const is404 = isApiError(error) && error.isNotFound;
 
-  const Icon = isNetworkError ? WifiOff : AlertTriangle;
+  const Icon = networkError ? WifiOff : AlertTriangle;
 
-  const title = isNetworkError
+  const title = networkError
     ? 'Connection Error'
     : is404
       ? 'Data Not Found'
       : 'Failed to Load Data';
 
-  const description = isNetworkError
+  const description = networkError
     ? 'Unable to reach the server. Check your connection and try again.'
     : is404
       ? 'The requested data could not be found.'
-      : error.message;
+      : (error as Error).message;
 
   if (compact) {
     return (

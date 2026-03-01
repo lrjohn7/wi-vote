@@ -5,21 +5,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { RACE_LABELS } from '@/shared/lib/raceLabels';
 import { useElections } from '../hooks/useElections';
 import { useMapStore } from '@/stores/mapStore';
 import type { RaceType } from '@/types/election';
-
-const RACE_LABELS: Record<string, string> = {
-  president: 'President',
-  governor: 'Governor',
-  us_senate: 'US Senate',
-  us_house: 'US House',
-  state_senate: 'State Senate',
-  state_assembly: 'State Assembly',
-  attorney_general: 'Attorney General',
-  secretary_of_state: 'Sec. of State',
-  treasurer: 'Treasurer',
-};
 
 export function ElectionSelector() {
   const { data, isLoading } = useElections();

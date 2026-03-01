@@ -179,6 +179,7 @@ export function TrendSparklineGrid({
             key={t.ward_id}
             className="rounded-xl border border-border/30 bg-content1 p-2 shadow-sm transition-shadow duration-200 hover:shadow-md"
             title={`${t.ward_id}: ${t.direction} (slope: ${t.slope?.toFixed(2) ?? 'N/A'})`}
+            aria-label={`Ward ${t.ward_id}: trending ${t.direction.replace(/_/g, ' ')}, slope ${t.slope?.toFixed(2) ?? 'N/A'}`}
           >
             <MiniSparkline
               elections={bulkElections?.[t.ward_id]}

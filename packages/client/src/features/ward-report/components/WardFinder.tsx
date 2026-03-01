@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useWardSearch } from '@/features/ward-explorer/hooks/useWardSearch';
+import { useGeocodeAddress } from '@/shared/hooks/useGeocodeAddress';
 
 export function WardFinder() {
   const navigate = useNavigate();
   const [addressInput, setAddressInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [geocodeLoading, setGeocodeLoading] = useState(false);
-  const [geocodeError, setGeocodeError] = useState<string | null>(null);
+  const { geocode, isLoading: geocodeLoading, error: geocodeError } = useGeocodeAddress();
 
   const { data: searchResults, isLoading: searchLoading } = useWardSearch(searchQuery);
 
@@ -26,30 +26,9 @@ export function WardFinder() {
 
   const handleGeocodeAddress = async () => {
     if (!addressInput.trim()) return;
-    setGeocodeLoading(true);
-    setGeocodeError(null);
-    try {
-      const res = await fetch(
-        `/api/v1/wards/geocode?address=${encodeURIComponent(addressInput)}&lat=0&lng=0`,
-      );
-      if (!res.ok) {
-        if (res.status === 400) {
-          setGeocodeError('This address is not in Wisconsin. Please enter a Wisconsin address.');
-        } else {
-          setGeocodeError('Address not found. Please enter a valid street address.');
-        }
-        return;
-      }
-      const data = await res.json();
-      if (data.ward) {
-        navigate(`/wards/${data.ward.ward_id}/report`);
-      } else {
-        setGeocodeError('No ward found at that address.');
-      }
-    } catch {
-      setGeocodeError('Geocoding failed. Please try again.');
-    } finally {
-      setGeocodeLoading(false);
+    const result = await geocode(addressInput);
+    if (result) {
+      navigate(`/wards/${result.ward_id}/report`);
     }
   };
 

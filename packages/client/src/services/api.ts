@@ -1,16 +1,24 @@
 import type { MapDataResponse } from '@/features/election-map/hooks/useMapData';
 import type { ElectionInfo } from '@/features/election-map/hooks/useElections';
 import type { WardDetail } from '@/features/election-map/hooks/useWardDetail';
+import { ApiError, NetworkError } from '@/shared/lib/errors';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      headers: { 'Content-Type': 'application/json' },
+      ...init,
+    });
+  } catch (err) {
+    throw new NetworkError(
+      err instanceof Error ? err.message : 'Network request failed',
+    );
+  }
   if (!res.ok) {
-    throw new Error(`API error ${res.status}: ${res.statusText}`);
+    throw new ApiError(res.status, res.statusText);
   }
   return res.json() as Promise<T>;
 }

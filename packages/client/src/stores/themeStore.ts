@@ -45,7 +45,11 @@ export const useThemeStore = create<ThemeState>((set) => ({
   resolvedTheme: initialResolved,
   setTheme: (theme) => {
     const resolved = resolveTheme(theme);
-    localStorage.setItem(STORAGE_KEY, theme);
+    try {
+      localStorage.setItem(STORAGE_KEY, theme);
+    } catch {
+      // localStorage unavailable in private browsing
+    }
     applyTheme(resolved);
     set({ theme, resolvedTheme: resolved });
   },

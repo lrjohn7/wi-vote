@@ -1,5 +1,27 @@
 import chroma from 'chroma-js';
 
+// Dem % thresholds for the RdBu diverging color scale
+const STRONG_R = 35;
+const SOLID_R = 42;
+const LEAN_R = 46;
+const TILT_R = 48;
+const EVEN = 50;
+const TILT_D = 52;
+const LEAN_D = 54;
+const SOLID_D = 58;
+const STRONG_D = 65;
+
+// Margin thresholds (symmetric around 0)
+const MARGIN_STRONG_R = -30;
+const MARGIN_SOLID_R = -16;
+const MARGIN_LEAN_R = -8;
+const MARGIN_TILT_R = -4;
+const MARGIN_EVEN = 0;
+const MARGIN_TILT_D = 4;
+const MARGIN_LEAN_D = 8;
+const MARGIN_SOLID_D = 16;
+const MARGIN_STRONG_D = 30;
+
 // ColorBrewer RdBu diverging palette — red=Republican, blue=Democratic
 // Centered at 50% (even split)
 const RD_BU_COLORS = [
@@ -36,15 +58,15 @@ export const choroplethFillColor: maplibregl.ExpressionSpecification = [
     ['linear'],
     ['feature-state', 'demPct'],
     0, '#b2182b',
-    35, '#b2182b',
-    42, '#d6604d',
-    46, '#f4a582',
-    48, '#fddbc7',
-    50, '#f7f7f7',
-    52, '#d1e5f0',
-    54, '#92c5de',
-    58, '#4393c3',
-    65, '#2166ac',
+    STRONG_R, '#b2182b',
+    SOLID_R, '#d6604d',
+    LEAN_R, '#f4a582',
+    TILT_R, '#fddbc7',
+    EVEN, '#f7f7f7',
+    TILT_D, '#d1e5f0',
+    LEAN_D, '#92c5de',
+    SOLID_D, '#4393c3',
+    STRONG_D, '#2166ac',
     100, '#2166ac',
   ],
   '#d4d4d4', // No data — neutral gray
@@ -58,15 +80,15 @@ export const marginFillColor: maplibregl.ExpressionSpecification = [
     'interpolate',
     ['linear'],
     ['feature-state', 'margin'],
-    -30, '#b2182b',
-    -16, '#d6604d',
-    -8, '#f4a582',
-    -4, '#fddbc7',
-    0, '#f7f7f7',
-    4, '#d1e5f0',
-    8, '#92c5de',
-    16, '#4393c3',
-    30, '#2166ac',
+    MARGIN_STRONG_R, '#b2182b',
+    MARGIN_SOLID_R, '#d6604d',
+    MARGIN_LEAN_R, '#f4a582',
+    MARGIN_TILT_R, '#fddbc7',
+    MARGIN_EVEN, '#f7f7f7',
+    MARGIN_TILT_D, '#d1e5f0',
+    MARGIN_LEAN_D, '#92c5de',
+    MARGIN_SOLID_D, '#4393c3',
+    MARGIN_STRONG_D, '#2166ac',
   ],
   '#d4d4d4',
 ];
@@ -80,27 +102,27 @@ export interface LegendBin {
 }
 
 export const DEM_PCT_LEGEND_BINS: LegendBin[] = [
-  { label: 'R+30+', color: '#b2182b', min: 0, max: 35 },
-  { label: 'R+8-30', color: '#d6604d', min: 35, max: 42 },
-  { label: 'R+4-8', color: '#f4a582', min: 42, max: 46 },
-  { label: 'R+0-4', color: '#fddbc7', min: 46, max: 48 },
-  { label: 'Even', color: '#f7f7f7', min: 48, max: 52 },
-  { label: 'D+0-4', color: '#d1e5f0', min: 52, max: 54 },
-  { label: 'D+4-8', color: '#92c5de', min: 54, max: 58 },
-  { label: 'D+8-30', color: '#4393c3', min: 58, max: 65 },
-  { label: 'D+30+', color: '#2166ac', min: 65, max: 100 },
+  { label: 'R+30+', color: '#b2182b', min: 0, max: STRONG_R },
+  { label: 'R+8-30', color: '#d6604d', min: STRONG_R, max: SOLID_R },
+  { label: 'R+4-8', color: '#f4a582', min: SOLID_R, max: LEAN_R },
+  { label: 'R+0-4', color: '#fddbc7', min: LEAN_R, max: TILT_R },
+  { label: 'Even', color: '#f7f7f7', min: TILT_R, max: TILT_D },
+  { label: 'D+0-4', color: '#d1e5f0', min: TILT_D, max: LEAN_D },
+  { label: 'D+4-8', color: '#92c5de', min: LEAN_D, max: SOLID_D },
+  { label: 'D+8-30', color: '#4393c3', min: SOLID_D, max: STRONG_D },
+  { label: 'D+30+', color: '#2166ac', min: STRONG_D, max: 100 },
 ];
 
 export const MARGIN_LEGEND_BINS: LegendBin[] = [
-  { label: 'R+30+', color: '#b2182b', min: -100, max: -30 },
-  { label: 'R+16-30', color: '#d6604d', min: -30, max: -16 },
-  { label: 'R+8-16', color: '#f4a582', min: -16, max: -8 },
-  { label: 'R+0-8', color: '#fddbc7', min: -8, max: -4 },
-  { label: 'Even', color: '#f7f7f7', min: -4, max: 4 },
-  { label: 'D+0-8', color: '#d1e5f0', min: 4, max: 8 },
-  { label: 'D+8-16', color: '#92c5de', min: 8, max: 16 },
-  { label: 'D+16-30', color: '#4393c3', min: 16, max: 30 },
-  { label: 'D+30+', color: '#2166ac', min: 30, max: 100 },
+  { label: 'R+30+', color: '#b2182b', min: -100, max: MARGIN_STRONG_R },
+  { label: 'R+16-30', color: '#d6604d', min: MARGIN_STRONG_R, max: MARGIN_SOLID_R },
+  { label: 'R+8-16', color: '#f4a582', min: MARGIN_SOLID_R, max: MARGIN_LEAN_R },
+  { label: 'R+0-8', color: '#fddbc7', min: MARGIN_LEAN_R, max: MARGIN_TILT_R },
+  { label: 'Even', color: '#f7f7f7', min: MARGIN_TILT_R, max: MARGIN_TILT_D },
+  { label: 'D+0-8', color: '#d1e5f0', min: MARGIN_TILT_D, max: MARGIN_LEAN_D },
+  { label: 'D+8-16', color: '#92c5de', min: MARGIN_LEAN_D, max: MARGIN_SOLID_D },
+  { label: 'D+16-30', color: '#4393c3', min: MARGIN_SOLID_D, max: MARGIN_STRONG_D },
+  { label: 'D+30+', color: '#2166ac', min: MARGIN_STRONG_D, max: 100 },
 ];
 
 export const NO_DATA_COLOR = '#d4d4d4';

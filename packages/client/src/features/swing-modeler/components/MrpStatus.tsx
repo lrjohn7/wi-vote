@@ -8,15 +8,7 @@ import {
   type FittedModel,
   type FitStatus,
 } from '@/services/mrpApi';
-
-const RACE_LABELS: Record<string, string> = {
-  president: 'President',
-  governor: 'Governor',
-  us_senate: 'US Senate',
-  us_house: 'US House',
-  state_senate: 'State Senate',
-  state_assembly: 'State Assembly',
-};
+import { RACE_LABELS } from '@/shared/lib/raceLabels';
 
 function formatDate(iso: string | null): string {
   if (!iso) return 'Unknown';

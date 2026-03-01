@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router';
 import { Map, Search, TrendingUp, SlidersHorizontal, Scale, ClipboardList, GitCompareArrows, Sun, Moon, Monitor, Menu, X } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
@@ -41,6 +41,20 @@ function ThemeToggle() {
 export default function App() {
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Scroll lock and Escape key to close mobile menu
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    document.body.style.overflow = 'hidden';
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileMenuOpen(false);
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [mobileMenuOpen]);
 
   return (
     <div className="flex h-dvh flex-col" style={{ height: '100dvh' }}>

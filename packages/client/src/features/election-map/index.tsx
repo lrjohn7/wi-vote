@@ -38,7 +38,7 @@ export default function ElectionMap() {
   );
 
   const handleWardClick = useCallback(
-    (wardId: string) => {
+    (wardId: string | null) => {
       setSelectedWard(wardId === selectedWardId ? null : wardId);
     },
     [selectedWardId, setSelectedWard],

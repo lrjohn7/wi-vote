@@ -4,26 +4,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { RACE_LABELS_SHORT } from '@/shared/lib/raceLabels';
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { useWardDetail } from '../hooks/useWardDetail';
 import { useMapStore } from '@/stores/mapStore';
-
-const RACE_LABELS: Record<string, string> = {
-  president: 'President',
-  governor: 'Governor',
-  us_senate: 'US Senate',
-  us_house: 'US House',
-  state_senate: 'State Senate',
-  state_assembly: 'State Assembly',
-  attorney_general: 'AG',
-  secretary_of_state: 'SoS',
-  treasurer: 'Treasurer',
-};
 
 export function WardDetailPanel() {
   const navigate = useNavigate();
   const selectedWardId = useMapStore((s) => s.selectedWardId);
   const setSelectedWard = useMapStore((s) => s.setSelectedWard);
-  const { data: ward, isLoading } = useWardDetail(selectedWardId);
+  const { data: ward, isLoading, isError, error, refetch } = useWardDetail(selectedWardId);
 
   if (!selectedWardId) return null;
 
@@ -70,6 +60,12 @@ export function WardDetailPanel() {
           </Button>
         </div>
       </div>
+
+      {isError && (
+        <div className="px-4 pb-3">
+          <QueryErrorState error={error!} onRetry={refetch} compact />
+        </div>
+      )}
 
       {ward && (
         <>
@@ -122,7 +118,7 @@ export function WardDetailPanel() {
                       >
                         <div className="mb-1.5 flex items-center justify-between">
                           <span className="text-sm font-medium">
-                            {e.election_year} {RACE_LABELS[e.race_type] ?? e.race_type}
+                            {e.election_year} {RACE_LABELS_SHORT[e.race_type] ?? e.race_type}
                           </span>
                           <span
                             className={`text-sm font-semibold ${e.margin > 0 ? 'text-dem' : 'text-rep'}`}

@@ -974,9 +974,92 @@ A `documentation/` directory contains audited, structured docs for every feature
 | Railway deployment, nginx, Dockerfile, Docker Compose, env vars | `documentation/13-deployment.md` |
 | Scenario Save & Share, `?scenario=` URL param, community scenarios | `documentation/14-scenario-save-share.md` |
 | Audit findings, PASS/WARN/FAIL items, prioritized fix plan | `documentation/00-audit-report.md` |
+| Race labels, `RACE_LABELS`, `formatRaceLabel`, election labels | `shared/lib/raceLabels.ts` |
+| API errors, `ApiError`, `NetworkError`, error type guards | `shared/lib/errors.ts` |
+| Address geocoding, `useGeocodeAddress` hook | `shared/hooks/useGeocodeAddress.ts` |
+| Audit process, audit loop, shared module checklist | See **Audit Process** section below |
 
 ### Auto-Documentation Rule
 
 When implementing a **new feature**, create a corresponding `documentation/XX-feature-name.md` file following the existing format (title, tagline, route, data model, API endpoints, dashboard elements, business rules, edge cases, files) and add an entry to the lookup table above.
 
 When **modifying an existing feature**, update the corresponding documentation file to reflect the changes (new endpoints, UI elements, business rules, files, etc.).
+
+---
+
+## Audit Process
+
+### When to Audit
+Run a full audit after any of these events:
+- A major feature is complete (new route, new data pipeline, new model)
+- 10+ files have been modified in a single branch
+- Before a production deploy to Railway
+- When explicitly requested
+
+### Audit Loop Protocol (MANDATORY)
+
+The audit runs as a **loop until clean**. It does not stop after one pass.
+
+**Step 1 — Enumerate all files:**
+Glob `packages/client/src/features/**/index.tsx`, `packages/client/src/features/**/components/*.tsx`, `packages/client/src/shared/**/*.tsx`, `packages/client/src/shared/**/*.ts`, `packages/client/src/stores/*.ts`, `packages/client/src/services/*.ts`.
+
+**Step 2 — Launch 5 parallel audit agents**, one per area:
+1. Election Map + Shared Map (`election-map/`, `shared/components/WisconsinMap.tsx`)
+2. Ward Explorer + Ward Report (`ward-explorer/`, `ward-report/`)
+3. Trends + Swing Modeler (`trends/`, `swing-modeler/`, `models/`)
+4. Supreme Court + Election Comparison + Election Night + Boundary History
+5. Shared Infrastructure (`shared/`, `stores/`, `services/`, `App.tsx`, `routes/`, `index.html`)
+
+**Step 3 — Each agent checks every file against this checklist:**
+
+| Category | What to check |
+|----------|---------------|
+| **Accessibility** | ARIA roles (`tablist`/`tab`/`listbox`/`option`), `aria-selected`, `aria-label`, keyboard navigation (Arrow keys, Enter, Escape, Tab), focus management, color contrast, screen reader text |
+| **Error handling** | Every TanStack Query hook must destructure `isError`/`error`/`refetch` and render `<QueryErrorState>`. Every `fetch()` must handle network failures. No silent `catch {}` blocks. |
+| **Empty states** | Every list, table, grid, and map must handle zero-length data with a user-friendly message. |
+| **Loading states** | Every async data dependency must show a skeleton, spinner, or loading text with `role="status"`. |
+| **Mobile** | Touch targets >= 44px. Responsive layouts tested at 375px, 768px, 1280px. Swipe gestures where appropriate. |
+| **Performance** | Components with no props or stable props wrapped in `memo()`. Expensive computations in `useMemo`. Web Workers for >100ms operations. No unnecessary re-renders. |
+| **DRY** | Shared constants (RACE_LABELS) from `shared/lib/raceLabels.ts`. Shared hooks (useGeocodeAddress) from `shared/hooks/`. No duplicate logic across features. |
+| **Typed errors** | API layer uses `ApiError`/`NetworkError` from `shared/lib/errors.ts`. QueryErrorState uses type guards, not string matching. |
+| **SEO** | Page titles via `usePageTitle()`. Canonical link updates. OG/Twitter meta tags. |
+| **Dark mode** | All colors work in both light and dark themes. Use `dark:` Tailwind variants. |
+
+**Step 4 — Classify each finding:**
+- **HIGH:** Broken functionality, a11y violation (missing keyboard nav, no error state, crash on empty data)
+- **MEDIUM:** Degraded UX, missing ARIA labels, duplicated code, performance gap
+- **LOW:** Polish, documentation, minor code style
+
+**Step 5 — Feed previous findings into the current audit.** Always provide the prior audit's findings as context to each agent so they can:
+- Verify that previous fixes are still in place
+- Only flag genuinely new issues
+- Avoid re-reporting already-fixed items
+
+**Step 6 — Organize fixes into parallel batches** grouped by file ownership (no two batches touch the same file). Always have a "shared infrastructure" batch that runs first if new shared modules are needed.
+
+**Step 7 — Implement all HIGH and MEDIUM fixes.** Run `npm run build` after each batch. Fix any type errors immediately.
+
+**Step 8 — Re-audit.** After all fixes are merged, run the audit again (Step 1-4). Continue looping until the audit returns **zero HIGH and zero MEDIUM findings**.
+
+**Step 9 — Final verification:**
+- `npm run build` succeeds
+- `git push` to master (Railway auto-deploys)
+- Launch 5 parallel verification agents confirming all fixes
+
+### Shared Module Checklist
+
+Before adding any constant, hook, or utility to a feature file:
+- [ ] Is this used in 2+ features? → Put in `shared/lib/` or `shared/hooks/`
+- [ ] Is this a UI pattern used in 2+ places? → Put in `shared/components/`
+- [ ] Is this an API type used across features? → Put in `services/api.ts` or `types/`
+
+### Current Shared Modules
+
+| Module | Path | What it provides |
+|--------|------|-----------------|
+| Race labels | `shared/lib/raceLabels.ts` | `RACE_LABELS`, `RACE_LABELS_SHORT`, `formatRaceLabel()`, `formatElectionLabel()`, `RACE_OPTIONS` |
+| Error types | `shared/lib/errors.ts` | `ApiError`, `NetworkError`, `isApiError()`, `isNetworkError()` |
+| Geocoding | `shared/hooks/useGeocodeAddress.ts` | `useGeocodeAddress()` → `{ geocode, isLoading, error, clearError }` |
+| Error UI | `shared/components/QueryErrorState.tsx` | `<QueryErrorState error={} onRetry={} compact? />` |
+| Color scales | `shared/lib/colorScale.ts` | `choroplethFillColor`, `marginFillColor`, legend bin arrays |
+| IDB cache | `shared/lib/idbCache.ts` | `getCachedBoundaries()`, `setCachedBoundaries()`, `getCachedMapData()`, `setCachedMapData()` |

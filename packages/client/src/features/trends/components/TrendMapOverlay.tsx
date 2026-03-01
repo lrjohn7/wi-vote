@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, memo } from 'react';
 import { WisconsinMap } from '@/shared/components/WisconsinMap';
 import { useTrendClassifications } from '../hooks/useTrends';
 import type { MapDataResponse, WardMapEntry } from '@/features/election-map/hooks/useMapData';
@@ -123,7 +123,7 @@ const EMPTY_STATS: SummaryStats = {
   avgDemSlope: null, avgRepSlope: null, minYear: null, maxYear: null,
 };
 
-export function TrendMapOverlay() {
+export const TrendMapOverlay = memo(function TrendMapOverlay() {
   const [hover, setHover] = useState<HoverState | null>(null);
   const [visibleWardIds, setVisibleWardIds] = useState<string[]>([]);
   const { data: classData, isLoading: classLoading } = useTrendClassifications('president');
@@ -218,4 +218,4 @@ export function TrendMapOverlay() {
       </div>
     </div>
   );
-}
+});

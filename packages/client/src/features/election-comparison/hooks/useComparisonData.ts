@@ -75,5 +75,10 @@ export function useComparisonData(
     diffData,
     isLoading: queryA.isLoading || queryB.isLoading,
     isError: queryA.isError || queryB.isError,
+    error: queryA.error ?? queryB.error,
+    refetch: () => {
+      if (queryA.isError) queryA.refetch();
+      if (queryB.isError) queryB.refetch();
+    },
   };
 }

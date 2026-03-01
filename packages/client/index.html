@@ -6,6 +6,7 @@
     <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#2166ac" />
+    <link rel="canonical" href="https://wi-vote.com/" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="description" content="Explore ward-level election data and model future outcomes across Wisconsin." />
@@ -27,6 +28,17 @@
         var dark = t === 'dark' || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
         if (dark) document.documentElement.classList.add('dark');
       })();
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "WI-Vote",
+      "description": "Wisconsin Ward-Level Election Modeling App — explore how every ward voted, track partisan trends, and model future elections.",
+      "url": "https://wi-vote.com",
+      "applicationCategory": "Government",
+      "operatingSystem": "Any"
+    }
     </script>
   </head>
   <body>

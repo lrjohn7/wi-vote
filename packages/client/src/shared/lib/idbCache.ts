@@ -14,7 +14,8 @@ export async function getCachedBoundaries(): Promise<GeoJSON.FeatureCollection |
     if (version !== CURRENT_VERSION) return null;
     const data = await get(WARD_BOUNDARIES_KEY);
     return data as GeoJSON.FeatureCollection | null;
-  } catch {
+  } catch (err) {
+    console.warn('[idbCache] Failed to read ward boundaries:', err);
     return null;
   }
 }
@@ -23,8 +24,8 @@ export async function setCachedBoundaries(data: GeoJSON.FeatureCollection): Prom
   try {
     await set(WARD_BOUNDARIES_KEY, data);
     await set(CACHE_VERSION_KEY, CURRENT_VERSION);
-  } catch {
-    // IndexedDB may be unavailable (private browsing, etc.)
+  } catch (err) {
+    console.warn('[idbCache] Failed to write ward boundaries:', err);
   }
 }
 
@@ -34,7 +35,8 @@ export async function setCachedBoundaries(data: GeoJSON.FeatureCollection): Prom
 export async function getCachedMapData(key: string): Promise<unknown | null> {
   try {
     return await get(`wivote:map:${key}`);
-  } catch {
+  } catch (err) {
+    console.warn('[idbCache] Failed to read map data:', err);
     return null;
   }
 }
@@ -42,7 +44,7 @@ export async function getCachedMapData(key: string): Promise<unknown | null> {
 export async function setCachedMapData(key: string, data: unknown): Promise<void> {
   try {
     await set(`wivote:map:${key}`, data);
-  } catch {
-    // Silently fail
+  } catch (err) {
+    console.warn('[idbCache] Failed to write map data:', err);
   }
 }

@@ -108,7 +108,7 @@ export default function SwingModeler() {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [showUncertainty, setShowUncertainty] = useState(false);
   const [uncertainty, setUncertainty] = useState<UncertaintyBand[] | null>(null);
-  const [mrpError, setMrpError] = useState<string | null>(null);
+  const [workerError, setWorkerError] = useState<string | null>(null);
 
   usePageTitle('Swing Modeler');
 
@@ -216,6 +216,9 @@ export default function SwingModeler() {
 
   // Web Worker
   const workerRef = useRef<Worker | null>(null);
+  // Track last worker message for retry on error
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const lastWorkerMessageRef = useRef<any>(null);
 
   useEffect(() => {
     workerRef.current = new Worker(
@@ -233,7 +236,12 @@ export default function SwingModeler() {
 
     workerRef.current.onerror = (e: ErrorEvent) => {
       console.error('Model worker error:', e.message);
-      setMrpError(`Worker error: ${e.message}`);
+      setWorkerError(`Worker error: ${e.message}`);
+      setIsComputing(false);
+    };
+
+    workerRef.current.onmessageerror = () => {
+      setWorkerError('Failed to process model results. Try refreshing the page.');
       setIsComputing(false);
     };
 
@@ -261,7 +269,7 @@ export default function SwingModeler() {
         mrpAbortRef.current = controller;
 
         setIsComputing(true);
-        setMrpError(null);
+        setWorkerError(null);
         fetchMrpPrediction({
           baseElectionYear: baseYear,
           baseRaceType: baseRace,
@@ -276,13 +284,13 @@ export default function SwingModeler() {
             const { predictions: preds, uncertainty: unc } = mrpResponseToPredictions(response);
             setPredictions(preds);
             setUncertainty(unc);
-            setMrpError(null);
+            setWorkerError(null);
             setIsComputing(false);
           })
           .catch((err) => {
             if (controller.signal.aborted) return;
             console.error('MRP prediction failed:', err);
-            setMrpError(err instanceof Error ? err.message : 'MRP prediction failed');
+            setWorkerError(err instanceof Error ? err.message : 'MRP prediction failed');
             setIsComputing(false);
           });
       }, 300); // Longer debounce for server calls
@@ -302,7 +310,7 @@ export default function SwingModeler() {
 
     debounceRef.current = setTimeout(() => {
       setIsComputing(true);
-      workerRef.current?.postMessage({
+      const message = {
         wardData: serializedWardData,
         params: {
           baseElectionYear: String(baseYear),
@@ -320,7 +328,9 @@ export default function SwingModeler() {
         regionalTurnout,
         demographicTurnout,
         computeUncertainty: showUncertainty,
-      });
+      };
+      lastWorkerMessageRef.current = message;
+      workerRef.current?.postMessage(message);
     }, 50);
 
     return () => {
@@ -344,8 +354,17 @@ export default function SwingModeler() {
     return uncertaintyToOpacityMap(uncertainty);
   }, [showUncertainty, uncertainty]);
 
+  // Retry handler: clear error and re-post last message to worker
+  const handleRetry = useCallback(() => {
+    setWorkerError(null);
+    if (lastWorkerMessageRef.current && workerRef.current) {
+      setIsComputing(true);
+      workerRef.current.postMessage(lastWorkerMessageRef.current);
+    }
+  }, [setIsComputing]);
+
   const handleWardClick = useCallback(
-    (wardId: string) => {
+    (wardId: string | null) => {
       setSelectedWard(wardId === selectedWardId ? null : wardId);
     },
     [selectedWardId, setSelectedWard],
@@ -424,9 +443,9 @@ export default function SwingModeler() {
 
         {/* Map area */}
         <div className="relative flex-1">
-          {mrpError && (
+          {workerError && (
             <div className="absolute inset-x-0 top-2 z-30 mx-auto max-w-sm px-2">
-              <QueryErrorState error={new Error(mrpError)} onRetry={() => setMrpError(null)} compact />
+              <QueryErrorState error={new Error(workerError)} onRetry={handleRetry} compact />
             </div>
           )}
 

@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { MapPin, ClipboardList, Search as SearchIcon } from 'lucide-react';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
+import { useGeocodeAddress } from '@/shared/hooks/useGeocodeAddress';
+import { RACE_LABELS_SHORT } from '@/shared/lib/raceLabels';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,17 +15,7 @@ import { useWardSearch } from './hooks/useWardSearch';
 import { useWardDetail } from '@/features/election-map/hooks/useWardDetail';
 import { useMapStore } from '@/stores/mapStore';
 
-const RACE_LABELS: Record<string, string> = {
-  president: 'President',
-  governor: 'Governor',
-  us_senate: 'US Senate',
-  us_house: 'US House',
-  state_senate: 'State Senate',
-  state_assembly: 'State Assembly',
-  attorney_general: 'AG',
-  secretary_of_state: 'SoS',
-  treasurer: 'Treasurer',
-};
+const RACE_LABELS = RACE_LABELS_SHORT;
 
 export default function WardExplorer() {
   usePageTitle('Ward Explorer');
@@ -32,43 +24,24 @@ export default function WardExplorer() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedWardId, setSelectedWardId] = useState<string | null>(null);
   const [addressInput, setAddressInput] = useState('');
-  const [geocodeLoading, setGeocodeLoading] = useState(false);
-  const [geocodeError, setGeocodeError] = useState<string | null>(null);
+  const [searchActiveIndex, setSearchActiveIndex] = useState(-1);
+  const { geocode, isLoading: geocodeLoading, error: geocodeError, clearError: clearGeocodeError } = useGeocodeAddress();
 
   const { data: searchResults, isLoading: searchLoading } = useWardSearch(searchQuery);
   const { data: wardDetail, isLoading: detailLoading } = useWardDetail(selectedWardId);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
+    setSearchActiveIndex(-1);
     if (query.length < 2) setSelectedWardId(null);
   }, []);
 
   const handleGeocodeAddress = async () => {
     if (!addressInput.trim()) return;
-    setGeocodeLoading(true);
-    setGeocodeError(null);
-    try {
-      const res = await fetch(
-        `/api/v1/wards/geocode?address=${encodeURIComponent(addressInput)}&lat=0&lng=0`,
-      );
-      if (!res.ok) {
-        if (res.status === 400) {
-          setGeocodeError('This address is not in Wisconsin. Please enter a Wisconsin address.');
-        } else {
-          setGeocodeError('Address not found. Please enter a valid street address.');
-        }
-        return;
-      }
-      const data = await res.json();
-      if (data.ward) {
-        setSelectedWardId(data.ward.ward_id);
-      } else {
-        setGeocodeError('No ward found at that address.');
-      }
-    } catch {
-      setGeocodeError('Geocoding failed. Please try again.');
-    } finally {
-      setGeocodeLoading(false);
+    clearGeocodeError();
+    const result = await geocode(addressInput);
+    if (result) {
+      setSelectedWardId(result.ward_id);
     }
   };
 
@@ -127,22 +100,27 @@ export default function WardExplorer() {
                 <p className="mb-2 text-xs text-muted-foreground">
                   {searchResults.count} results for "{searchResults.query}"
                 </p>
-                {searchResults.results.map((ward) => (
-                  <button
-                    key={ward.ward_id}
-                    onClick={() => setSelectedWardId(ward.ward_id)}
-                    className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-content2 ${
-                      selectedWardId === ward.ward_id
-                        ? 'bg-content2 border-l-2 border-dem font-medium'
-                        : ''
-                    }`}
-                  >
-                    <div className="font-medium">{ward.ward_name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {ward.municipality}, {ward.county} County
-                    </div>
-                  </button>
-                ))}
+                <div role="listbox" aria-label="Ward search results">
+                  {searchResults.results.map((ward, idx) => (
+                    <button
+                      key={ward.ward_id}
+                      id={`explorer-ward-option-${idx}`}
+                      role="option"
+                      aria-selected={selectedWardId === ward.ward_id}
+                      onClick={() => { setSelectedWardId(ward.ward_id); setSearchActiveIndex(idx); }}
+                      className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-content2 ${
+                        selectedWardId === ward.ward_id
+                          ? 'bg-content2 border-l-2 border-dem font-medium'
+                          : ''
+                      } ${searchActiveIndex === idx && selectedWardId !== ward.ward_id ? 'bg-content2/50' : ''}`}
+                    >
+                      <div className="font-medium">{ward.ward_name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {ward.municipality}, {ward.county} County
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
             {searchResults && searchResults.results.length === 0 && searchQuery.length >= 2 && (
