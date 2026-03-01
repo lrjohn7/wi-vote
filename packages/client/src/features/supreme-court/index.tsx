@@ -161,7 +161,7 @@ export default function SupremeCourt() {
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto px-6 py-4">
+      <div className="min-h-0 flex-1 overflow-auto px-6 py-4">
         {(contestsError || resultsError || countyError) && (
           <QueryErrorState
             error={(contestsErr ?? resultsErr ?? countyErr)!}

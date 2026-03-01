@@ -77,7 +77,7 @@ export default function Trends() {
         </div>
 
         {/* Ward Trends Tab */}
-        <TabsContent value="ward" className="flex-1 overflow-y-auto p-4">
+        <TabsContent value="ward" className="min-h-0 flex-1 overflow-y-auto p-4">
           <div className="mx-auto max-w-3xl space-y-4">
             {/* Ward search */}
             <div className="relative">
@@ -210,7 +210,7 @@ export default function Trends() {
         </TabsContent>
 
         {/* Area Trends Tab */}
-        <TabsContent value="area" className="flex-1 overflow-y-auto p-4">
+        <TabsContent value="area" className="min-h-0 flex-1 overflow-y-auto p-4">
           <div className="mx-auto max-w-4xl space-y-4">
             {/* Filter controls */}
             <div className="flex flex-wrap gap-3">
@@ -289,7 +289,7 @@ export default function Trends() {
         </TabsContent>
 
         {/* Trend Map Tab */}
-        <TabsContent value="map" className="flex-1 overflow-hidden">
+        <TabsContent value="map" className="min-h-0 flex-1 overflow-hidden">
           <TrendMapOverlay />
         </TabsContent>
       </Tabs>
