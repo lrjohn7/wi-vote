@@ -972,4 +972,11 @@ A `documentation/` directory contains audited, structured docs for every feature
 | Color scales, `colorScale.ts`, `diffColorScale.ts`, legend bins | `documentation/11-color-scales.md` |
 | Service worker, workbox, caching, PWA config | `documentation/12-pwa-service-worker.md` |
 | Railway deployment, nginx, Dockerfile, Docker Compose, env vars | `documentation/13-deployment.md` |
+| Scenario Save & Share, `?scenario=` URL param, community scenarios | `documentation/14-scenario-save-share.md` |
 | Audit findings, PASS/WARN/FAIL items, prioritized fix plan | `documentation/00-audit-report.md` |
+
+### Auto-Documentation Rule
+
+When implementing a **new feature**, create a corresponding `documentation/XX-feature-name.md` file following the existing format (title, tagline, route, data model, API endpoints, dashboard elements, business rules, edge cases, files) and add an entry to the lookup table above.
+
+When **modifying an existing feature**, update the corresponding documentation file to reflect the changes (new endpoints, UI elements, business rules, files, etc.).

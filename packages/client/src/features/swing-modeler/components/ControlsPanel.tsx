@@ -14,8 +14,11 @@ import { useElections } from '@/features/election-map/hooks/useElections';
 import { useModelStore } from '@/stores/modelStore';
 import { modelRegistry } from '@/models';
 import { scenarioPresets } from '../lib/scenarioPresets';
+import { useScenarioList } from '../hooks/useScenarios';
+import { SaveScenarioDialog } from './SaveScenarioDialog';
 import { MrpStatus } from './MrpStatus';
 import { REGION_LABELS, type Region } from '@/shared/lib/regionMapping';
+import type { ScenarioSummary } from '@/services/api';
 import type { RaceType } from '@/types/election';
 
 const RACE_LABELS: Record<string, string> = {
@@ -117,6 +120,11 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
 
   const handlePreset = (preset: typeof scenarioPresets[number]) => {
     setParameters(preset.params);
+  };
+
+  const handleLoadScenario = (scenario: ScenarioSummary) => {
+    setActiveModel(scenario.model_id);
+    setParameters(scenario.parameters as Record<string, unknown>);
   };
 
   return (
@@ -401,6 +409,9 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
         {/* Scenario Presets */}
         <div className="space-y-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Scenarios</h3>
+
+          <SaveScenarioDialog />
+
           <div className="grid grid-cols-2 gap-1.5">
             {scenarioPresets.map((preset) => (
               <Button
@@ -415,6 +426,8 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
               </Button>
             ))}
           </div>
+
+          <CommunityScenarios onLoadScenario={handleLoadScenario} />
         </div>
 
         {/* MRP model status — only when MRP is selected */}
@@ -430,6 +443,38 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
         {/* Results summary slot */}
         {children}
       </div>
+    </div>
+  );
+}
+
+function CommunityScenarios({
+  onLoadScenario,
+}: {
+  onLoadScenario: (s: ScenarioSummary) => void;
+}) {
+  const { data, isLoading } = useScenarioList(5);
+
+  if (isLoading) return null;
+  if (!data?.scenarios?.length) return null;
+
+  return (
+    <div className="space-y-1.5">
+      <p className="text-xs text-muted-foreground">Community</p>
+      {data.scenarios.map((s) => (
+        <Button
+          key={s.id}
+          variant="ghost"
+          size="sm"
+          className="h-auto w-full justify-start py-1 text-xs"
+          onClick={() => onLoadScenario(s)}
+          title={s.description ?? undefined}
+        >
+          <span className="truncate">{s.name}</span>
+          <span className="ml-auto shrink-0 text-muted-foreground">
+            {s.model_id.replace('-swing', '').replace('-', ' ')}
+          </span>
+        </Button>
+      ))}
     </div>
   );
 }

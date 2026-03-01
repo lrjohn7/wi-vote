@@ -185,6 +185,29 @@ export interface TrendClassificationsResponse {
   classifications: Record<string, TrendClassificationEntry>;
 }
 
+// ── Scenario types ──
+
+export interface ScenarioSummary {
+  id: string;
+  name: string;
+  description: string | null;
+  model_id: string;
+  parameters: Record<string, unknown>;
+  created_at: string;
+}
+
+interface ScenarioListResponse {
+  scenarios: ScenarioSummary[];
+  total: number;
+}
+
+interface ScenarioCreateBody {
+  name: string;
+  description?: string;
+  model_id: string;
+  parameters: Record<string, unknown>;
+}
+
 // ── API methods ──
 
 export const api = {
@@ -253,4 +276,17 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(body),
     }),
+
+  // Scenarios
+  saveScenario: (body: ScenarioCreateBody) =>
+    request<ScenarioSummary>('/api/v1/models/scenarios', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  loadScenario: (shortId: string) =>
+    request<ScenarioSummary>(
+      `/api/v1/models/scenarios/${encodeURIComponent(shortId)}`,
+    ),
+  listScenarios: (limit = 20) =>
+    request<ScenarioListResponse>(`/api/v1/models/scenarios?limit=${limit}`),
 };

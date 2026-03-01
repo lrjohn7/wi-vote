@@ -23,6 +23,11 @@ export const queryKeys = {
     classify: (raceType: string) =>
       ['trends', 'classify', raceType] as const,
   },
+  scenarios: {
+    all: ['scenarios'] as const,
+    detail: (shortId: string) => ['scenarios', shortId] as const,
+    list: (limit: number) => ['scenarios', 'list', limit] as const,
+  },
   aggregations: {
     county: (county: string, year: number, raceType: string) =>
       ['aggregations', 'county', county, year, raceType] as const,

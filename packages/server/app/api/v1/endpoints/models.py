@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.services.mrp_service import MrpService
+from app.services.scenario_service import ScenarioService
 
 router = APIRouter(prefix="/models", tags=["models"])
 
@@ -18,6 +19,27 @@ class MrpFitRequest(BaseModel):
     race_type: str
     draws: int = 2000
     tune: int = 1000
+
+
+class ScenarioCreateRequest(BaseModel):
+    name: str = Field(..., max_length=255)
+    description: str | None = None
+    model_id: str
+    parameters: dict
+
+
+class ScenarioResponse(BaseModel):
+    id: str
+    name: str
+    description: str | None
+    model_id: str
+    parameters: dict
+    created_at: str
+
+
+class ScenarioListResponse(BaseModel):
+    scenarios: list[ScenarioResponse]
+    total: int
 
 
 @router.get("/available")
@@ -163,13 +185,42 @@ async def list_fitted_mrp_models(
     return {"models": models}
 
 
-@router.post("/scenarios")
-async def save_scenario(scenario: dict) -> dict:
-    """Save a scenario."""
-    return {"id": "not-implemented", "message": "Scenario saving not yet implemented"}
+@router.get("/scenarios")
+async def list_scenarios(
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: AsyncSession = Depends(get_db),
+) -> ScenarioListResponse:
+    """List recent saved scenarios."""
+    service = ScenarioService(db)
+    result = await service.list_recent(limit=limit, offset=offset)
+    return ScenarioListResponse(**result)
+
+
+@router.post("/scenarios", status_code=201)
+async def save_scenario(
+    request: ScenarioCreateRequest,
+    db: AsyncSession = Depends(get_db),
+) -> ScenarioResponse:
+    """Save a scenario and return its short ID for sharing."""
+    service = ScenarioService(db)
+    result = await service.create(
+        name=request.name,
+        model_id=request.model_id,
+        parameters=request.parameters,
+        description=request.description,
+    )
+    return ScenarioResponse(**result)
 
 
 @router.get("/scenarios/{scenario_id}")
-async def load_scenario(scenario_id: str) -> dict:
-    """Load a saved scenario."""
-    return {"id": scenario_id, "message": "Scenario loading not yet implemented"}
+async def load_scenario(
+    scenario_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> ScenarioResponse:
+    """Load a saved scenario by its short ID."""
+    service = ScenarioService(db)
+    result = await service.get_by_short_id(scenario_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    return ScenarioResponse(**result)

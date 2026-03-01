@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 import { useModelStore } from '@/stores/modelStore';
+import { api } from '@/services/api';
 import type { RaceType } from '@/types/election';
 
 const VALID_RACE_TYPES: RaceType[] = [
@@ -34,13 +35,31 @@ export function useModelerUrlState() {
   const parameters = useModelStore((s) => s.parameters);
   const activeModelId = useModelStore((s) => s.activeModelId);
   const setParameter = useModelStore((s) => s.setParameter);
+  const setParameters = useModelStore((s) => s.setParameters);
   const setActiveModel = useModelStore((s) => s.setActiveModel);
   const initialized = useRef(false);
+  const scenarioLoaded = useRef(false);
 
   // Read URL params on mount -> initialize stores
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
+
+    // If a scenario ID is in the URL, load it from the API
+    const scenarioId = searchParams.get('scenario');
+    if (scenarioId) {
+      api
+        .loadScenario(scenarioId)
+        .then((scenario) => {
+          setActiveModel(scenario.model_id);
+          setParameters(scenario.parameters as Record<string, unknown>);
+          scenarioLoaded.current = true;
+        })
+        .catch(() => {
+          // Scenario not found — fall through to default state
+        });
+      return;
+    }
 
     const year = searchParams.get('year');
     const race = searchParams.get('race');
