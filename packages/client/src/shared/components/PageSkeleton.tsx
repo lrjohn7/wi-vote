@@ -13,8 +13,8 @@ export function MapPageSkeleton() {
 
 export function SidebarPageSkeleton() {
   return (
-    <div className="flex h-full animate-in fade-in duration-300">
-      <div className="w-96 space-y-3 border-r border-border/30 bg-content1 p-4">
+    <div className="flex h-full flex-col animate-in fade-in duration-300 md:flex-row">
+      <div className="w-full space-y-3 border-b border-border/30 bg-content1 p-4 md:w-96 md:border-b-0 md:border-r">
         <div className="h-10 w-full animate-pulse rounded-lg bg-content2" />
         <div className="h-10 w-full animate-pulse rounded-lg bg-content2" />
         <div className="space-y-2 pt-2">
@@ -41,7 +41,7 @@ export function ContentPageSkeleton() {
       <div className="h-4 w-72 animate-pulse rounded bg-content2" />
       <div className="mt-6 space-y-3">
         <div className="h-64 w-full animate-pulse rounded-xl bg-content2" />
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-24 animate-pulse rounded-lg bg-content2" />
           ))}

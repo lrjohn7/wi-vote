@@ -39,7 +39,7 @@ export function ElectionSelector() {
     .map((e) => e.race_type);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <Select
         value={String(activeElection?.year ?? '')}
         onValueChange={(val) => {
@@ -51,7 +51,7 @@ export function ElectionSelector() {
           }
         }}
       >
-        <SelectTrigger className="w-[100px]">
+        <SelectTrigger className="w-[90px] sm:w-[100px]">
           <SelectValue placeholder="Year" />
         </SelectTrigger>
         <SelectContent>
@@ -71,7 +71,7 @@ export function ElectionSelector() {
           }
         }}
       >
-        <SelectTrigger className="w-[160px]">
+        <SelectTrigger className="w-[130px] sm:w-[160px]">
           <SelectValue placeholder="Race" />
         </SelectTrigger>
         <SelectContent>
