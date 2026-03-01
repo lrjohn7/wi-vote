@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { MapPin, ClipboardList, Search as SearchIcon } from 'lucide-react';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
@@ -27,6 +27,8 @@ export default function WardExplorer() {
 
   const { data: searchResults, isLoading: searchLoading, isError: searchError, error: searchErrorObj, refetch: searchRefetch } = useWardSearch(searchQuery);
   const { data: wardDetail, isLoading: detailLoading, isError: detailError, error: detailErrorObj, refetch: detailRefetch } = useWardDetail(selectedWardId);
+  const [activeResultIdx, setActiveResultIdx] = useState(-1);
+  const listboxRef = useRef<HTMLDivElement>(null);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
@@ -100,14 +102,35 @@ export default function WardExplorer() {
                 <p className="mb-2 text-xs text-muted-foreground">
                   {searchResults.count} results for &ldquo;{searchResults.query}&rdquo;
                 </p>
-                <div role="listbox" aria-label="Ward search results">
-                  {searchResults.results.map((ward) => (
+                <div
+                  ref={listboxRef}
+                  role="listbox"
+                  aria-label="Ward search results"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    const results = searchResults.results;
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setActiveResultIdx((prev) => Math.min(prev + 1, results.length - 1));
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setActiveResultIdx((prev) => Math.max(prev - 1, 0));
+                    } else if (e.key === 'Enter' && activeResultIdx >= 0) {
+                      e.preventDefault();
+                      setSelectedWardId(results[activeResultIdx].ward_id);
+                    }
+                  }}
+                >
+                  {searchResults.results.map((ward, idx) => (
                     <button
                       key={ward.ward_id}
                       role="option"
                       aria-selected={selectedWardId === ward.ward_id}
+                      tabIndex={idx === activeResultIdx ? 0 : -1}
                       onClick={() => setSelectedWardId(ward.ward_id)}
-                      className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-content2 ${
+                      className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                        idx === activeResultIdx ? 'bg-content2' : 'hover:bg-content2'
+                      } ${
                         selectedWardId === ward.ward_id
                           ? 'bg-content2 border-l-2 border-dem font-medium'
                           : ''
