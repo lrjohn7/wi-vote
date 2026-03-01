@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react';
 import { WisconsinMap } from '@/shared/components/WisconsinMap';
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { useMapStore } from '@/stores/mapStore';
 import { useUrlState } from '@/shared/hooks/useUrlState';
+import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import { useMapData } from './hooks/useMapData';
 import { ElectionSelector } from './components/ElectionSelector';
 import { MapLegend } from './components/MapLegend';
@@ -27,8 +29,10 @@ export default function ElectionMap() {
   // Sync map state with URL params
   useUrlState();
 
+  usePageTitle('Election Map');
+
   // Fetch election data for map coloring
-  const { data: mapData, isLoading: mapDataLoading } = useMapData(
+  const { data: mapData, isLoading: mapDataLoading, isError, error, refetch } = useMapData(
     activeElection?.year ?? null,
     activeElection?.raceType ?? null,
   );
@@ -86,6 +90,21 @@ export default function ElectionMap() {
 
       {/* Map area */}
       <div className="relative flex-1">
+        {isError && (
+          <div className="absolute inset-x-0 top-2 z-30 mx-auto max-w-sm px-2">
+            <QueryErrorState error={error} onRetry={() => refetch()} compact />
+          </div>
+        )}
+
+        {mapDataLoading && !mapData && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/50">
+            <div className="glass-panel flex items-center gap-3 px-5 py-3">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+              Loading election data...
+            </div>
+          </div>
+        )}
+
         <WisconsinMap
           mapData={mapData}
           selectedWardId={selectedWardId}

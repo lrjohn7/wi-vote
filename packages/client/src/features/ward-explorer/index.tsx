@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { MapPin, ClipboardList, Search as SearchIcon } from 'lucide-react';
+import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +26,7 @@ const RACE_LABELS: Record<string, string> = {
 };
 
 export default function WardExplorer() {
+  usePageTitle('Ward Explorer');
   const navigate = useNavigate();
   const setSelectedWard = useMapStore((s) => s.setSelectedWard);
   const [searchQuery, setSearchQuery] = useState('');

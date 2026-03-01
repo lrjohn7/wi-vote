@@ -2,6 +2,7 @@ import { useParams } from 'react-router';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import { useReportCard } from './hooks/useReportCard';
 import { WardFinder } from './components/WardFinder';
 import { ReportCardHeader } from './components/ReportCardHeader';
@@ -13,6 +14,7 @@ import { ElectionHistoryTable } from './components/ElectionHistoryTable';
 
 export default function WardReport() {
   const { wardId } = useParams<{ wardId: string }>();
+  usePageTitle(wardId ? 'Ward Report' : 'My Ward');
   const { data: report, isLoading, error } = useReportCard(wardId ?? null);
 
   // No ward selected — show search landing page

@@ -1,6 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
 import App from '@/App';
+import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
+import { NotFoundPage } from '@/shared/components/NotFoundPage';
 import { MapPageSkeleton, SidebarPageSkeleton, ContentPageSkeleton } from '@/shared/components/PageSkeleton';
 
 const ElectionMap = lazy(() => import('@/features/election-map'));
@@ -21,74 +23,96 @@ export const router = createBrowserRouter([
       {
         path: 'map',
         element: (
-          <Suspense fallback={<MapPageSkeleton />}>
-            <ElectionMap />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<MapPageSkeleton />}>
+              <ElectionMap />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'wards',
         element: (
-          <Suspense fallback={<SidebarPageSkeleton />}>
-            <WardExplorer />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<SidebarPageSkeleton />}>
+              <WardExplorer />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'supreme-court',
         element: (
-          <Suspense fallback={<ContentPageSkeleton />}>
-            <SupremeCourt />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<ContentPageSkeleton />}>
+              <SupremeCourt />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'wards/report',
         element: (
-          <Suspense fallback={<ContentPageSkeleton />}>
-            <WardReport />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<ContentPageSkeleton />}>
+              <WardReport />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'wards/:wardId/report',
         element: (
-          <Suspense fallback={<ContentPageSkeleton />}>
-            <WardReport />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<ContentPageSkeleton />}>
+              <WardReport />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'trends',
         element: (
-          <Suspense fallback={<ContentPageSkeleton />}>
-            <Trends />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<ContentPageSkeleton />}>
+              <Trends />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'modeler',
         element: (
-          <Suspense fallback={<MapPageSkeleton />}>
-            <SwingModeler />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<MapPageSkeleton />}>
+              <SwingModeler />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'compare',
         element: (
-          <Suspense fallback={<MapPageSkeleton />}>
-            <ElectionComparison />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<MapPageSkeleton />}>
+              <ElectionComparison />
+            </Suspense>
+          </ErrorBoundary>
         ),
       },
       {
         path: 'data',
         element: (
-          <Suspense fallback={<ContentPageSkeleton />}>
-            <DataManager />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<ContentPageSkeleton />}>
+              <DataManager />
+            </Suspense>
+          </ErrorBoundary>
         ),
+      },
+      {
+        path: '*',
+        element: <NotFoundPage />,
       },
     ],
   },

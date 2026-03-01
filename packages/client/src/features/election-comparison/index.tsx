@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { WisconsinMap, type MapViewState } from '@/shared/components/WisconsinMap';
 import { MapLegend } from '@/features/election-map/components/MapLegend';
+import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import { ComparisonSelector } from './components/ComparisonSelector';
 import { DifferenceMap } from './components/DifferenceMap';
 import { useComparisonData } from './hooks/useComparisonData';
@@ -9,6 +10,8 @@ import type { RaceType } from '@/types/election';
 type ViewMode = 'side-by-side' | 'difference';
 
 export default function ElectionComparison() {
+  usePageTitle('Compare Elections');
+
   const [yearA, setYearA] = useState(2024);
   const [raceA, setRaceA] = useState<RaceType>('president');
   const [yearB, setYearB] = useState(2020);
@@ -51,8 +54,10 @@ export default function ElectionComparison() {
           onRaceChange={setRaceB}
         />
 
-        <div className="ml-auto flex items-center gap-1 rounded-md border border-border/30 bg-content2/50 p-0.5">
+        <div className="ml-auto flex items-center gap-1 rounded-md border border-border/30 bg-content2/50 p-0.5" role="tablist" aria-label="View mode">
           <button
+            role="tab"
+            aria-selected={viewMode === 'side-by-side'}
             className={`rounded px-3 py-1 text-sm transition-colors ${
               viewMode === 'side-by-side' ? 'bg-content1 font-medium shadow-sm' : 'text-muted-foreground'
             }`}
@@ -61,6 +66,8 @@ export default function ElectionComparison() {
             Side by Side
           </button>
           <button
+            role="tab"
+            aria-selected={viewMode === 'difference'}
             className={`rounded px-3 py-1 text-sm transition-colors ${
               viewMode === 'difference' ? 'bg-content1 font-medium shadow-sm' : 'text-muted-foreground'
             }`}

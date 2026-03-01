@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/select';
 import { WardSearchBox } from '@/features/ward-explorer/components/WardSearchBox';
 import { useWardSearch } from '@/features/ward-explorer/hooks/useWardSearch';
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
+import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import { useWardTrend, useAreaTrends } from './hooks/useTrends';
 import { TrendTimeSeries } from './components/TrendTimeSeries';
 import { TrendClassificationBadge } from './components/TrendClassificationBadge';
@@ -26,11 +28,13 @@ const RACE_OPTIONS = [
 ];
 
 export default function Trends() {
+  usePageTitle('Partisan Trends');
+
   // Ward Trends tab state
   const [wardSearchQuery, setWardSearchQuery] = useState('');
   const [selectedWardId, setSelectedWardId] = useState<string | null>(null);
   const [wardRaceType, setWardRaceType] = useState('president');
-  const { data: wardTrendData, isLoading: wardLoading } = useWardTrend(selectedWardId);
+  const { data: wardTrendData, isLoading: wardLoading, isError: wardError, error: wardErrorObj, refetch: wardRefetch } = useWardTrend(selectedWardId);
   const { data: wardSearchResults } = useWardSearch(wardSearchQuery);
 
   const handleWardSearch = useCallback((query: string) => {
@@ -54,7 +58,7 @@ export default function Trends() {
     return filters;
   }, [areaFilterType, areaFilterValue, districtType, districtId]);
 
-  const { data: areaTrendData, isLoading: areaLoading } = useAreaTrends(areaFilters);
+  const { data: areaTrendData, isLoading: areaLoading, isError: areaError, error: areaErrorObj, refetch: areaRefetch } = useAreaTrends(areaFilters);
 
   // Find the trend for the selected race type
   const currentTrend = wardTrendData?.trends?.find((t) => t.race_type === wardRaceType);
@@ -133,6 +137,10 @@ export default function Trends() {
                 <div className="h-4 w-40 animate-pulse rounded bg-content2" />
                 <div className="h-64 w-full animate-pulse rounded-xl bg-content2" />
               </div>
+            )}
+
+            {wardError && selectedWardId && (
+              <QueryErrorState error={wardErrorObj!} onRetry={() => wardRefetch()} />
             )}
 
             {wardTrendData && !wardLoading && (
@@ -216,7 +224,11 @@ export default function Trends() {
               <p className="py-8 text-center text-muted-foreground">Loading area trends...</p>
             )}
 
-            {!areaLoading && !areaTrendData && (
+            {areaError && (
+              <QueryErrorState error={areaErrorObj!} onRetry={() => areaRefetch()} />
+            )}
+
+            {!areaLoading && !areaTrendData && !areaError && (
               <p className="py-8 text-center text-muted-foreground">
                 Select a county or district to view aggregated trends.
               </p>

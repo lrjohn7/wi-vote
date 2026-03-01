@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import {
   useSpringContests,
   useSpringResults,
@@ -20,6 +21,8 @@ import type { SpringContest } from './hooks/useSpringElections';
 type ViewMode = 'reporting-units' | 'counties';
 
 export default function SupremeCourt() {
+  usePageTitle('Supreme Court Elections');
+
   const { data: contestsData } = useSpringContests();
 
   const [selectedYear, setSelectedYear] = useState<number>(2025);
