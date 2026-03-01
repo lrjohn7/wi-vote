@@ -22,7 +22,7 @@ export function MobileNav({ items }: MobileNavProps) {
     <>
       <button
         onClick={() => setOpen(!open)}
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-content2 hover:text-foreground md:hidden"
+        className="flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-content2 hover:text-foreground md:hidden"
         aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
         aria-expanded={open}
         aria-controls="mobile-nav-panel"
@@ -42,7 +42,7 @@ export function MobileNav({ items }: MobileNavProps) {
       {/* Slide-out panel */}
       <div
         id="mobile-nav-panel"
-        className={`fixed left-0 top-14 z-50 h-[calc(100vh-3.5rem)] w-64 transform border-r border-border/40 bg-background shadow-xl transition-transform duration-200 ease-out md:hidden ${
+        className={`fixed left-0 top-14 z-50 h-[calc(100dvh-3.5rem)] w-64 transform border-r border-border/40 bg-background shadow-xl transition-transform duration-200 ease-out md:hidden ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
         role="dialog"

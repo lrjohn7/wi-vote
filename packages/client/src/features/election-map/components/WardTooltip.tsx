@@ -53,7 +53,7 @@ export const WardTooltip = memo(function WardTooltip({
 
   return (
     <div
-      className="pointer-events-none absolute z-50 glass-panel border-l-4 px-3 py-2 text-sm transition-opacity duration-150"
+      className="pointer-events-none absolute z-50 hidden glass-panel border-l-4 px-3 py-2 text-sm transition-opacity duration-150 md:block"
       role="tooltip"
       style={{
         left: clampedLeft,

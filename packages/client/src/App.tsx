@@ -29,7 +29,7 @@ function ThemeToggle() {
   return (
     <button
       onClick={cycle}
-      className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-content2 hover:text-foreground"
+      className="flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-content2 hover:text-foreground"
       aria-label={label}
       title={label}
     >
@@ -40,7 +40,7 @@ function ThemeToggle() {
 
 export default function App() {
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-dvh flex-col" style={{ height: '100dvh' }}>
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-background focus:px-4 focus:py-2 focus:shadow-lg"

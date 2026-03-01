@@ -100,7 +100,7 @@ export default function ElectionMap() {
         />
 
         {/* Legend */}
-        <div className="absolute bottom-6 left-4 z-20">
+        <div className="absolute bottom-3 left-2 z-20 max-w-[calc(100%-1rem)] sm:bottom-6 sm:left-4">
           <MapLegend />
         </div>
 

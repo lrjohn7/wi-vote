@@ -18,7 +18,7 @@ export const TrendLegend = memo(function TrendLegend({
   const total = demCount + repCount + incCount;
 
   return (
-    <div className="glass-panel absolute bottom-6 left-4 z-10 w-52 p-3">
+    <div className="glass-panel absolute bottom-3 left-2 z-10 w-44 p-2 sm:bottom-6 sm:left-4 sm:w-52 sm:p-3">
       <p className="mb-2 text-xs font-semibold text-foreground">Trend Direction</p>
 
       {/* Ward counts */}

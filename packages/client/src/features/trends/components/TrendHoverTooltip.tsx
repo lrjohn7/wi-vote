@@ -35,7 +35,7 @@ export const TrendHoverTooltip = memo(function TrendHoverTooltip({
   return (
     <div
       role="tooltip"
-      className="glass-panel pointer-events-none fixed z-50 min-w-[180px] max-w-[240px] border-l-4 p-2.5"
+      className="glass-panel pointer-events-none fixed z-50 hidden min-w-[180px] max-w-[240px] border-l-4 p-2.5 md:block"
       style={{
         left: clampedLeft,
         top: clampedTop,
