@@ -931,6 +931,13 @@ VITE_FF_PWA=false
 
 11. **Post-push TODO summary.** After every `git push` to GitHub, review the Build Phases above against what has been implemented and print a concise checklist of remaining TODO items, organized by phase. Mark completed items with checkmarks and incomplete items with empty boxes. Only include phases that have remaining work.
 
+12. **Verify Railway deployment after every push.** After pushing to `master` (or pushing to a branch and then to master), you MUST:
+    1. Run `tsc -b` locally (not just `tsc --noEmit`) — this matches the Docker build command and catches errors that `tsc --noEmit` misses due to project reference resolution differences.
+    2. Run `vite build` to confirm the production bundle compiles.
+    3. After pushing, switch to the `client` service (`railway service client`) and check `railway deployment list` to confirm the build status is `SUCCESS`, not `FAILED`.
+    4. If a build fails, check the build logs in the Railway dashboard (CLI `railway logs --deployment <id>` only shows runtime logs, not build logs for failed deployments — use the dashboard or `railway open`).
+    5. Do not consider a push complete until **both** the `api` and `client` services show `SUCCESS` on Railway.
+
 ---
 
 ## Known Railway Deployment Issues
@@ -955,6 +962,20 @@ VITE_FF_PWA=false
 
 **Files:**
 - `packages/client/vite.config.ts` — workbox `cacheableResponse` + `skipWaiting` config
+
+### TypeScript Build Divergence: `tsc --noEmit` vs `tsc -b` (Critical)
+**Problem:** The client Dockerfile runs `npm run build` which executes `tsc -b && vite build`. The `tsc -b` command uses project references (`tsconfig.app.json` + `tsconfig.node.json`) and resolves types differently than `tsc --noEmit` run from the project root. Code that passes `tsc --noEmit` locally can fail `tsc -b` in the Docker build, causing Railway client deployments to fail while the API deploys successfully.
+
+**Incident (2026-03-01):** The `data-manager/index.tsx` rewrite called `.map()` and `.length` on the return value of `api.getElections()`, which returns `{ elections: ElectionInfo[] }` (an object), not an array. `tsc --noEmit` from the project root did not catch this. `tsc -b` in Docker caught it and the client build failed on Railway with:
+```
+src/features/data-manager/index.tsx(18,31): error TS2339: Property 'map' does not exist
+src/features/data-manager/index.tsx(19,47): error TS2339: Property 'map' does not exist
+src/features/data-manager/index.tsx(22,35): error TS2339: Property 'length' does not exist
+```
+
+**Fix:** Always run `tsc -b` (not `tsc --noEmit`) locally before pushing. This matches the exact command the Docker build uses. Also fixed the code to destructure `response.elections` before mapping.
+
+**Prevention:** Added instruction #12 to "Important Notes for Claude Code" requiring Railway deployment verification after every push.
 
 ### API Rate Limiting
 **Implementation:** In-memory fixed-window rate limiter middleware (`packages/server/app/core/rate_limit.py`), wired into `packages/server/app/main.py`.
