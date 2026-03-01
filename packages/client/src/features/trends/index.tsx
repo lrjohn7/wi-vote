@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import {
@@ -29,9 +29,12 @@ export default function Trends() {
   const [wardRaceType, setWardRaceType] = useState('president');
   const { data: wardTrendData, isLoading: wardLoading, isError: wardError, error: wardErrorObj, refetch: wardRefetch } = useWardTrend(selectedWardId);
   const { data: wardSearchResults } = useWardSearch(wardSearchQuery);
+  const [activeSearchIdx, setActiveSearchIdx] = useState(-1);
+  const searchListRef = useRef<HTMLDivElement>(null);
 
   const handleWardSearch = useCallback((query: string) => {
     setWardSearchQuery(query);
+    setActiveSearchIdx(-1);
   }, []);
 
   // Area Trends tab state
@@ -84,14 +87,44 @@ export default function Trends() {
                 placeholder="Search wards by name, municipality, or county..."
               />
               {wardSearchResults && wardSearchResults.results.length > 0 && wardSearchQuery.length >= 2 && !selectedWardId && (
-                <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-y-auto rounded-xl border border-border/30 bg-content1 shadow-lg">
-                  {wardSearchResults.results.slice(0, 8).map((ward) => (
+                <div
+                  ref={searchListRef}
+                  role="listbox"
+                  aria-label="Ward search results"
+                  className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-y-auto rounded-xl border border-border/30 bg-content1 shadow-lg"
+                  onKeyDown={(e) => {
+                    const items = wardSearchResults.results.slice(0, 8);
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setActiveSearchIdx((prev) => Math.min(prev + 1, items.length - 1));
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setActiveSearchIdx((prev) => Math.max(prev - 1, 0));
+                    } else if (e.key === 'Enter' && activeSearchIdx >= 0) {
+                      e.preventDefault();
+                      const ward = items[activeSearchIdx];
+                      setSelectedWardId(ward.ward_id);
+                      setWardSearchQuery('');
+                      setActiveSearchIdx(-1);
+                    } else if (e.key === 'Escape') {
+                      e.preventDefault();
+                      setWardSearchQuery('');
+                      setActiveSearchIdx(-1);
+                    }
+                  }}
+                >
+                  {wardSearchResults.results.slice(0, 8).map((ward, idx) => (
                     <button
                       key={ward.ward_id}
-                      className="w-full px-3 py-2 text-left text-sm transition-colors hover:bg-content2 rounded-lg"
+                      role="option"
+                      aria-selected={idx === activeSearchIdx}
+                      className={`w-full px-3 py-2 text-left text-sm transition-colors rounded-lg ${
+                        idx === activeSearchIdx ? 'bg-content2' : 'hover:bg-content2'
+                      }`}
                       onClick={() => {
                         setSelectedWardId(ward.ward_id);
                         setWardSearchQuery('');
+                        setActiveSearchIdx(-1);
                       }}
                     >
                       <div className="font-medium">{ward.ward_name}</div>

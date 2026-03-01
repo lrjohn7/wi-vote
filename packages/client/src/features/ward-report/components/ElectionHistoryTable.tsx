@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RACE_LABELS_SHORT } from '@/shared/lib/raceLabels';
 import type { ReportCardElection } from '@/services/api';
@@ -23,17 +23,31 @@ export function ElectionHistoryTable({ elections }: ElectionHistoryTableProps) {
     ? elections
     : elections.filter((e) => e.race_type === activeFilter);
 
+  const handleTabKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const currentIdx = FILTER_TABS.findIndex((t) => t.key === activeFilter);
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      const next = (currentIdx + 1) % FILTER_TABS.length;
+      setActiveFilter(FILTER_TABS[next].key);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const prev = (currentIdx - 1 + FILTER_TABS.length) % FILTER_TABS.length;
+      setActiveFilter(FILTER_TABS[prev].key);
+    }
+  }, [activeFilter]);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg font-semibold">Election History</CardTitle>
-        <div className="flex flex-wrap gap-1 pt-2" role="tablist" aria-label="Filter by race type">
+        <div className="flex flex-wrap gap-1 pt-2" role="tablist" aria-label="Filter by race type" onKeyDown={handleTabKeyDown}>
           {FILTER_TABS.map((tab) => (
             <button
               key={tab.key}
               role="tab"
               onClick={() => setActiveFilter(tab.key)}
               aria-selected={activeFilter === tab.key}
+              tabIndex={activeFilter === tab.key ? 0 : -1}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 activeFilter === tab.key
                   ? 'bg-foreground text-background'
