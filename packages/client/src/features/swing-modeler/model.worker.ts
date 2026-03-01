@@ -38,6 +38,11 @@ interface UncertaintyBand {
   upperMargin: number;
 }
 
+interface WardDemographicData {
+  collegDegreePct: number;
+  medianHouseholdIncome: number;
+}
+
 interface WorkerRequest {
   wardData: WardData[];
   params: {
@@ -48,6 +53,8 @@ interface WorkerRequest {
     urbanSwing?: number;
     suburbanSwing?: number;
     ruralSwing?: number;
+    educationEffect?: number;
+    incomeEffect?: number;
   };
   modelType?: 'uniform-swing' | 'proportional-swing' | 'demographic-swing';
   wardRegions?: Record<string, string>;
@@ -55,6 +62,7 @@ interface WorkerRequest {
   wardClassifications?: Record<string, string>;
   regionalTurnout?: Record<string, number>;
   demographicTurnout?: Record<string, number>;
+  wardDemographics?: Record<string, WardDemographicData>;
   computeUncertainty?: boolean;
 }
 
@@ -244,12 +252,26 @@ function predictDemographic(
   wardRegions?: Record<string, string>,
   regionalTurnout?: Record<string, number>,
   demographicTurnout?: Record<string, number>,
+  wardDemographics?: Record<string, WardDemographicData>,
 ): Prediction[] {
   const { baseElectionYear, baseRaceType, turnoutChange } = params;
   const urbanSwing = params.urbanSwing ?? 0;
   const suburbanSwing = params.suburbanSwing ?? 0;
   const ruralSwing = params.ruralSwing ?? 0;
+  const educationEffect = params.educationEffect ?? 0;
+  const incomeEffect = params.incomeEffect ?? 0;
   const year = Number(baseElectionYear);
+
+  // Compute state averages from available demographics for regression
+  let avgCollege = 30; // WI fallback
+  let avgIncome = 60000; // WI fallback
+  if (wardDemographics) {
+    const entries = Object.values(wardDemographics);
+    if (entries.length > 0) {
+      avgCollege = entries.reduce((sum, d) => sum + d.collegDegreePct, 0) / entries.length;
+      avgIncome = entries.reduce((sum, d) => sum + d.medianHouseholdIncome, 0) / entries.length;
+    }
+  }
 
   return wardData.map((ward) => {
     const election = findElection(ward, year, baseRaceType);
@@ -270,6 +292,16 @@ function predictDemographic(
       default:
         swingPoints = ruralSwing;
         break;
+    }
+
+    // Apply education/income regression effects
+    const demo = wardDemographics?.[ward.wardId];
+    let hasDemographics = false;
+    if (demo && (educationEffect !== 0 || incomeEffect !== 0)) {
+      const collegeDev = (demo.collegDegreePct - avgCollege) / 10;
+      const incomeDev = (demo.medianHouseholdIncome - avgIncome) / 10000;
+      swingPoints += educationEffect * collegeDev + incomeEffect * incomeDev;
+      hasDemographics = true;
     }
 
     const swing = swingPoints / 100;
@@ -297,7 +329,7 @@ function predictDemographic(
       predictedDemVotes: projectedDem,
       predictedRepVotes: projectedRep,
       predictedTotalVotes: projectedTotal,
-      confidence: 0.5,
+      confidence: hasDemographics ? 0.6 : 0.5,
     };
   });
 }
@@ -362,7 +394,7 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
   const {
     wardData, params, modelType, wardRegions, regionalSwing,
     wardClassifications, regionalTurnout, demographicTurnout,
-    computeUncertainty: shouldComputeUncertainty,
+    wardDemographics, computeUncertainty: shouldComputeUncertainty,
   } = e.data;
 
   let predictions: Prediction[];
@@ -370,6 +402,7 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
     predictions = predictDemographic(
       wardData, params, wardClassifications,
       wardRegions, regionalTurnout, demographicTurnout,
+      wardDemographics,
     );
   } else if (modelType === 'proportional-swing') {
     predictions = predictProportional(

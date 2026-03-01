@@ -1,13 +1,15 @@
 import { useMemo } from 'react';
 import { useMapData } from '@/features/election-map/hooks/useMapData';
 import type { MapDataResponse } from '@/features/election-map/hooks/useMapData';
-import type { RaceType, WardData } from '@/types/election';
+import type { RaceType, WardData, DemographicData } from '@/types/election';
 import type { FeatureCollection, Geometry } from 'geojson';
 import { extractWardMetadata } from '@/shared/lib/wardMetadata';
+import { useBulkDemographics } from '@/shared/hooks/useWardDemographics';
 
 function mapDataToWardData(
   mapData: MapDataResponse,
   wardMeta: Record<string, { county: string; municipality: string; congressionalDistrict: string; stateSenateDistrict: string; assemblyDistrict: string }>,
+  demographics?: Record<string, DemographicData> | null,
 ): WardData[] {
   const year = mapData.year;
   const raceType = mapData.raceType as RaceType;
@@ -36,6 +38,7 @@ function mapDataToWardData(
           isEstimate: entry.isEstimate,
         },
       ],
+      demographics: demographics?.[wardId],
     };
   });
 }
@@ -46,17 +49,19 @@ export function useModelData(
   boundaries?: FeatureCollection<Geometry>,
 ) {
   const { data: mapData, isLoading } = useMapData(year, raceType);
+  const { data: bulkDemographics } = useBulkDemographics();
 
   const wardMeta = useMemo(() => extractWardMetadata(boundaries), [boundaries]);
 
   const wardData = useMemo(() => {
     if (!mapData) return null;
-    return mapDataToWardData(mapData, wardMeta);
-  }, [mapData, wardMeta]);
+    return mapDataToWardData(mapData, wardMeta, bulkDemographics);
+  }, [mapData, wardMeta, bulkDemographics]);
 
   return {
     wardData,
     baseMapData: mapData ?? null,
+    bulkDemographics: bulkDemographics ?? null,
     isLoading,
   };
 }
