@@ -92,6 +92,9 @@ export default function WardReport() {
           </Card>
         </div>
 
+        {/* Election history table */}
+        <ElectionHistoryTable elections={report.elections} />
+
         {/* Comparison chart */}
         <ComparisonChart
           comparisons={report.comparisons}
@@ -100,9 +103,6 @@ export default function WardReport() {
 
         {/* Turnout chart */}
         <TurnoutChart turnout={report.turnout} elections={report.elections} />
-
-        {/* Election history table */}
-        <ElectionHistoryTable elections={report.elections} />
 
         {/* Estimated data disclosure */}
         {report.has_estimates && (
