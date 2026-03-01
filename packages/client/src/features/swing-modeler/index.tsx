@@ -66,6 +66,32 @@ const REGION_ID_MAP: Record<string, string> = {
   swing_rural: 'rural',
 };
 
+const REGIONAL_TURNOUT_PARAM_KEYS = [
+  'turnout_milwaukee_metro',
+  'turnout_madison_metro',
+  'turnout_fox_valley',
+  'turnout_rural',
+] as const;
+
+const TURNOUT_REGION_ID_MAP: Record<string, string> = {
+  turnout_milwaukee_metro: 'milwaukee_metro',
+  turnout_madison_metro: 'madison_metro',
+  turnout_fox_valley: 'fox_valley',
+  turnout_rural: 'rural',
+};
+
+const DEMOGRAPHIC_TURNOUT_PARAM_KEYS = [
+  'turnout_urban',
+  'turnout_suburban',
+  'turnout_rural_class',
+] as const;
+
+const TURNOUT_CLASSIFICATION_MAP: Record<string, string> = {
+  turnout_urban: 'urban',
+  turnout_suburban: 'suburban',
+  turnout_rural_class: 'rural',
+};
+
 export default function SwingModeler() {
   const selectedWardId = useMapStore((s) => s.selectedWardId);
   const setSelectedWard = useMapStore((s) => s.setSelectedWard);
@@ -144,6 +170,30 @@ export default function SwingModeler() {
       swing[REGION_ID_MAP[paramKey]] = val;
     }
     return hasAny ? swing : undefined;
+  }, [parameters]);
+
+  // Build regional turnout from params
+  const regionalTurnout = useMemo(() => {
+    const turnout: Record<string, number> = {};
+    let hasAny = false;
+    for (const paramKey of REGIONAL_TURNOUT_PARAM_KEYS) {
+      const val = (parameters[paramKey] as number) ?? 0;
+      if (val !== 0) hasAny = true;
+      turnout[TURNOUT_REGION_ID_MAP[paramKey]] = val;
+    }
+    return hasAny ? turnout : undefined;
+  }, [parameters]);
+
+  // Build demographic turnout from params
+  const demographicTurnout = useMemo(() => {
+    const turnout: Record<string, number> = {};
+    let hasAny = false;
+    for (const paramKey of DEMOGRAPHIC_TURNOUT_PARAM_KEYS) {
+      const val = (parameters[paramKey] as number) ?? 0;
+      if (val !== 0) hasAny = true;
+      turnout[TURNOUT_CLASSIFICATION_MAP[paramKey]] = val;
+    }
+    return hasAny ? turnout : undefined;
   }, [parameters]);
 
   // Web Worker
@@ -242,7 +292,9 @@ export default function SwingModeler() {
         modelType: activeModelId,
         wardRegions: Object.keys(wardRegions).length > 0 ? wardRegions : undefined,
         regionalSwing,
-        wardClassifications: activeModelId === 'demographic-swing' ? wardClassifications : undefined,
+        wardClassifications: Object.keys(wardClassifications).length > 0 ? wardClassifications : undefined,
+        regionalTurnout,
+        demographicTurnout,
         computeUncertainty: showUncertainty,
       });
     }, 50);
@@ -252,7 +304,7 @@ export default function SwingModeler() {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [wardData, baseYear, baseRace, swingPoints, turnoutChange, activeModelId, wardRegions, regionalSwing, wardClassifications, showUncertainty, parameters, setIsComputing, setPredictions]);
+  }, [wardData, baseYear, baseRace, swingPoints, turnoutChange, activeModelId, wardRegions, regionalSwing, wardClassifications, regionalTurnout, demographicTurnout, showUncertainty, parameters, setIsComputing, setPredictions]);
 
   // Convert predictions to MapDataResponse for the map
   const mapData = useMemo(() => {

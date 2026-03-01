@@ -89,11 +89,13 @@ Load a saved scenario by short ID. Returns full parameter set for restoring mode
 | Base election year | Dropdown | Available years from elections API |
 | Base race type | Dropdown | president, governor, us_senate, etc. |
 | Statewide Swing slider | Range slider | R+15 to D+15, step 0.1 |
-| Turnout Change slider | Range slider | -30% to +30%, step 1 |
+| Statewide Turnout slider | Range slider | -30% to +30%, step 1 (baseline for all wards) |
 | Regional Swing section | Collapsible | Milwaukee Metro, Madison Metro, Fox Valley, Rural sliders (uniform/proportional only) |
+| Regional Turnout section | Collapsible | Per-region turnout offset -20% to +20%, stacked on statewide (uniform/proportional only) |
 | Demographic sliders | Visible for demographic model | Urban, Suburban, Rural swing adjustment |
+| Demographic Turnout section | Collapsible | Per-classification turnout offset -20% to +20% (demographic model only) |
 | MRP sliders | Visible for MRP model | College shift, Income shift, Urban shift, Rural shift |
-| Scenario presets | 6 buttons | 2020 Electorate, 2016 Electorate, High Turnout, Low Turnout, D Wave +5, R Wave +5 |
+| Scenario presets | 8 buttons | 2020/2016 Electorate, High/Low Turnout, D/R Wave +5, MKE Surge, Rural Mobilize |
 | MRP Status | Section | Shows fitted models, fitting progress, trigger button |
 | Uncertainty toggle | Checkbox | Shows/hides uncertainty overlay |
 | Reset to Baseline | Button | Disabled when all params are zero. Resets all sliders |
@@ -124,6 +126,20 @@ Load a saved scenario by short ID. Returns full parameter set for restoring mode
 
 All three compute in `model.worker.ts` via `postMessage`. Worker debounces at 50ms.
 
+### Differential Turnout (`getEffectiveTurnout`)
+
+Turnout changes are computed per-ward by stacking offsets additively:
+
+```
+effectiveTurnout = statewideTurnout + regionOffset + classificationOffset
+```
+
+- **Statewide Turnout:** Baseline change applied to all wards (-30% to +30%).
+- **Regional Turnout:** Per-region offset stacked on statewide. Available for uniform/proportional models. Regions: Milwaukee Metro, Madison Metro, Fox Valley, Rural (-20% to +20%).
+- **Demographic Turnout:** Per-classification offset stacked on statewide. Available for demographic model. Classifications: Urban, Suburban, Rural (-20% to +20%).
+
+Ward classifications (urban/suburban/rural) are always passed to the worker for demographic turnout lookup, regardless of active model type.
+
 ### Server-Side (MRP)
 
 MRP predictions come from `POST /api/v1/models/predict` with `model_id: "mrp"`. Requires pre-fitted trace files (via Celery + PyMC). See audit item #62.
@@ -143,12 +159,14 @@ Bands converted to opacity values for map visualization: high confidence → ful
 
 1. **Web Worker computation:** All client-side models run off-main-thread via `model.worker.ts`. Debounced at 50ms to prevent jank during slider dragging.
 2. **Regional swing:** Milwaukee Metro (Milwaukee, Waukesha, Ozaukee, Washington counties), Madison Metro (Dane), Fox Valley (Brown, Outagamie, Winnebago, Calumet), Rural (all others). Defined in `regionMapping.ts`.
-3. **Urban/rural classification:** Used by demographic model. Fetched from demographics API.
+3. **Urban/rural classification:** Density-based: urban (>3000/sq mi), suburban (500-3000), rural (<500). Falls back to region mapping if density unavailable. Used for demographic swing and demographic turnout.
 4. **URL state sync:** `useModelerUrlState` reads/writes all parameters to URL search params for sharing.
 5. **Scenario presets:** Defined in `scenarioPresets.ts`. Each preset sets specific parameter values.
 6. **Aggregation:** `aggregatePredictions.ts` groups predictions by county, CD, SD, AD using ward metadata.
 7. **Baseline shift:** Results panel shows shift from the base election (e.g., "D+2.3 shift from baseline").
 8. **Reset button:** Disabled when all parameters equal their default values.
+9. **Differential turnout:** `effectiveTurnout = statewide + regionOffset + classificationOffset`. Additive stacking. All model types support both regional and demographic turnout offsets; the UI controls which sliders are visible per model type.
+10. **MRP turnout:** MRP model handles turnout server-side. Differential turnout sliders are hidden when MRP is selected.
 
 ---
 

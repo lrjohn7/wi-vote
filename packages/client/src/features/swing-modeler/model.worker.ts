@@ -53,6 +53,8 @@ interface WorkerRequest {
   wardRegions?: Record<string, string>;
   regionalSwing?: Record<string, number>;
   wardClassifications?: Record<string, string>;
+  regionalTurnout?: Record<string, number>;
+  demographicTurnout?: Record<string, number>;
   computeUncertainty?: boolean;
 }
 
@@ -73,6 +75,32 @@ function getEffectiveSwing(
   const regionOffset = regionalSwing[region];
   if (regionOffset === undefined) return baseSwing;
   return baseSwing + regionOffset;
+}
+
+function getEffectiveTurnout(
+  wardId: string,
+  baseTurnout: number,
+  wardRegions?: Record<string, string>,
+  regionalTurnout?: Record<string, number>,
+  wardClassifications?: Record<string, string>,
+  demographicTurnout?: Record<string, number>,
+): number {
+  let effective = baseTurnout;
+  if (wardRegions && regionalTurnout) {
+    const region = wardRegions[wardId];
+    if (region) {
+      const offset = regionalTurnout[region];
+      if (offset !== undefined) effective += offset;
+    }
+  }
+  if (wardClassifications && demographicTurnout) {
+    const classification = wardClassifications[wardId];
+    if (classification) {
+      const offset = demographicTurnout[classification];
+      if (offset !== undefined) effective += offset;
+    }
+  }
+  return effective;
 }
 
 function findElection(
@@ -106,9 +134,11 @@ function predictUniform(
   params: WorkerRequest['params'],
   wardRegions?: Record<string, string>,
   regionalSwing?: Record<string, number>,
+  regionalTurnout?: Record<string, number>,
+  wardClassifications?: Record<string, string>,
+  demographicTurnout?: Record<string, number>,
 ): Prediction[] {
   const { baseElectionYear, baseRaceType, turnoutChange } = params;
-  const turnoutMultiplier = 1 + turnoutChange / 100;
   const year = Number(baseElectionYear);
 
   return wardData.map((ward) => {
@@ -125,6 +155,12 @@ function predictUniform(
 
     const baseDemTwoParty = election.demVotes / twoPartyBase;
     const adjustedDemTwoParty = Math.max(0.01, Math.min(0.99, baseDemTwoParty + swing));
+
+    const effectiveTurnout = getEffectiveTurnout(
+      ward.wardId, turnoutChange, wardRegions, regionalTurnout,
+      wardClassifications, demographicTurnout,
+    );
+    const turnoutMultiplier = 1 + effectiveTurnout / 100;
 
     const projectedTotal = Math.round(election.totalVotes * turnoutMultiplier);
     const twoPartyTotal = Math.round(twoPartyBase * turnoutMultiplier);
@@ -151,9 +187,11 @@ function predictProportional(
   params: WorkerRequest['params'],
   wardRegions?: Record<string, string>,
   regionalSwing?: Record<string, number>,
+  regionalTurnout?: Record<string, number>,
+  wardClassifications?: Record<string, string>,
+  demographicTurnout?: Record<string, number>,
 ): Prediction[] {
   const { baseElectionYear, baseRaceType, turnoutChange } = params;
-  const turnoutMultiplier = 1 + turnoutChange / 100;
   const year = Number(baseElectionYear);
 
   return wardData.map((ward) => {
@@ -172,6 +210,12 @@ function predictProportional(
     const baseDemTwoParty = election.demVotes / twoPartyBase;
     const rawAdjusted = baseDemTwoParty * (1 + swingFactor);
     const adjustedDemTwoParty = Math.max(0.01, Math.min(0.99, rawAdjusted));
+
+    const effectiveTurnout = getEffectiveTurnout(
+      ward.wardId, turnoutChange, wardRegions, regionalTurnout,
+      wardClassifications, demographicTurnout,
+    );
+    const turnoutMultiplier = 1 + effectiveTurnout / 100;
 
     const projectedTotal = Math.round(election.totalVotes * turnoutMultiplier);
     const twoPartyTotal = Math.round(twoPartyBase * turnoutMultiplier);
@@ -197,12 +241,14 @@ function predictDemographic(
   wardData: WardData[],
   params: WorkerRequest['params'],
   wardClassifications?: Record<string, string>,
+  wardRegions?: Record<string, string>,
+  regionalTurnout?: Record<string, number>,
+  demographicTurnout?: Record<string, number>,
 ): Prediction[] {
   const { baseElectionYear, baseRaceType, turnoutChange } = params;
   const urbanSwing = params.urbanSwing ?? 0;
   const suburbanSwing = params.suburbanSwing ?? 0;
   const ruralSwing = params.ruralSwing ?? 0;
-  const turnoutMultiplier = 1 + turnoutChange / 100;
   const year = Number(baseElectionYear);
 
   return wardData.map((ward) => {
@@ -229,6 +275,12 @@ function predictDemographic(
     const swing = swingPoints / 100;
     const baseDemTwoParty = election.demVotes / twoPartyBase;
     const adjustedDemTwoParty = Math.max(0.01, Math.min(0.99, baseDemTwoParty + swing));
+
+    const effectiveTurnout = getEffectiveTurnout(
+      ward.wardId, turnoutChange, wardRegions, regionalTurnout,
+      wardClassifications, demographicTurnout,
+    );
+    const turnoutMultiplier = 1 + effectiveTurnout / 100;
 
     const projectedTotal = Math.round(election.totalVotes * turnoutMultiplier);
     const twoPartyTotal = Math.round(twoPartyBase * turnoutMultiplier);
@@ -309,16 +361,26 @@ function computeUncertainty(
 self.onmessage = (e: MessageEvent<WorkerRequest>) => {
   const {
     wardData, params, modelType, wardRegions, regionalSwing,
-    wardClassifications, computeUncertainty: shouldComputeUncertainty,
+    wardClassifications, regionalTurnout, demographicTurnout,
+    computeUncertainty: shouldComputeUncertainty,
   } = e.data;
 
   let predictions: Prediction[];
   if (modelType === 'demographic-swing') {
-    predictions = predictDemographic(wardData, params, wardClassifications);
+    predictions = predictDemographic(
+      wardData, params, wardClassifications,
+      wardRegions, regionalTurnout, demographicTurnout,
+    );
   } else if (modelType === 'proportional-swing') {
-    predictions = predictProportional(wardData, params, wardRegions, regionalSwing);
+    predictions = predictProportional(
+      wardData, params, wardRegions, regionalSwing,
+      regionalTurnout, wardClassifications, demographicTurnout,
+    );
   } else {
-    predictions = predictUniform(wardData, params, wardRegions, regionalSwing);
+    predictions = predictUniform(
+      wardData, params, wardRegions, regionalSwing,
+      regionalTurnout, wardClassifications, demographicTurnout,
+    );
   }
 
   const response: WorkerResponse = { predictions };

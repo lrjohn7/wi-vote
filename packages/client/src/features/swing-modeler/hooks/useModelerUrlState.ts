@@ -30,6 +30,19 @@ const MRP_URL_MAP: { urlKey: string; paramKey: string }[] = [
   { urlKey: 'income', paramKey: 'incomeShift' },
 ];
 
+const REGIONAL_TURNOUT_URL_MAP: { urlKey: string; paramKey: string }[] = [
+  { urlKey: 'to_mke', paramKey: 'turnout_milwaukee_metro' },
+  { urlKey: 'to_msn', paramKey: 'turnout_madison_metro' },
+  { urlKey: 'to_fox', paramKey: 'turnout_fox_valley' },
+  { urlKey: 'to_rural', paramKey: 'turnout_rural' },
+];
+
+const DEMOGRAPHIC_TURNOUT_URL_MAP: { urlKey: string; paramKey: string }[] = [
+  { urlKey: 'to_urban', paramKey: 'turnout_urban' },
+  { urlKey: 'to_suburb', paramKey: 'turnout_suburban' },
+  { urlKey: 'to_rural_c', paramKey: 'turnout_rural_class' },
+];
+
 export function useModelerUrlState() {
   const [searchParams, setSearchParams] = useSearchParams();
   const parameters = useModelStore((s) => s.parameters);
@@ -109,6 +122,22 @@ export function useModelerUrlState() {
         if (!isNaN(val)) setParameter(paramKey, val);
       }
     }
+
+    for (const { urlKey, paramKey } of REGIONAL_TURNOUT_URL_MAP) {
+      const raw = searchParams.get(urlKey);
+      if (raw != null && raw !== '') {
+        const val = parseFloat(raw);
+        if (!isNaN(val)) setParameter(paramKey, val);
+      }
+    }
+
+    for (const { urlKey, paramKey } of DEMOGRAPHIC_TURNOUT_URL_MAP) {
+      const raw = searchParams.get(urlKey);
+      if (raw != null && raw !== '') {
+        const val = parseFloat(raw);
+        if (!isNaN(val)) setParameter(paramKey, val);
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -151,6 +180,20 @@ export function useModelerUrlState() {
     }
 
     for (const { urlKey, paramKey } of MRP_URL_MAP) {
+      const val = parameters[paramKey];
+      if (typeof val === 'number' && val !== 0) {
+        params.set(urlKey, String(val));
+      }
+    }
+
+    for (const { urlKey, paramKey } of REGIONAL_TURNOUT_URL_MAP) {
+      const val = parameters[paramKey];
+      if (typeof val === 'number' && val !== 0) {
+        params.set(urlKey, String(val));
+      }
+    }
+
+    for (const { urlKey, paramKey } of DEMOGRAPHIC_TURNOUT_URL_MAP) {
       const val = parameters[paramKey];
       if (typeof val === 'number' && val !== 0) {
         params.set(urlKey, String(val));

@@ -40,6 +40,19 @@ const REGIONAL_PARAM_KEYS: { region: Region; paramKey: string }[] = [
   { region: 'rural', paramKey: 'swing_rural' },
 ];
 
+const REGIONAL_TURNOUT_PARAM_KEYS: { region: Region; paramKey: string }[] = [
+  { region: 'milwaukee_metro', paramKey: 'turnout_milwaukee_metro' },
+  { region: 'madison_metro', paramKey: 'turnout_madison_metro' },
+  { region: 'fox_valley', paramKey: 'turnout_fox_valley' },
+  { region: 'rural', paramKey: 'turnout_rural' },
+];
+
+const DEMOGRAPHIC_TURNOUT_PARAM_KEYS: { paramKey: string; label: string; desc: string }[] = [
+  { paramKey: 'turnout_urban', label: 'Urban Turnout', desc: '>3,000/sq mi' },
+  { paramKey: 'turnout_suburban', label: 'Suburban Turnout', desc: '500-3,000/sq mi' },
+  { paramKey: 'turnout_rural_class', label: 'Rural Turnout', desc: '<500/sq mi' },
+];
+
 function formatSwing(value: number): string {
   if (value === 0) return 'Even';
   if (value > 0) return `D+${value.toFixed(1)}`;
@@ -65,6 +78,8 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
   const setActiveModel = useModelStore((s) => s.setActiveModel);
 
   const [showRegional, setShowRegional] = useState(false);
+  const [showRegionalTurnout, setShowRegionalTurnout] = useState(false);
+  const [showDemographicTurnout, setShowDemographicTurnout] = useState(false);
 
   const baseYear = String(parameters.baseElectionYear ?? '2024');
   const baseRace = String(parameters.baseRaceType ?? 'president') as RaceType;
@@ -103,6 +118,12 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
     setParameter('ruralShift', 0);
     setParameter('incomeShift', 0);
     for (const { paramKey } of REGIONAL_PARAM_KEYS) {
+      setParameter(paramKey, 0);
+    }
+    for (const { paramKey } of REGIONAL_TURNOUT_PARAM_KEYS) {
+      setParameter(paramKey, 0);
+    }
+    for (const { paramKey } of DEMOGRAPHIC_TURNOUT_PARAM_KEYS) {
       setParameter(paramKey, 0);
     }
   };
@@ -315,7 +336,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs text-muted-foreground">Turnout Change</label>
+              <label className="text-xs text-muted-foreground">Statewide Turnout</label>
               <span className="text-sm font-semibold">
                 {formatTurnout(turnoutChange)}
               </span>
@@ -326,7 +347,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
               max={30}
               step={1}
               onValueChange={([val]) => setParameter('turnoutChange', val)}
-              aria-label={`Turnout change: ${formatTurnout(turnoutChange)}`}
+              aria-label={`Statewide turnout: ${formatTurnout(turnoutChange)}`}
             />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>-30%</span>
@@ -345,7 +366,9 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
               turnoutChange === 0 &&
               !isDemographicDirty &&
               !isMrpDirty &&
-              REGIONAL_PARAM_KEYS.every(({ paramKey }) => (parameters[paramKey] as number ?? 0) === 0)
+              REGIONAL_PARAM_KEYS.every(({ paramKey }) => (parameters[paramKey] as number ?? 0) === 0) &&
+              REGIONAL_TURNOUT_PARAM_KEYS.every(({ paramKey }) => (parameters[paramKey] as number ?? 0) === 0) &&
+              DEMOGRAPHIC_TURNOUT_PARAM_KEYS.every(({ paramKey }) => (parameters[paramKey] as number ?? 0) === 0)
             }
           >
             Reset to Baseline
@@ -403,6 +426,107 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
             </div>
           )}
         </div>}
+
+        {/* Regional Turnout — for uniform/proportional models */}
+        {!isDemographic && !isMrp && (
+          <div className="space-y-3">
+            <button
+              className="flex w-full items-center justify-between text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              onClick={() => setShowRegionalTurnout(!showRegionalTurnout)}
+              aria-expanded={showRegionalTurnout}
+              aria-controls="regional-turnout-panel"
+            >
+              <span>Regional Turnout</span>
+              {showRegionalTurnout ? (
+                <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+              ) : (
+                <ChevronRight className="h-4 w-4 transition-transform duration-200" />
+              )}
+            </button>
+
+            {showRegionalTurnout && (
+              <div id="regional-turnout-panel" className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Additional turnout offset on top of statewide turnout.
+                </p>
+                {REGIONAL_TURNOUT_PARAM_KEYS.map(({ region, paramKey }) => {
+                  const val = (parameters[paramKey] as number) ?? 0;
+                  return (
+                    <div key={paramKey} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs text-muted-foreground">
+                          {REGION_LABELS[region]}
+                        </label>
+                        <span className="text-xs font-semibold">
+                          {formatTurnout(val)}
+                        </span>
+                      </div>
+                      <Slider
+                        value={[val]}
+                        min={-20}
+                        max={20}
+                        step={1}
+                        onValueChange={([v]) => setParameter(paramKey, v)}
+                        aria-label={`${REGION_LABELS[region]} turnout: ${formatTurnout(val)}`}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Demographic Turnout — for demographic model */}
+        {isDemographic && (
+          <div className="space-y-3">
+            <button
+              className="flex w-full items-center justify-between text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              onClick={() => setShowDemographicTurnout(!showDemographicTurnout)}
+              aria-expanded={showDemographicTurnout}
+              aria-controls="demographic-turnout-panel"
+            >
+              <span>Demographic Turnout</span>
+              {showDemographicTurnout ? (
+                <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+              ) : (
+                <ChevronRight className="h-4 w-4 transition-transform duration-200" />
+              )}
+            </button>
+
+            {showDemographicTurnout && (
+              <div id="demographic-turnout-panel" className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Turnout offset by classification, on top of statewide.
+                </p>
+                {DEMOGRAPHIC_TURNOUT_PARAM_KEYS.map(({ paramKey, label, desc }) => {
+                  const val = (parameters[paramKey] as number) ?? 0;
+                  return (
+                    <div key={paramKey} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs text-muted-foreground">{label}</label>
+                        <span className="text-xs font-semibold">{formatTurnout(val)}</span>
+                      </div>
+                      <Slider
+                        value={[val]}
+                        min={-20}
+                        max={20}
+                        step={1}
+                        onValueChange={([v]) => setParameter(paramKey, v)}
+                        aria-label={`${label}: ${formatTurnout(val)}`}
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>-20%</span>
+                        <span>{desc}</span>
+                        <span>+20%</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         <Separator className="my-4" />
 
