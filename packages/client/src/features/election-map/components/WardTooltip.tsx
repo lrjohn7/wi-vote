@@ -1,5 +1,11 @@
 import { memo } from 'react';
 
+function formatMarginShort(m: number): string {
+  if (m > 0.5) return `D+${m.toFixed(1)}`;
+  if (m < -0.5) return `R+${Math.abs(m).toFixed(1)}`;
+  return 'Even';
+}
+
 interface WardTooltipProps {
   wardName: string;
   municipality: string;
@@ -11,6 +17,8 @@ interface WardTooltipProps {
   isEstimate?: boolean;
   demCandidate?: string | null;
   repCandidate?: string | null;
+  lowerMargin?: number;
+  upperMargin?: number;
   x: number;
   y: number;
 }
@@ -26,6 +34,8 @@ export const WardTooltip = memo(function WardTooltip({
   isEstimate,
   demCandidate,
   repCandidate,
+  lowerMargin,
+  upperMargin,
   x,
   y,
 }: WardTooltipProps) {
@@ -80,6 +90,11 @@ export const WardTooltip = memo(function WardTooltip({
             {marginLabel && (
               <div className={`font-medium ${margin && margin > 0 ? 'text-dem' : 'text-rep'}`}>
                 {marginLabel}
+              </div>
+            )}
+            {lowerMargin != null && upperMargin != null && (
+              <div className="text-muted-foreground">
+                Range: {formatMarginShort(lowerMargin)} to {formatMarginShort(upperMargin)}
               </div>
             )}
             {totalVotes != null && (

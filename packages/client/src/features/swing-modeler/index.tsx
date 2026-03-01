@@ -17,7 +17,7 @@ import { buildWardRegionMap } from '@/shared/lib/regionMapping';
 import { uncertaintyToOpacityMap } from './lib/computeUncertainty';
 import { fetchMrpPrediction, mrpResponseToPredictions } from '@/services/mrpApi';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
-import type { RaceType, Prediction, UncertaintyBand } from '@/types/election';
+import type { RaceType, Prediction, UncertaintyBand, DemographicData } from '@/types/election';
 import type { MapDataResponse, WardMapEntry } from '@/features/election-map/hooks/useMapData';
 
 interface TooltipState {
@@ -125,7 +125,7 @@ export default function SwingModeler() {
   const { data: boundaries, isLoading: boundariesLoading } = useWardBoundaries();
 
   // Fetch base election map data and convert to WardData[]
-  const { wardData, baseMapData, isLoading: dataLoading } = useModelData(
+  const { wardData, baseMapData, bulkDemographics, isLoading: dataLoading } = useModelData(
     baseYear, baseRace, boundaries,
   );
 
@@ -213,6 +213,19 @@ export default function SwingModeler() {
       elections: w.elections,
     }));
   }, [wardData]);
+
+  // Compact demographics dict for the worker (only education + income fields)
+  const workerDemographics = useMemo(() => {
+    if (!bulkDemographics) return undefined;
+    const compact: Record<string, { collegDegreePct: number; medianHouseholdIncome: number }> = {};
+    for (const [wardId, d] of Object.entries(bulkDemographics) as [string, DemographicData][]) {
+      compact[wardId] = {
+        collegDegreePct: d.collegDegreePct,
+        medianHouseholdIncome: d.medianHouseholdIncome,
+      };
+    }
+    return compact;
+  }, [bulkDemographics]);
 
   // Web Worker
   const workerRef = useRef<Worker | null>(null);
@@ -319,6 +332,8 @@ export default function SwingModeler() {
           urbanSwing: (parameters.urbanSwing as number) ?? 0,
           suburbanSwing: (parameters.suburbanSwing as number) ?? 0,
           ruralSwing: (parameters.ruralSwing as number) ?? 0,
+          educationEffect: (parameters.educationEffect as number) ?? 0,
+          incomeEffect: (parameters.incomeEffect as number) ?? 0,
         },
         modelType: activeModelId,
         wardRegions: Object.keys(wardRegions).length > 0 ? wardRegions : undefined,
@@ -326,6 +341,7 @@ export default function SwingModeler() {
         wardClassifications: Object.keys(wardClassifications).length > 0 ? wardClassifications : undefined,
         regionalTurnout,
         demographicTurnout,
+        wardDemographics: activeModelId === 'demographic-swing' ? workerDemographics : undefined,
         computeUncertainty: showUncertainty,
       });
     }, 50);
@@ -335,7 +351,7 @@ export default function SwingModeler() {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [serializedWardData, baseYear, baseRace, swingPoints, turnoutChange, activeModelId, wardRegions, regionalSwing, wardClassifications, regionalTurnout, demographicTurnout, showUncertainty, parameters, setIsComputing, setPredictions]);
+  }, [serializedWardData, baseYear, baseRace, swingPoints, turnoutChange, activeModelId, wardRegions, regionalSwing, wardClassifications, regionalTurnout, demographicTurnout, workerDemographics, showUncertainty, parameters, setIsComputing, setPredictions]);
 
   // Convert predictions to MapDataResponse for the map
   const mapData = useMemo(() => {
@@ -382,6 +398,12 @@ export default function SwingModeler() {
 
   // Hovered ward data for tooltip
   const hoveredWardData = tooltip && mapData?.data?.[tooltip.wardId];
+
+  // Hovered ward uncertainty band for tooltip
+  const hoveredUncertainty = useMemo(() => {
+    if (!showUncertainty || !uncertainty || !tooltip) return null;
+    return uncertainty.find((u) => u.wardId === tooltip.wardId) ?? null;
+  }, [showUncertainty, uncertainty, tooltip]);
 
   return (
     <div className="flex h-full flex-col">
@@ -471,6 +493,8 @@ export default function SwingModeler() {
               isEstimate={hoveredWardData?.isEstimate}
               demCandidate={baseMapData?.demCandidate}
               repCandidate={baseMapData?.repCandidate}
+              lowerMargin={hoveredUncertainty?.lowerMargin}
+              upperMargin={hoveredUncertainty?.upperMargin}
               x={tooltip.x}
               y={tooltip.y}
             />

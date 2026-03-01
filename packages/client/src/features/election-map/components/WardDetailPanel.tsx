@@ -9,12 +9,15 @@ import { useMapStore } from '@/stores/mapStore';
 import { WardNotes } from './WardNotes';
 import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { RACE_LABELS_SHORT } from '@/shared/lib/raceLabels';
+import { useWardDemographics } from '@/shared/hooks/useWardDemographics';
+import { DemographicsSection } from '@/shared/components/DemographicsSection';
 
 export function WardDetailPanel() {
   const navigate = useNavigate();
   const selectedWardId = useMapStore((s) => s.selectedWardId);
   const setSelectedWard = useMapStore((s) => s.setSelectedWard);
   const { data: ward, isLoading, isError, error, refetch } = useWardDetail(selectedWardId);
+  const { data: demographics } = useWardDemographics(selectedWardId);
 
   if (!selectedWardId) return null;
 
@@ -92,6 +95,16 @@ export function WardDetailPanel() {
 
           {/* Election Results */}
           <ScrollArea className="flex-1">
+            {/* Demographics */}
+            {demographics && (
+              <div className="border-b border-border/30 px-4 py-3">
+                <h4 className="mb-2 text-sm font-medium text-muted-foreground">
+                  Demographics
+                </h4>
+                <DemographicsSection data={demographics} compact />
+              </div>
+            )}
+
             <div className="p-4">
               <h4 className="mb-3 text-sm font-medium text-muted-foreground">
                 Election History

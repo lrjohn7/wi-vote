@@ -5,8 +5,8 @@ export const demographicSwingModel: ElectionModel = {
   id: 'demographic-swing',
   name: 'Demographic Swing',
   description:
-    'Applies differential swing by urban/suburban/rural classification. Each ward gets its effective swing based on its classification.',
-  version: '1.0.0',
+    'Applies differential swing by urban/suburban/rural classification, with optional education and income regression effects.',
+  version: '2.0.0',
   parameters: [
     {
       id: 'baseElectionYear',
@@ -63,6 +63,28 @@ export const demographicSwingModel: ElectionModel = {
       group: 'demographic',
     },
     {
+      id: 'educationEffect',
+      label: 'Education Effect',
+      type: 'slider',
+      min: -5,
+      max: 5,
+      step: 0.1,
+      defaultValue: 0,
+      description: 'Additional D+ swing per 10% college rate above state average',
+      group: 'regression',
+    },
+    {
+      id: 'incomeEffect',
+      label: 'Income Effect',
+      type: 'slider',
+      min: -5,
+      max: 5,
+      step: 0.1,
+      defaultValue: 0,
+      description: 'Additional D+ swing per $10k income above state average',
+      group: 'regression',
+    },
+    {
       id: 'turnoutChange',
       label: 'Turnout Change (%)',
       type: 'slider',
@@ -80,11 +102,22 @@ export const demographicSwingModel: ElectionModel = {
     const urbanSwing = (params.urbanSwing as number) ?? 0;
     const suburbanSwing = (params.suburbanSwing as number) ?? 0;
     const ruralSwing = (params.ruralSwing as number) ?? 0;
+    const educationEffect = (params.educationEffect as number) ?? 0;
+    const incomeEffect = (params.incomeEffect as number) ?? 0;
     const turnoutChange = (params.turnoutChange as number) ?? 0;
     const wardClassifications = params.wardClassifications as Record<string, string> | undefined;
 
     const turnoutMultiplier = 1 + turnoutChange / 100;
     const year = Number(baseElectionYear);
+
+    // Compute state averages from wards with demographics
+    const wardsWithDemographics = wardData.filter((w) => w.demographics);
+    const avgCollege = wardsWithDemographics.length > 0
+      ? wardsWithDemographics.reduce((sum, w) => sum + (w.demographics?.collegDegreePct ?? 0), 0) / wardsWithDemographics.length
+      : 30; // WI average fallback
+    const avgIncome = wardsWithDemographics.length > 0
+      ? wardsWithDemographics.reduce((sum, w) => sum + (w.demographics?.medianHouseholdIncome ?? 0), 0) / wardsWithDemographics.length
+      : 60000; // WI average fallback
 
     return wardData.map((ward) => {
       let election = ward.elections.find(
@@ -123,6 +156,13 @@ export const demographicSwingModel: ElectionModel = {
           break;
       }
 
+      // Add education/income regression effects if demographics available
+      if (ward.demographics && (educationEffect !== 0 || incomeEffect !== 0)) {
+        const collegeDev = (ward.demographics.collegDegreePct - avgCollege) / 10;
+        const incomeDev = (ward.demographics.medianHouseholdIncome - avgIncome) / 10000;
+        swingPoints += educationEffect * collegeDev + incomeEffect * incomeDev;
+      }
+
       const swing = swingPoints / 100;
       const twoPartyBase = election.demVotes + election.repVotes;
       if (twoPartyBase === 0) {
@@ -147,6 +187,9 @@ export const demographicSwingModel: ElectionModel = {
       const projectedDem = Math.round(twoPartyTotal * adjustedDemTwoParty);
       const projectedRep = twoPartyTotal - projectedDem;
 
+      // Higher confidence when demographics data is available for regression
+      const confidence = ward.demographics ? 0.6 : 0.5;
+
       return {
         wardId: ward.wardId,
         predictedDemPct: projectedTotal > 0 ? (projectedDem / projectedTotal) * 100 : 50,
@@ -156,7 +199,7 @@ export const demographicSwingModel: ElectionModel = {
         predictedDemVotes: projectedDem,
         predictedRepVotes: projectedRep,
         predictedTotalVotes: projectedTotal,
-        confidence: 0.5, // Lower than uniform since depends on classification accuracy
+        confidence,
       };
     });
   },

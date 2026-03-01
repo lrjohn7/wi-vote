@@ -161,6 +161,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
   const [showRegional, setShowRegional] = useState(false);
   const [showRegionalTurnout, setShowRegionalTurnout] = useState(false);
   const [showDemographicTurnout, setShowDemographicTurnout] = useState(false);
+  const [showRegressionEffects, setShowRegressionEffects] = useState(false);
 
   // Stable callbacks for memoized slider components
   const handleSetSwing = useCallback((v: number) => setParameter('swingPoints', v), [setParameter]);
@@ -172,6 +173,8 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
   const handleSetUrbanShift = useCallback((v: number) => setParameter('urbanShift', v), [setParameter]);
   const handleSetRuralShift = useCallback((v: number) => setParameter('ruralShift', v), [setParameter]);
   const handleSetIncomeShift = useCallback((v: number) => setParameter('incomeShift', v), [setParameter]);
+  const handleSetEducationEffect = useCallback((v: number) => setParameter('educationEffect', v), [setParameter]);
+  const handleSetIncomeEffect = useCallback((v: number) => setParameter('incomeEffect', v), [setParameter]);
 
   const baseYear = String(parameters.baseElectionYear ?? '2024');
   const baseRace = String(parameters.baseRaceType ?? 'president') as RaceType;
@@ -193,6 +196,10 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
   const suburbanSwing = (parameters.suburbanSwing as number) ?? 0;
   const ruralSwing = (parameters.ruralSwing as number) ?? 0;
 
+  // Demographic regression params
+  const educationEffect = (parameters.educationEffect as number) ?? 0;
+  const incomeEffectParam = (parameters.incomeEffect as number) ?? 0;
+
   // MRP-specific params
   const collegeShift = (parameters.collegeShift as number) ?? 0;
   const mrpUrbanShift = (parameters.urbanShift as number) ?? 0;
@@ -209,6 +216,8 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
     setParameter('urbanShift', 0);
     setParameter('ruralShift', 0);
     setParameter('incomeShift', 0);
+    setParameter('educationEffect', 0);
+    setParameter('incomeEffect', 0);
     for (const { paramKey } of REGIONAL_PARAM_KEYS) {
       setParameter(paramKey, 0);
     }
@@ -220,7 +229,7 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
     }
   };
 
-  const isDemographicDirty = urbanSwing !== 0 || suburbanSwing !== 0 || ruralSwing !== 0;
+  const isDemographicDirty = urbanSwing !== 0 || suburbanSwing !== 0 || ruralSwing !== 0 || educationEffect !== 0 || incomeEffectParam !== 0;
   const isMrpDirty = collegeShift !== 0 || mrpUrbanShift !== 0 || mrpRuralShift !== 0 || incomeShift !== 0;
 
   const handleModelChange = (modelId: string) => {
@@ -480,6 +489,35 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
                     </div>
                   );
                 })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Education & Income Regression — for demographic model */}
+        {isDemographic && (
+          <div className="space-y-3">
+            <button
+              className="flex w-full items-center justify-between text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              onClick={() => setShowRegressionEffects(!showRegressionEffects)}
+              aria-expanded={showRegressionEffects}
+              aria-controls="regression-effects-panel"
+            >
+              <span>Education & Income</span>
+              {showRegressionEffects ? (
+                <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+              ) : (
+                <ChevronRight className="h-4 w-4 transition-transform duration-200" />
+              )}
+            </button>
+
+            {showRegressionEffects && (
+              <div id="regression-effects-panel" className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Additional swing based on Census education and income data relative to state average.
+                </p>
+                <ParameterSlider label="Education Effect" value={educationEffect} min={-5} max={5} step={0.1} formatValue={formatSwing} onChange={handleSetEducationEffect} description="Per 10% college above avg" />
+                <ParameterSlider label="Income Effect" value={incomeEffectParam} min={-5} max={5} step={0.1} formatValue={formatSwing} onChange={handleSetIncomeEffect} description="Per $10k above avg" />
               </div>
             )}
           </div>

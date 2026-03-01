@@ -4,6 +4,8 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import { useReportCard } from './hooks/useReportCard';
+import { useWardDemographics } from '@/shared/hooks/useWardDemographics';
+import { DemographicsSection } from '@/shared/components/DemographicsSection';
 import { WardFinder } from './components/WardFinder';
 import { ReportCardHeader } from './components/ReportCardHeader';
 import { PartisanLeanCard } from './components/PartisanLeanCard';
@@ -17,6 +19,7 @@ export default function WardReport() {
   const { wardId } = useParams<{ wardId: string }>();
   usePageTitle(wardId ? 'Ward Report' : 'My Ward');
   const { data: report, isLoading, error, refetch } = useReportCard(wardId ?? null);
+  const { data: demographics } = useWardDemographics(wardId ?? null);
 
   // No ward selected — show search landing page
   if (!wardId) {
@@ -98,6 +101,20 @@ export default function WardReport() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Demographics */}
+        {demographics && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Census Demographics
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DemographicsSection data={demographics} />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Election history table */}
         <ElectionHistoryTable elections={report.elections} />
