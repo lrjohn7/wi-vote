@@ -973,6 +973,10 @@ A `documentation/` directory contains audited, structured docs for every feature
 | Service worker, workbox, caching, PWA config | `documentation/12-pwa-service-worker.md` |
 | Railway deployment, nginx, Dockerfile, Docker Compose, env vars | `documentation/13-deployment.md` |
 | Scenario Save & Share, `?scenario=` URL param, community scenarios | `documentation/14-scenario-save-share.md` |
+| Boundary History (`/boundaries`), vintage comparison, timeline | `documentation/15-boundary-history.md` |
+| Election Night (`/live`), live polling, race summaries | `documentation/16-election-night.md` |
+| Voter Registration data, registration overlay, hooks | `documentation/17-voter-registration.md` |
+| Community Notes, ward notes, user submissions | `documentation/18-community-notes.md` |
 | Audit findings, PASS/WARN/FAIL items, prioritized fix plan | `documentation/00-audit-report.md` |
 
 ### Auto-Documentation Rule
