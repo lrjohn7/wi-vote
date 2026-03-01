@@ -100,6 +100,11 @@ export const WisconsinMap = memo(function WisconsinMap({
 
     m.addControl(new maplibregl.NavigationControl(), 'top-right');
 
+    // Force resize once after first idle to fix blank maps on mobile initial load
+    m.once('idle', () => {
+      m.resize();
+    });
+
     m.on('load', () => {
       mapLoaded.current = true;
 

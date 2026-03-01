@@ -25,9 +25,10 @@ function formatDuration(seconds: number): string {
   return `${m}m ${s}s`;
 }
 
-function formatPath(path: string): string {
-  if (path === '/') return 'Home';
-  return path.replace(/^\//, '').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+function formatPath(path: unknown): string {
+  const s = String(path ?? '');
+  if (s === '/') return 'Home';
+  return s.replace(/^\//, '').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export default function AnalyticsDashboard() {

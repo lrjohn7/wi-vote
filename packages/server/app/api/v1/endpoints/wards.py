@@ -48,8 +48,8 @@ async def get_boundaries(
 
 @router.get("/geocode")
 async def geocode_ward(
-    lat: float,
-    lng: float,
+    lat: float | None = None,
+    lng: float | None = None,
     address: str | None = None,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
@@ -63,6 +63,12 @@ async def geocode_ward(
             raise HTTPException(status_code=400, detail="Address is not in Wisconsin")
         lat = geocode_result["lat"]
         lng = geocode_result["lng"]
+
+    if lat is None or lng is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Either address or both lat and lng are required",
+        )
 
     service = WardService(db)
     ward = await service.geocode(lat, lng)

@@ -8,6 +8,8 @@ export const MapLegend = memo(function MapLegend() {
   const title = getLegendTitleForMetric(displayMetric);
 
   const isSequential = displayMetric === 'totalVotes';
+  const isDemPct = displayMetric === 'demPct';
+  const isRepPct = displayMetric === 'repPct';
 
   return (
     <div
@@ -44,6 +46,18 @@ export const MapLegend = memo(function MapLegend() {
           <>
             <span>Low</span>
             <span>High</span>
+          </>
+        ) : isDemPct ? (
+          <>
+            <span>35%</span>
+            <span>50%</span>
+            <span>65%</span>
+          </>
+        ) : isRepPct ? (
+          <>
+            <span>35%</span>
+            <span>50%</span>
+            <span>65%</span>
           </>
         ) : (
           <>
