@@ -39,6 +39,9 @@ export const ComparisonChart = memo(function ComparisonChart({ comparisons, coun
     return 'Even';
   };
 
+  const firstYear = data[0]?.year;
+  const lastYear = data[data.length - 1]?.year;
+
   return (
     <Card>
       <CardHeader>
@@ -46,7 +49,7 @@ export const ComparisonChart = memo(function ComparisonChart({ comparisons, coun
           Presidential Margin: Ward vs. {county} Co. vs. State
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent role="figure" aria-label={`Presidential margin comparison chart, ${firstYear} to ${lastYear}. Compares ward margin to ${county} County and Wisconsin statewide.`}>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={chart.gridColor} />

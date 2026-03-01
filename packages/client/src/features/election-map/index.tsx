@@ -72,8 +72,8 @@ export default function ElectionMap() {
         <h2 className="text-lg font-semibold">Election Map</h2>
         <ElectionSelector />
         {mapDataLoading && (
-          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" />
+          <span className="flex items-center gap-1.5 text-sm text-muted-foreground" role="status" aria-label="Loading election data">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" aria-hidden="true" />
             Loading data
           </span>
         )}
@@ -116,6 +116,19 @@ export default function ElectionMap() {
 
         {/* Ward Detail Panel */}
         <WardDetailPanel />
+
+        {/* Screen reader live region for hovered ward */}
+        <div className="sr-only" aria-live="polite" aria-atomic="true">
+          {tooltip && hoveredWardData
+            ? `${tooltip.wardName}, ${tooltip.municipality}, ${tooltip.county} County. Margin: ${
+                hoveredWardData.margin > 0
+                  ? `Democrat plus ${hoveredWardData.margin.toFixed(1)}`
+                  : hoveredWardData.margin < 0
+                    ? `Republican plus ${Math.abs(hoveredWardData.margin).toFixed(1)}`
+                    : 'Even'
+              }.`
+            : ''}
+        </div>
       </div>
     </div>
   );

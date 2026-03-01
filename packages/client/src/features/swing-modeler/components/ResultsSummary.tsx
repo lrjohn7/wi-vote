@@ -38,9 +38,9 @@ function AggregationTable({ rows }: { rows: AggregatedResult[] }) {
       <table className="w-full text-xs">
         <thead className="sticky top-0 bg-content1">
           <tr className="border-b text-left text-muted-foreground">
-            <th className="py-1 pr-2 font-medium">Area</th>
-            <th className="py-1 pr-2 text-right font-medium">Margin</th>
-            <th className="py-1 text-right font-medium">Wards</th>
+            <th scope="col" className="py-1 pr-2 font-medium">Area</th>
+            <th scope="col" className="py-1 pr-2 text-right font-medium">Margin</th>
+            <th scope="col" className="py-1 text-right font-medium">Wards</th>
           </tr>
         </thead>
         <tbody>
@@ -135,7 +135,7 @@ export const ResultsSummary = memo(function ResultsSummary({ predictions, baseMa
         </div>
 
         {/* Two-party bar */}
-        <div className="mt-2 flex h-3 overflow-hidden rounded-full">
+        <div className="mt-2 flex h-3 overflow-hidden rounded-full" role="img" aria-label={`Two-party vote: Democrat ${demBarPct.toFixed(1)}%, Republican ${(100 - demBarPct).toFixed(1)}%`}>
           <div
             className="transition-all duration-150"
             style={{ width: `${demBarPct}%`, backgroundColor: 'var(--dem)' }}

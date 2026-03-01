@@ -51,8 +51,10 @@ export default function ElectionComparison() {
           onRaceChange={setRaceB}
         />
 
-        <div className="ml-auto flex items-center gap-1 rounded-md border border-border/30 bg-content2/50 p-0.5">
+        <div className="ml-auto flex items-center gap-1 rounded-md border border-border/30 bg-content2/50 p-0.5" role="tablist" aria-label="Comparison view mode">
           <button
+            role="tab"
+            aria-selected={viewMode === 'side-by-side'}
             className={`rounded px-3 py-1 text-sm transition-colors ${
               viewMode === 'side-by-side' ? 'bg-content1 font-medium shadow-sm' : 'text-muted-foreground'
             }`}
@@ -61,6 +63,8 @@ export default function ElectionComparison() {
             Side by Side
           </button>
           <button
+            role="tab"
+            aria-selected={viewMode === 'difference'}
             className={`rounded px-3 py-1 text-sm transition-colors ${
               viewMode === 'difference' ? 'bg-content1 font-medium shadow-sm' : 'text-muted-foreground'
             }`}
@@ -71,8 +75,8 @@ export default function ElectionComparison() {
         </div>
 
         {isLoading && (
-          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" />
+          <span className="flex items-center gap-1.5 text-sm text-muted-foreground" role="status" aria-label="Loading election data">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" aria-hidden="true" />
             Loading
           </span>
         )}

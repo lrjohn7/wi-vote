@@ -39,6 +39,7 @@ export const WardTooltip = memo(function WardTooltip({
   return (
     <div
       className="pointer-events-none absolute z-50 glass-panel border-l-4 px-3 py-2 text-sm transition-opacity duration-150"
+      role="tooltip"
       style={{
         left: x + 12,
         top: y + 12,
@@ -53,7 +54,7 @@ export const WardTooltip = memo(function WardTooltip({
       {demPct != null && (
         <>
           {/* Mini two-party bar */}
-          <div className="my-1.5 flex h-1.5 overflow-hidden rounded-full">
+          <div className="my-1.5 flex h-1.5 overflow-hidden rounded-full" role="img" aria-label={`Vote split: Democrat ${demPct.toFixed(0)}%, Republican ${(repPct ?? 100 - demPct).toFixed(0)}%`}>
             <div style={{ width: `${demPct}%`, backgroundColor: 'var(--dem)' }} />
             <div style={{ width: `${repPct ?? 100 - demPct}%`, backgroundColor: 'var(--rep)' }} />
           </div>

@@ -13,11 +13,13 @@ interface TrendSparklineGridProps {
 type SortMode = 'ward_id' | 'slope_asc' | 'slope_desc';
 
 const MiniSparkline = memo(function MiniSparkline({
+  wardId,
   elections,
   raceType,
   direction,
   slope,
 }: {
+  wardId: string;
   elections?: TrendElection[];
   raceType?: string;
   direction: string;
@@ -62,8 +64,10 @@ const MiniSparkline = memo(function MiniSparkline({
 
     const pathD = `M ${pathPoints.join(' L ')}`;
 
+    const dirLabel = direction === 'more_democratic' ? 'trending Democratic' : direction === 'more_republican' ? 'trending Republican' : 'inconclusive trend';
+
     return (
-      <svg width={width} height={height} className="block">
+      <svg width={width} height={height} className="block" role="img" aria-label={`${wardId}: ${dirLabel}, margin from ${points[0].margin.toFixed(1)} to ${points[points.length - 1].margin.toFixed(1)}`}>
         {/* Zero line if margin crosses 0 */}
         {minMargin < 0 && maxMargin > 0 && (
           <line
@@ -100,8 +104,10 @@ const MiniSparkline = memo(function MiniSparkline({
   const clampStart = Math.max(4, Math.min(36, startY));
   const clampEnd = Math.max(4, Math.min(36, endY));
 
+  const dirLabel = direction === 'more_democratic' ? 'trending Democratic' : direction === 'more_republican' ? 'trending Republican' : 'inconclusive trend';
+
   return (
-    <svg width={width} height={height} className="block">
+    <svg width={width} height={height} className="block" role="img" aria-label={`${wardId}: ${dirLabel}, slope ${slope?.toFixed(2) ?? 'unknown'}`}>
       <line x1={10} y1={clampStart} x2={110} y2={clampEnd} stroke={color} strokeWidth={2} strokeLinecap="round" />
       <circle cx={10} cy={clampStart} r={2.5} fill={color} />
       <circle cx={110} cy={clampEnd} r={2.5} fill={color} />
@@ -150,7 +156,7 @@ export function TrendSparklineGrid({
       {/* Controls */}
       <div className="flex items-center gap-3">
         <span className="text-xs text-muted-foreground">Sort:</span>
-        <div className="flex gap-1">
+        <div className="flex gap-1" role="group" aria-label="Sort sparklines">
           {([
             ['ward_id', 'Ward ID'],
             ['slope_desc', 'Most D'],
@@ -158,6 +164,7 @@ export function TrendSparklineGrid({
           ] as const).map(([mode, label]) => (
             <button
               key={mode}
+              aria-pressed={sortMode === mode}
               className={`rounded px-2 py-0.5 text-xs transition-colors ${
                 sortMode === mode ? 'bg-content2 font-medium' : 'text-muted-foreground hover:bg-content2'
               }`}
@@ -181,6 +188,7 @@ export function TrendSparklineGrid({
             title={`${t.ward_id}: ${t.direction} (slope: ${t.slope?.toFixed(2) ?? 'N/A'})`}
           >
             <MiniSparkline
+              wardId={t.ward_id}
               elections={bulkElections?.[t.ward_id]}
               raceType={raceType}
               direction={t.direction}

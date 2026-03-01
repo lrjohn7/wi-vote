@@ -44,7 +44,7 @@ export const TurnoutChart = memo(function TurnoutChart({ turnout, elections }: T
       <CardHeader>
         <CardTitle className="text-lg font-semibold">Presidential Turnout</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent role="figure" aria-label={`Presidential turnout bar chart showing total votes across ${data.length} elections. Bars colored by winning party.`}>
         <ResponsiveContainer width="100%" height={250}>
           <BarChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={chart.gridColor} />

@@ -368,19 +368,19 @@ export default function SwingModeler() {
       <div className="glass-panel flex items-center gap-4 rounded-none border-x-0 border-t-0 px-5 py-2.5">
         <h2 className="text-lg font-semibold">Swing Modeler</h2>
         {isComputing && (
-          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+          <span className="flex items-center gap-1.5 text-sm text-muted-foreground" role="status" aria-label="Computing model predictions">
+            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" aria-hidden="true" />
             Computing
           </span>
         )}
         {mapData && !isComputing && (
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-muted-foreground" aria-live="polite">
             {mapData.wardCount.toLocaleString()} wards
           </span>
         )}
         {dataLoading && (
-          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" />
+          <span className="flex items-center gap-1.5 text-sm text-muted-foreground" role="status" aria-label="Loading base election data">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" aria-hidden="true" />
             Loading base data
           </span>
         )}

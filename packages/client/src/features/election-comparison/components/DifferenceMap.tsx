@@ -132,10 +132,10 @@ export function DifferenceMap({ diffData }: DifferenceMapProps) {
 
   return (
     <div className="relative h-full w-full">
-      <div ref={mapContainer} className="h-full w-full" style={{ minHeight: '400px' }} />
+      <div ref={mapContainer} className="h-full w-full" style={{ minHeight: '400px' }} role="application" aria-label="Election difference map showing margin shifts between two elections" tabIndex={0} />
 
       {/* Diff Legend */}
-      <div className="glass-panel absolute bottom-6 left-4 z-20 rounded-lg p-3">
+      <div className="glass-panel absolute bottom-6 left-4 z-20 rounded-lg p-3" role="img" aria-label="Difference legend. Purple shades indicate Republican shift, orange shades indicate Democratic shift.">
         <div className="mb-2 flex justify-between text-xs font-medium text-muted-foreground">
           <span>Shifted R</span>
           <span>Shifted D</span>
@@ -146,6 +146,7 @@ export function DifferenceMap({ diffData }: DifferenceMapProps) {
               <div
                 className="h-4 border border-white/50"
                 style={{ backgroundColor: bin.color }}
+                aria-hidden="true"
               />
             </div>
           ))}

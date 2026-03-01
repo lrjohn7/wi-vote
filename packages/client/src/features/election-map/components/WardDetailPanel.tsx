@@ -28,12 +28,15 @@ export function WardDetailPanel() {
   if (!selectedWardId) return null;
 
   return (
-    <div className="absolute right-0 top-0 z-30 flex h-full w-[420px] flex-col border-l border-border/30 bg-content1/95 shadow-lg backdrop-blur-sm animate-in slide-in-from-right-full duration-300">
+    <aside
+      className="absolute right-0 top-0 z-30 flex h-full w-[420px] flex-col border-l border-border/30 bg-content1/95 shadow-lg backdrop-blur-sm animate-in slide-in-from-right-full duration-300"
+      aria-label={ward ? `Ward detail: ${ward.ward_name}` : 'Ward detail panel'}
+    >
       {/* Header */}
       <div className="flex items-start justify-between px-5 py-4">
         <div className="min-w-0 flex-1">
           {isLoading ? (
-            <div className="space-y-2">
+            <div className="space-y-2" role="status" aria-label="Loading ward details">
               <div className="h-6 w-48 animate-pulse rounded bg-muted" />
               <div className="h-4 w-32 animate-pulse rounded bg-muted" />
             </div>
@@ -54,19 +57,20 @@ export function WardDetailPanel() {
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              title="Report Card"
+              aria-label="View report card"
               onClick={() => navigate(`/wards/${ward.ward_id}/report`)}
             >
-              <ClipboardList className="h-4 w-4" />
+              <ClipboardList className="h-4 w-4" aria-hidden="true" />
             </Button>
           )}
           <Button
             variant="ghost"
             size="icon"
             className="h-8 w-8"
+            aria-label="Close ward detail panel"
             onClick={() => setSelectedWard(null)}
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       </div>
@@ -132,7 +136,11 @@ export function WardDetailPanel() {
                         </div>
 
                         {/* Two-party bar */}
-                        <div className="mb-1.5 flex h-2.5 overflow-hidden rounded-full">
+                        <div
+                          className="mb-1.5 flex h-2.5 overflow-hidden rounded-full"
+                          role="img"
+                          aria-label={`Vote split: Democrat ${demBarPct.toFixed(0)}%, Republican ${(100 - demBarPct).toFixed(0)}%`}
+                        >
                           <div
                             className="transition-all"
                             style={{
@@ -179,6 +187,6 @@ export function WardDetailPanel() {
           </ScrollArea>
         </>
       )}
-    </div>
+    </aside>
   );
 }

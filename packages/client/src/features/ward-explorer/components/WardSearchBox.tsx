@@ -22,13 +22,15 @@ export function WardSearchBox({
   }, [value, onSearch]);
 
   return (
-    <div className="relative">
-      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+    <div className="relative" role="search" aria-label="Ward search">
+      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
       <Input
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
         className="pl-9"
+        aria-label="Search wards"
+        type="search"
       />
     </div>
   );

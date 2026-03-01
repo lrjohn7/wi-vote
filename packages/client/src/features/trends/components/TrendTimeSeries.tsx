@@ -59,8 +59,13 @@ export const TrendTimeSeries = memo(function TrendTimeSeries({ elections, raceTy
         ? chart.rep
         : chart.neutral;
 
+  const firstMargin = filtered[0]?.margin ?? 0;
+  const lastMargin = filtered[filtered.length - 1]?.margin ?? 0;
+  const dirLabel = trend?.direction === 'more_democratic' ? 'trending Democratic' : trend?.direction === 'more_republican' ? 'trending Republican' : 'inconclusive';
+  const chartDescription = `Partisan trend chart for ${raceType}, ${filtered[0]?.year ?? ''} to ${filtered[filtered.length - 1]?.year ?? ''}. ${dirLabel}. Margin from ${firstMargin > 0 ? 'D' : 'R'}+${Math.abs(firstMargin).toFixed(1)} to ${lastMargin > 0 ? 'D' : 'R'}+${Math.abs(lastMargin).toFixed(1)}.`;
+
   return (
-    <div className="rounded-xl border border-border/30 bg-content1 p-4 shadow-sm">
+    <div className="rounded-xl border border-border/30 bg-content1 p-4 shadow-sm" role="figure" aria-label={chartDescription}>
     <ResponsiveContainer width="100%" height={280}>
       <LineChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={chart.gridColor} opacity={0.5} />
