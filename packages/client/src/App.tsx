@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router';
-import { Map, Search, TrendingUp, SlidersHorizontal, Scale, ClipboardList, GitCompareArrows, Sun, Moon, Monitor } from 'lucide-react';
+import { Map, Search, TrendingUp, SlidersHorizontal, Scale, ClipboardList, GitCompareArrows, Radio, History, Sun, Moon, Monitor } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
 
 const navItems = [
@@ -10,6 +10,8 @@ const navItems = [
   { to: '/trends', label: 'Trends', icon: TrendingUp, end: false },
   { to: '/modeler', label: 'Swing Modeler', icon: SlidersHorizontal, end: false },
   { to: '/compare', label: 'Compare', icon: GitCompareArrows, end: false },
+  { to: '/live', label: 'Live', icon: Radio, end: false },
+  { to: '/boundaries', label: 'Boundaries', icon: History, end: false },
 ];
 
 function ThemeToggle() {

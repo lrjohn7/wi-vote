@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useWardDetail } from '../hooks/useWardDetail';
 import { useMapStore } from '@/stores/mapStore';
+import { WardNotes } from './WardNotes';
 
 const RACE_LABELS: Record<string, string> = {
   president: 'President',
@@ -184,6 +185,11 @@ export function WardDetailPanel() {
                 </p>
               )}
             </div>
+
+            <Separator />
+
+            {/* Community Notes */}
+            <WardNotes wardId={ward.ward_id} />
           </ScrollArea>
         </>
       )}

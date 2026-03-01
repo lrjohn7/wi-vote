@@ -10,6 +10,8 @@ const SwingModeler = lazy(() => import('@/features/swing-modeler'));
 const SupremeCourt = lazy(() => import('@/features/supreme-court'));
 const WardReport = lazy(() => import('@/features/ward-report'));
 const ElectionComparison = lazy(() => import('@/features/election-comparison'));
+const ElectionNight = lazy(() => import('@/features/election-night'));
+const BoundaryHistory = lazy(() => import('@/features/boundary-history'));
 const DataManager = lazy(() => import('@/features/data-manager'));
 
 export const router = createBrowserRouter([
@@ -79,6 +81,22 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<MapPageSkeleton />}>
             <ElectionComparison />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'live',
+        element: (
+          <Suspense fallback={<MapPageSkeleton />}>
+            <ElectionNight />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'boundaries',
+        element: (
+          <Suspense fallback={<MapPageSkeleton />}>
+            <BoundaryHistory />
           </Suspense>
         ),
       },
