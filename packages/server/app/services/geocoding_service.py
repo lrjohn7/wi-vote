@@ -28,11 +28,16 @@ class GeocodingService:
         if not matches:
             return None
 
-        coords = matches[0].get("coordinates", {})
+        match = matches[0]
+        state = match.get("addressComponents", {}).get("state", "")
+        if state != "WI":
+            return {"error": "not_in_wisconsin", "matchedAddress": match.get("matchedAddress"), "state": state}
+
+        coords = match.get("coordinates", {})
         return {
             "lat": coords.get("y"),
             "lng": coords.get("x"),
-            "matchedAddress": matches[0].get("matchedAddress"),
+            "matchedAddress": match.get("matchedAddress"),
         }
 
     async def find_ward_at_point(self, lat: float, lng: float) -> dict | None:

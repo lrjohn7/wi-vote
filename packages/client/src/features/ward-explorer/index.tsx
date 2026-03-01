@@ -50,7 +50,11 @@ export default function WardExplorer() {
         `/api/v1/wards/geocode?address=${encodeURIComponent(addressInput)}&lat=0&lng=0`,
       );
       if (!res.ok) {
-        setGeocodeError('Address not found or no ward at that location.');
+        if (res.status === 400) {
+          setGeocodeError('This address is not in Wisconsin. Please enter a Wisconsin address.');
+        } else {
+          setGeocodeError('Address not found. Please enter a valid street address.');
+        }
         return;
       }
       const data = await res.json();

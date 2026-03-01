@@ -59,6 +59,8 @@ async def geocode_ward(
         geocode_result = await geo_service.geocode_address(address)
         if not geocode_result:
             raise HTTPException(status_code=404, detail="Address not found")
+        if geocode_result.get("error") == "not_in_wisconsin":
+            raise HTTPException(status_code=400, detail="Address is not in Wisconsin")
         lat = geocode_result["lat"]
         lng = geocode_result["lng"]
 
