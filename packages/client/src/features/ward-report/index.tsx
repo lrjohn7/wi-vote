@@ -11,11 +11,12 @@ import { TrendCard } from './components/TrendCard';
 import { ComparisonChart } from './components/ComparisonChart';
 import { TurnoutChart } from './components/TurnoutChart';
 import { ElectionHistoryTable } from './components/ElectionHistoryTable';
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
 
 export default function WardReport() {
   const { wardId } = useParams<{ wardId: string }>();
   usePageTitle(wardId ? 'Ward Report' : 'My Ward');
-  const { data: report, isLoading, error } = useReportCard(wardId ?? null);
+  const { data: report, isLoading, error, refetch } = useReportCard(wardId ?? null);
 
   // No ward selected — show search landing page
   if (!wardId) {
@@ -38,16 +39,20 @@ export default function WardReport() {
   }
 
   // Error
-  if (error || !report) {
+  if (error) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <QueryErrorState error={error} onRetry={() => refetch()} />
+      </div>
+    );
+  }
+
+  if (!report) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <p className="text-lg font-medium text-destructive">
-            {error ? 'Failed to load report card' : 'Ward not found'}
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Ward ID: {wardId}
-          </p>
+          <p className="text-lg font-medium text-muted-foreground">Ward not found</p>
+          <p className="mt-1 text-sm text-muted-foreground">Ward ID: {wardId}</p>
         </div>
       </div>
     );

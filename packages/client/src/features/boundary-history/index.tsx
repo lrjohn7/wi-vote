@@ -4,6 +4,7 @@ import { WisconsinMap } from '@/shared/components/WisconsinMap';
 import { MapLegend } from '@/features/election-map/components/MapLegend';
 import { VintageTimeline } from './components/VintageTimeline';
 import { BoundaryStats } from './components/BoundaryStats';
+import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { useVintageBoundaries, WARD_VINTAGES } from './hooks/useVintageBoundaries';
 
 export default function BoundaryHistory() {
@@ -14,7 +15,7 @@ export default function BoundaryHistory() {
   const playIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Fetch boundary GeoJSON for comparison overlay
-  const { data: comparisonBoundaries } = useVintageBoundaries(comparisonVintage);
+  const { data: comparisonBoundaries, isError: boundaryError, error: boundaryErrorObj, refetch: boundaryRefetch } = useVintageBoundaries(comparisonVintage);
 
   // Ward counts from fetched data
   const selectedFeatureCount = 0; // PMTiles — we'll estimate from map
@@ -72,7 +73,14 @@ export default function BoundaryHistory() {
 
         {/* Mobile overlay */}
         {sidebarOpen && (
-          <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setSidebarOpen(false)} />
+          <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setSidebarOpen(false)} onKeyDown={(e) => { if (e.key === 'Escape') setSidebarOpen(false); }} role="presentation" />
+        )}
+
+        {/* Error state for boundary fetch */}
+        {boundaryError && comparisonVintage && (
+          <div className="absolute left-1/2 top-20 z-30 -translate-x-1/2">
+            <QueryErrorState error={boundaryErrorObj!} onRetry={() => boundaryRefetch()} compact />
+          </div>
         )}
 
         {/* Sidebar — mobile drawer + desktop static */}

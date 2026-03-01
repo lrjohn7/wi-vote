@@ -102,7 +102,7 @@ export default function ElectionNight() {
 
         {/* Mobile overlay */}
         {sidebarOpen && (
-          <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setSidebarOpen(false)} />
+          <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setSidebarOpen(false)} onKeyDown={(e) => { if (e.key === 'Escape') setSidebarOpen(false); }} role="presentation" />
         )}
 
         {/* Sidebar — mobile drawer + desktop static */}
