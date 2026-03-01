@@ -5,6 +5,9 @@ from app.models.ward_demographic import WardDemographic
 from app.models.spring_election import SpringElectionResult
 from app.models.election_aggregation import ElectionAggregation
 from app.models.scenario import Scenario
+from app.models.ward_note import WardNote
+from app.models.voter_registration import VoterRegistration
+from app.models.live_result import LiveResult, LiveElection
 
 __all__ = [
     "Ward",
@@ -14,4 +17,8 @@ __all__ = [
     "SpringElectionResult",
     "ElectionAggregation",
     "Scenario",
+    "WardNote",
+    "VoterRegistration",
+    "LiveResult",
+    "LiveElection",
 ]
