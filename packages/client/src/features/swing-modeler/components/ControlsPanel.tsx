@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import {
   Select,
@@ -65,6 +65,97 @@ function formatTurnout(value: number): string {
   return `${value}%`;
 }
 
+/** Memoized slider that only re-renders when its own value changes */
+const ParameterSlider = memo(function ParameterSlider({
+  label,
+  value,
+  min,
+  max,
+  step,
+  formatValue,
+  onChange,
+  description,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  formatValue: (v: number) => string;
+  onChange: (v: number) => void;
+  description?: string;
+}) {
+  const colorClass = value > 0 ? 'text-dem' : value < 0 ? 'text-rep' : '';
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <label className="text-xs text-muted-foreground">{label}</label>
+        <span className={`text-sm font-semibold ${colorClass}`}>
+          {formatValue(value)}
+        </span>
+      </div>
+      <Slider
+        value={[value]}
+        min={min}
+        max={max}
+        step={step}
+        onValueChange={([v]) => onChange(v)}
+        aria-label={`${label}: ${formatValue(value)}`}
+      />
+      {description && (
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>{formatValue(min)}</span>
+          <span>{description}</span>
+          <span>{formatValue(max)}</span>
+        </div>
+      )}
+    </div>
+  );
+});
+
+/** Memoized turnout slider with neutral color */
+const TurnoutSlider = memo(function TurnoutSlider({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+  description,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (v: number) => void;
+  description?: string;
+}) {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <label className="text-xs text-muted-foreground">{label}</label>
+        <span className="text-xs font-semibold">{formatTurnout(value)}</span>
+      </div>
+      <Slider
+        value={[value]}
+        min={min}
+        max={max}
+        step={step}
+        onValueChange={([v]) => onChange(v)}
+        aria-label={`${label}: ${formatTurnout(value)}`}
+      />
+      {description && (
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>{formatTurnout(min)}</span>
+          <span>{description}</span>
+          <span>{formatTurnout(max)}</span>
+        </div>
+      )}
+    </div>
+  );
+});
+
 interface ControlsPanelProps {
   children?: React.ReactNode;
 }
@@ -80,6 +171,17 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
   const [showRegional, setShowRegional] = useState(false);
   const [showRegionalTurnout, setShowRegionalTurnout] = useState(false);
   const [showDemographicTurnout, setShowDemographicTurnout] = useState(false);
+
+  // Stable callbacks for memoized slider components
+  const handleSetSwing = useCallback((v: number) => setParameter('swingPoints', v), [setParameter]);
+  const handleSetTurnout = useCallback((v: number) => setParameter('turnoutChange', v), [setParameter]);
+  const handleSetUrbanSwing = useCallback((v: number) => setParameter('urbanSwing', v), [setParameter]);
+  const handleSetSuburbanSwing = useCallback((v: number) => setParameter('suburbanSwing', v), [setParameter]);
+  const handleSetRuralSwing = useCallback((v: number) => setParameter('ruralSwing', v), [setParameter]);
+  const handleSetCollegeShift = useCallback((v: number) => setParameter('collegeShift', v), [setParameter]);
+  const handleSetUrbanShift = useCallback((v: number) => setParameter('urbanShift', v), [setParameter]);
+  const handleSetRuralShift = useCallback((v: number) => setParameter('ruralShift', v), [setParameter]);
+  const handleSetIncomeShift = useCallback((v: number) => setParameter('incomeShift', v), [setParameter]);
 
   const baseYear = String(parameters.baseElectionYear ?? '2024');
   const baseRace = String(parameters.baseRaceType ?? 'president') as RaceType;
@@ -241,120 +343,26 @@ export function ControlsPanel({ children }: ControlsPanelProps) {
               <p className="text-xs text-muted-foreground">
                 Bayesian posterior adjustments. Credible intervals reflect model uncertainty.
               </p>
-              {([
-                { id: 'collegeShift', label: 'College-Educated Shift', value: collegeShift, desc: 'College degree areas' },
-                { id: 'urbanShift', label: 'Urban Shift', value: mrpUrbanShift, desc: '>3,000 people/sq mi' },
-                { id: 'ruralShift', label: 'Rural Shift', value: mrpRuralShift, desc: '<500 people/sq mi' },
-                { id: 'incomeShift', label: 'Income Effect Shift', value: incomeShift, desc: 'Income coefficient' },
-              ] as const).map(({ id, label, value, desc }) => (
-                <div key={id} className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs text-muted-foreground">{label}</label>
-                    <span
-                      className={`text-sm font-semibold ${value > 0 ? 'text-dem' : value < 0 ? 'text-rep' : ''}`}
-                    >
-                      {formatSwing(value)}
-                    </span>
-                  </div>
-                  <Slider
-                    value={[value]}
-                    min={-10}
-                    max={10}
-                    step={0.5}
-                    onValueChange={([val]) => setParameter(id, val)}
-                    aria-label={`${label}: ${formatSwing(value)}`}
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>R+10</span>
-                    <span>{desc}</span>
-                    <span>D+10</span>
-                  </div>
-                </div>
-              ))}
+              <ParameterSlider label="College-Educated Shift" value={collegeShift} min={-10} max={10} step={0.5} formatValue={formatSwing} onChange={handleSetCollegeShift} description="College degree areas" />
+              <ParameterSlider label="Urban Shift" value={mrpUrbanShift} min={-10} max={10} step={0.5} formatValue={formatSwing} onChange={handleSetUrbanShift} description=">3,000 people/sq mi" />
+              <ParameterSlider label="Rural Shift" value={mrpRuralShift} min={-10} max={10} step={0.5} formatValue={formatSwing} onChange={handleSetRuralShift} description="<500 people/sq mi" />
+              <ParameterSlider label="Income Effect Shift" value={incomeShift} min={-10} max={10} step={0.5} formatValue={formatSwing} onChange={handleSetIncomeShift} description="Income coefficient" />
             </>
           ) : isDemographic ? (
             <>
               {/* Demographic model: per-classification sliders */}
-              {([
-                { id: 'urbanSwing', label: 'Urban Swing', value: urbanSwing, desc: '>3,000 people/sq mi' },
-                { id: 'suburbanSwing', label: 'Suburban Swing', value: suburbanSwing, desc: '500-3,000 people/sq mi' },
-                { id: 'ruralSwing', label: 'Rural Swing', value: ruralSwing, desc: '<500 people/sq mi' },
-              ] as const).map(({ id, label, value, desc }) => (
-                <div key={id} className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs text-muted-foreground">{label}</label>
-                    <span
-                      className={`text-sm font-semibold ${value > 0 ? 'text-dem' : value < 0 ? 'text-rep' : ''}`}
-                    >
-                      {formatSwing(value)}
-                    </span>
-                  </div>
-                  <Slider
-                    value={[value]}
-                    min={-10}
-                    max={10}
-                    step={0.1}
-                    onValueChange={([val]) => setParameter(id, val)}
-                    aria-label={`${label}: ${formatSwing(value)}`}
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>R+10</span>
-                    <span>{desc}</span>
-                    <span>D+10</span>
-                  </div>
-                </div>
-              ))}
+              <ParameterSlider label="Urban Swing" value={urbanSwing} min={-10} max={10} step={0.1} formatValue={formatSwing} onChange={handleSetUrbanSwing} description=">3,000 people/sq mi" />
+              <ParameterSlider label="Suburban Swing" value={suburbanSwing} min={-10} max={10} step={0.1} formatValue={formatSwing} onChange={handleSetSuburbanSwing} description="500-3,000 people/sq mi" />
+              <ParameterSlider label="Rural Swing" value={ruralSwing} min={-10} max={10} step={0.1} formatValue={formatSwing} onChange={handleSetRuralSwing} description="<500 people/sq mi" />
             </>
           ) : (
             <>
               {/* Uniform/Proportional: single statewide swing slider */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs text-muted-foreground">Statewide Swing</label>
-                  <span
-                    className={`text-sm font-semibold ${swingPoints > 0 ? 'text-dem' : swingPoints < 0 ? 'text-rep' : ''}`}
-                  >
-                    {formatSwing(swingPoints)}
-                  </span>
-                </div>
-                <Slider
-                  value={[swingPoints]}
-                  min={-15}
-                  max={15}
-                  step={0.1}
-                  onValueChange={([val]) => setParameter('swingPoints', val)}
-                  aria-label={`Statewide swing: ${formatSwing(swingPoints)}`}
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>R+15</span>
-                  <span>Even</span>
-                  <span>D+15</span>
-                </div>
-              </div>
+              <ParameterSlider label="Statewide Swing" value={swingPoints} min={-15} max={15} step={0.1} formatValue={formatSwing} onChange={handleSetSwing} description="Even" />
             </>
           )}
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs text-muted-foreground">Statewide Turnout</label>
-              <span className="text-sm font-semibold">
-                {formatTurnout(turnoutChange)}
-              </span>
-            </div>
-            <Slider
-              value={[turnoutChange]}
-              min={-30}
-              max={30}
-              step={1}
-              onValueChange={([val]) => setParameter('turnoutChange', val)}
-              aria-label={`Statewide turnout: ${formatTurnout(turnoutChange)}`}
-            />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>-30%</span>
-              <span>0</span>
-              <span>+30%</span>
-            </div>
-          </div>
+          <TurnoutSlider label="Statewide Turnout" value={turnoutChange} min={-30} max={30} step={1} onChange={handleSetTurnout} description="0" />
 
           <Button
             variant="outline"

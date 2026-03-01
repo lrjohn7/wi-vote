@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   BarChart,
   Bar,
@@ -17,7 +18,7 @@ interface TurnoutChartProps {
   elections: ReportCardElection[];
 }
 
-export function TurnoutChart({ turnout, elections }: TurnoutChartProps) {
+export const TurnoutChart = memo(function TurnoutChart({ turnout, elections }: TurnoutChartProps) {
   const chart = useChartTheme();
 
   if (turnout.length === 0) {
@@ -74,4 +75,4 @@ export function TurnoutChart({ turnout, elections }: TurnoutChartProps) {
       </CardContent>
     </Card>
   );
-}
+});

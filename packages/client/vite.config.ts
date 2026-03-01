@@ -58,11 +58,11 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 1100, // vendor-map (maplibre-gl) is ~1,042 KB and can't be split
     rollupOptions: {
       output: {
         manualChunks: {
           'vendor-map': ['maplibre-gl', 'pmtiles'],
-          'vendor-chart': ['recharts'],
           'vendor-react': ['react', 'react-dom', 'react-router'],
           'vendor-state': ['zustand', '@tanstack/react-query'],
         },

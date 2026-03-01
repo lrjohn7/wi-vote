@@ -131,7 +131,9 @@ export default function SwingModeler() {
   const wardRegions = useMemo(() => buildWardRegionMap(wardMetadata), [wardMetadata]);
 
   // Ward classifications for demographic model (urban/suburban/rural)
-  // Uses population density from boundaries if available, else falls back to region mapping
+  // Uses population density from boundaries if available, else falls back to region mapping.
+  // wardRegions is derived from boundaries via wardMetadata, so it's stable whenever
+  // boundaries is stable — no need to list it as a dependency.
   const wardClassifications = useMemo(() => {
     if (!boundaries) return {};
     const classifications: Record<string, string> = {};
@@ -158,7 +160,8 @@ export default function SwingModeler() {
       }
     }
     return classifications;
-  }, [boundaries, wardRegions]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [boundaries]);
 
   // Build regional swing from params
   const regionalSwing = useMemo(() => {
@@ -195,6 +198,16 @@ export default function SwingModeler() {
     }
     return hasAny ? turnout : undefined;
   }, [parameters]);
+
+  // Memoize the serialized ward data sent to the worker to avoid re-mapping
+  // 7,000 objects on every slider tick (wardData only changes when base election changes)
+  const serializedWardData = useMemo(() => {
+    if (!wardData) return null;
+    return wardData.map((w) => ({
+      wardId: w.wardId,
+      elections: w.elections,
+    }));
+  }, [wardData]);
 
   // Web Worker
   const workerRef = useRef<Worker | null>(null);
@@ -266,7 +279,7 @@ export default function SwingModeler() {
     }
 
     // Client-side models: post to Web Worker
-    if (!wardData || !workerRef.current) return;
+    if (!serializedWardData || !workerRef.current) return;
 
     // Clear any pending debounce
     if (debounceRef.current) {
@@ -276,10 +289,7 @@ export default function SwingModeler() {
     debounceRef.current = setTimeout(() => {
       setIsComputing(true);
       workerRef.current?.postMessage({
-        wardData: wardData.map((w) => ({
-          wardId: w.wardId,
-          elections: w.elections,
-        })),
+        wardData: serializedWardData,
         params: {
           baseElectionYear: String(baseYear),
           baseRaceType: baseRace,
@@ -304,7 +314,7 @@ export default function SwingModeler() {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [wardData, baseYear, baseRace, swingPoints, turnoutChange, activeModelId, wardRegions, regionalSwing, wardClassifications, regionalTurnout, demographicTurnout, showUncertainty, parameters, setIsComputing, setPredictions]);
+  }, [serializedWardData, baseYear, baseRace, swingPoints, turnoutChange, activeModelId, wardRegions, regionalSwing, wardClassifications, regionalTurnout, demographicTurnout, showUncertainty, parameters, setIsComputing, setPredictions]);
 
   // Convert predictions to MapDataResponse for the map
   const mapData = useMemo(() => {

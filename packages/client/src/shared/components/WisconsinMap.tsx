@@ -324,8 +324,13 @@ export const WisconsinMap = memo(function WisconsinMap({
     if (!m) return;
 
     let hoveredId: string | null = null;
+    let lastMoveTime = 0;
 
     const handleMove = (e: maplibregl.MapMouseEvent) => {
+      const now = performance.now();
+      if (now - lastMoveTime < 16) return; // Throttle to ~60fps
+      lastMoveTime = now;
+
       const features = m.queryRenderedFeatures(e.point, {
         layers: [WARD_LAYER_FILL],
       });

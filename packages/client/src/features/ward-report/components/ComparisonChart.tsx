@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   LineChart,
   Line,
@@ -18,7 +19,7 @@ interface ComparisonChartProps {
   county: string;
 }
 
-export function ComparisonChart({ comparisons, county }: ComparisonChartProps) {
+export const ComparisonChart = memo(function ComparisonChart({ comparisons, county }: ComparisonChartProps) {
   const chart = useChartTheme();
 
   if (comparisons.length === 0) {
@@ -104,4 +105,4 @@ export function ComparisonChart({ comparisons, county }: ComparisonChartProps) {
       </CardContent>
     </Card>
   );
-}
+});
