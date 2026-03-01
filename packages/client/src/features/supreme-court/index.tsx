@@ -61,18 +61,18 @@ export default function SupremeCourt() {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    <div className="flex h-full w-full max-w-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="border-b border-border/30 bg-content1 px-6 py-4">
-        <div className="flex items-start justify-between">
+      <div className="border-b border-border/30 bg-content1 px-4 py-4 md:px-6">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Wisconsin Supreme Court Elections</h2>
+            <h2 className="text-xl font-bold sm:text-2xl">Wisconsin Supreme Court Elections</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Spring election results by reporting unit
             </p>
           </div>
           {contest && (
-            <div className="text-right">
+            <div className="sm:text-right">
               <div className="text-sm text-muted-foreground">
                 {contest.election_date
                   ? new Date(contest.election_date + 'T00:00:00').toLocaleDateString('en-US', {
@@ -108,9 +108,9 @@ export default function SupremeCourt() {
       </div>
 
       {/* Controls */}
-      <div className="flex flex-wrap items-center gap-3 border-b border-border/30 px-4 py-3 md:px-6">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border/30 px-3 py-3 sm:gap-3 sm:px-4 md:px-6">
         <Select value={String(selectedYear)} onValueChange={handleYearChange}>
-          <SelectTrigger className="w-[100px]">
+          <SelectTrigger className="w-[80px] sm:w-[100px]">
             <SelectValue placeholder="Year" />
           </SelectTrigger>
           <SelectContent>
@@ -123,7 +123,7 @@ export default function SupremeCourt() {
         </Select>
 
         <Select value={viewMode} onValueChange={(v) => { setViewMode(v as ViewMode); setPage(1); }}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[130px] sm:w-[180px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -132,7 +132,7 @@ export default function SupremeCourt() {
           </SelectContent>
         </Select>
 
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative min-w-0 flex-1 basis-[120px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={searchQuery}
@@ -147,7 +147,7 @@ export default function SupremeCourt() {
             value={countyFilter}
             onChange={(e) => { setCountyFilter(e.target.value); setPage(1); }}
             placeholder="Filter by county..."
-            className="w-48"
+            className="w-36 sm:w-48"
           />
         )}
 
@@ -157,7 +157,7 @@ export default function SupremeCourt() {
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto px-6 py-4">
+      <div className="flex-1 overflow-auto px-3 py-4 sm:px-4 md:px-6">
         {viewMode === 'reporting-units' && resultsData && (
           <ReportingUnitTable
             results={resultsData.results}
@@ -171,7 +171,7 @@ export default function SupremeCourt() {
 
       {/* Pagination (reporting units only) */}
       {viewMode === 'reporting-units' && resultsData && totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-border/30 px-6 py-3">
+        <div className="flex items-center justify-between border-t border-border/30 px-3 py-3 sm:px-4 md:px-6">
           <span className="text-sm text-muted-foreground">
             {resultsData.total.toLocaleString()} reporting units
           </span>
@@ -269,43 +269,46 @@ function ReportingUnitTable({
   contest?: SpringContest;
 }) {
   return (
-    <div className="rounded-xl border border-border/30 overflow-hidden">
+    <div className="rounded-xl border border-border/30 overflow-x-auto">
     <table className="w-full text-sm">
       <thead className="sticky top-0 bg-content1/95 backdrop-blur-sm">
         <tr className="border-b border-border/30 text-left">
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider">County</th>
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider">Reporting Unit</th>
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">
+          <th className="px-2 py-2.5 text-xs font-medium uppercase tracking-wider sm:px-4">County</th>
+          <th className="hidden px-4 py-2.5 text-xs font-medium uppercase tracking-wider sm:table-cell">Reporting Unit</th>
+          <th className="px-2 py-2.5 text-xs font-medium uppercase tracking-wider text-right sm:px-4">
             {contest?.candidate_1_name.split(' ').pop() ?? 'Cand. 1'}
           </th>
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">
+          <th className="px-2 py-2.5 text-xs font-medium uppercase tracking-wider text-right sm:px-4">
             {contest?.candidate_2_name.split(' ').pop() ?? 'Cand. 2'}
           </th>
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">Total</th>
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider w-40">Result</th>
+          <th className="hidden px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right sm:table-cell">Total</th>
+          <th className="px-2 py-2.5 text-xs font-medium uppercase tracking-wider w-20 sm:w-40 sm:px-4">Result</th>
         </tr>
       </thead>
       <tbody>
         {results.map((r) => (
           <tr key={r.id} className="border-b border-border/30 hover:bg-content2 transition-colors">
-            <td className="px-4 py-2 font-medium">{r.county}</td>
-            <td className="px-4 py-2">{r.reporting_unit}</td>
-            <td className="px-4 py-2 text-right tabular-nums">
+            <td className="whitespace-nowrap px-2 py-2 font-medium sm:px-4">
+              {r.county}
+              <div className="text-xs font-normal text-muted-foreground sm:hidden">{r.reporting_unit}</div>
+            </td>
+            <td className="hidden px-4 py-2 sm:table-cell">{r.reporting_unit}</td>
+            <td className="px-2 py-2 text-right tabular-nums sm:px-4">
               {r.candidate_1_votes.toLocaleString()}
               <span className="ml-1 text-xs text-muted-foreground">
                 ({r.candidate_1_pct.toFixed(1)}%)
               </span>
             </td>
-            <td className="px-4 py-2 text-right tabular-nums">
+            <td className="px-2 py-2 text-right tabular-nums sm:px-4">
               {r.candidate_2_votes.toLocaleString()}
               <span className="ml-1 text-xs text-muted-foreground">
                 ({r.candidate_2_pct.toFixed(1)}%)
               </span>
             </td>
-            <td className="px-4 py-2 text-right tabular-nums">
+            <td className="hidden px-4 py-2 text-right tabular-nums sm:table-cell">
               {r.total_votes.toLocaleString()}
             </td>
-            <td className="px-4 py-2">
+            <td className="px-2 py-2 sm:px-4">
               <MarginBar margin={r.margin} />
             </td>
           </tr>
@@ -333,20 +336,20 @@ function CountyTable({
   if (counties.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-border/30 overflow-hidden">
+    <div className="rounded-xl border border-border/30 overflow-x-auto">
     <table className="w-full text-sm">
       <thead className="sticky top-0 bg-content1/95 backdrop-blur-sm">
         <tr className="border-b border-border/30 text-left">
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider">County</th>
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">
+          <th className="px-2 py-2.5 text-xs font-medium uppercase tracking-wider sm:px-4">County</th>
+          <th className="px-2 py-2.5 text-xs font-medium uppercase tracking-wider text-right sm:px-4">
             {counties[0].candidate_1_name.split(' ').pop()}
           </th>
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">
+          <th className="px-2 py-2.5 text-xs font-medium uppercase tracking-wider text-right sm:px-4">
             {counties[0].candidate_2_name.split(' ').pop()}
           </th>
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">Total</th>
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right">Units</th>
-          <th className="px-4 py-2.5 text-xs font-medium uppercase tracking-wider w-48">Result</th>
+          <th className="hidden px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right sm:table-cell">Total</th>
+          <th className="hidden px-4 py-2.5 text-xs font-medium uppercase tracking-wider text-right md:table-cell">Units</th>
+          <th className="px-2 py-2.5 text-xs font-medium uppercase tracking-wider w-20 sm:w-48 sm:px-4">Result</th>
         </tr>
       </thead>
       <tbody>
@@ -355,24 +358,24 @@ function CountyTable({
           const c2Pct = c.total_votes > 0 ? (c.candidate_2_votes / c.total_votes) * 100 : 0;
           return (
             <tr key={c.county} className="border-b border-border/30 hover:bg-content2 transition-colors">
-              <td className="px-4 py-2 font-medium">{c.county}</td>
-              <td className="px-4 py-2 text-right tabular-nums">
+              <td className="whitespace-nowrap px-2 py-2 font-medium sm:px-4">{c.county}</td>
+              <td className="px-2 py-2 text-right tabular-nums sm:px-4">
                 {c.candidate_1_votes.toLocaleString()}
                 <span className="ml-1 text-xs text-muted-foreground">
                   ({c1Pct.toFixed(1)}%)
                 </span>
               </td>
-              <td className="px-4 py-2 text-right tabular-nums">
+              <td className="px-2 py-2 text-right tabular-nums sm:px-4">
                 {c.candidate_2_votes.toLocaleString()}
                 <span className="ml-1 text-xs text-muted-foreground">
                   ({c2Pct.toFixed(1)}%)
                 </span>
               </td>
-              <td className="px-4 py-2 text-right tabular-nums">
+              <td className="hidden px-4 py-2 text-right tabular-nums sm:table-cell">
                 {c.total_votes.toLocaleString()}
               </td>
-              <td className="px-4 py-2 text-right tabular-nums">{c.reporting_units}</td>
-              <td className="px-4 py-2">
+              <td className="hidden px-4 py-2 text-right tabular-nums md:table-cell">{c.reporting_units}</td>
+              <td className="px-2 py-2 sm:px-4">
                 <MarginBar margin={c.margin} />
               </td>
             </tr>
@@ -391,8 +394,8 @@ function MarginBar({ margin }: { margin: number }) {
   const isC1 = margin > 0;
 
   return (
-    <div className="flex items-center gap-1.5">
-      <div className="flex h-3 w-full items-center">
+    <div className="flex items-center gap-1">
+      <div className="hidden h-3 w-full items-center sm:flex">
         {/* Left half (conservative) */}
         <div className="flex h-full w-1/2 justify-end">
           {isC1 && (
@@ -421,7 +424,7 @@ function MarginBar({ margin }: { margin: number }) {
         </div>
       </div>
       <span
-        className={`w-14 text-right text-xs font-medium tabular-nums ${isC1 ? 'text-rep' : 'text-dem'}`}
+        className={`whitespace-nowrap text-right text-xs font-medium tabular-nums sm:w-14 ${isC1 ? 'text-rep' : 'text-dem'}`}
       >
         {isC1 ? '+' : ''}{margin.toFixed(1)}
       </span>
