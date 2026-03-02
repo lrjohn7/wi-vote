@@ -46,14 +46,26 @@ Five parallel specialist agents audited the entire codebase:
 - `vite build` — clean in 13.79s, PWA generated
 - Railway: both **api** (`297cfdd7`) and **client** (`82db9a1e`) deployed **SUCCESS**
 
+### Sprint 1 — Quick Wins (5 items — commit `b8e6633`)
+
+| # | Severity | Finding | Fix |
+|---|----------|---------|-----|
+| M1 | MEDIUM | UncertaintyOverlay not wrapped in memo() | Wrapped in `React.memo()` |
+| M6 | MEDIUM | Missing HSTS header | Added `Strict-Transport-Security` to `nginx.conf` |
+| M8 | MEDIUM | race_type parameter not validated | `RaceTypeLiteral` in `schemas/election.py`, applied to elections + aggregations endpoints |
+| L1 | LOW | Duplicated TooltipState interface (3 files) | Extracted to `src/shared/types/tooltip.ts` |
+| L2 | LOW | Duplicated WISCONSIN map constants (4 files) | Extracted to `src/shared/lib/mapConstants.ts` (CENTER, GEO_CENTER, BOUNDS) |
+
+**Verification:**
+- `tsc -b` — zero errors
+- `vite build` — clean in 13.34s, PWA generated
+- Railway: both **api** (`35b7c7fe`) and **client** (`47cedfc2`) deployed **SUCCESS**
+
 ---
 
 ## Remaining Findings — MEDIUM Severity
 
-### M1. UncertaintyOverlay not wrapped in memo()
-- **File:** `packages/client/src/features/swing-modeler/components/UncertaintyOverlay.tsx`
-- **Issue:** Plain function export, re-renders on every parent render even when props unchanged.
-- **Fix:** Wrap with `React.memo()`.
+### ~~M1. UncertaintyOverlay not wrapped in memo()~~ DONE (Sprint 1)
 
 ### M2. URL state hooks write on every change (no debounce)
 - **File:** `packages/client/src/features/primary-simulator/hooks/usePrimaryUrlState.ts` (lines 189-285)
@@ -76,21 +88,14 @@ Five parallel specialist agents audited the entire codebase:
 - **Issue:** Direct `fetch()` calls bypass centralized error handling, request cancellation, and base URL configuration.
 - **Fix:** Migrate to `src/services/api.ts` client. Highest priority: hooks in election-map and swing-modeler features.
 
-### M6. Missing HSTS header (Strict-Transport-Security)
-- **File:** `packages/client/nginx.conf`
-- **Issue:** CSP, X-Frame-Options, etc. were added, but HSTS was not. Railway uses HTTPS but the header isn't set.
-- **Fix:** Add `add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;` to the server block.
-- **Note:** Only add if HTTPS is guaranteed (Railway enforces this).
+### ~~M6. Missing HSTS header (Strict-Transport-Security)~~ DONE (Sprint 1)
 
 ### M7. Scenario creation endpoint still has no dedicated rate limit
 - **File:** `packages/server/app/api/v1/endpoints/models.py` (line 201, `POST /models/scenarios`)
 - **Issue:** Falls back to global 120 req/min. Could be abused to fill database with unlimited scenarios.
 - **Fix:** Add per-IP rate limiting (e.g., 10 scenarios/hour) or require an API key for creation.
 
-### M8. race_type parameter not validated
-- **File:** `packages/server/app/api/v1/endpoints/elections.py` (line 25)
-- **Issue:** `race_type: str` accepts arbitrary strings. No validation against known types.
-- **Fix:** Use `Literal['president', 'governor', 'us_senate', ...]` or a Pydantic `Enum`.
+### ~~M8. race_type parameter not validated~~ DONE (Sprint 1)
 
 ### M9. Double JSON serialization in get_boundaries_geojson
 - **File:** `packages/server/app/services/ward_service.py` (line 245)
@@ -131,14 +136,9 @@ Five parallel specialist agents audited the entire codebase:
 
 ## Remaining Findings — LOW Severity
 
-### L1. Duplicated TooltipState interface (3 locations)
-- **Files:** `election-map/index.tsx:14`, `primary-simulator/index.tsx:37`, `swing-modeler/index.tsx:23`
-- **Fix:** Extract to `src/shared/types/tooltip.ts`.
+### ~~L1. Duplicated TooltipState interface (3 locations)~~ DONE (Sprint 1)
 
-### L2. Duplicated WISCONSIN_CENTER/WISCONSIN_BOUNDS constants (4 files)
-- **Files:** `DifferenceMap.tsx`, `PrimaryMap.tsx`, `WisconsinMap.tsx`, `mapStore.ts`
-- **Issue:** Some have slightly different values (`[-87.95, 43.04]` vs `[-89.5, 44.5]`).
-- **Fix:** Extract to `src/shared/lib/mapConstants.ts`. Decide on canonical center point.
+### ~~L2. Duplicated WISCONSIN_CENTER/WISCONSIN_BOUNDS constants (4 files)~~ DONE (Sprint 1)
 
 ### L3. Type assertion in useWardDemographics
 - **File:** `packages/client/src/shared/hooks/useWardDemographics.ts:40`
@@ -189,12 +189,12 @@ Five parallel specialist agents audited the entire codebase:
 
 ## Suggested Priority for Next Session
 
-### Sprint 1 — Quick Wins (1-2 hours)
-- M1: memo() on UncertaintyOverlay
-- M6: Add HSTS header to nginx.conf
-- M8: Validate race_type with Literal type
-- L1: Extract shared TooltipState interface
-- L2: Extract shared WISCONSIN map constants
+### ~~Sprint 1 — Quick Wins~~ DONE (commit `b8e6633`)
+- ~~M1: memo() on UncertaintyOverlay~~
+- ~~M6: Add HSTS header to nginx.conf~~
+- ~~M8: Validate race_type with Literal type~~
+- ~~L1: Extract shared TooltipState interface~~
+- ~~L2: Extract shared WISCONSIN map constants~~
 
 ### Sprint 2 — Performance (2-3 hours)
 - M2: Debounce URL state writes
@@ -235,5 +235,8 @@ Five parallel specialist agents audited the entire codebase:
 | Docker compose | `docker-compose.yml` |
 | Vite build config | `packages/client/vite.config.ts` |
 | API endpoints (models) | `packages/server/app/api/v1/endpoints/models.py` |
+| Shared tooltip type | `packages/client/src/shared/types/tooltip.ts` |
+| Shared map constants | `packages/client/src/shared/lib/mapConstants.ts` |
+| RaceType Literal (backend) | `packages/server/app/api/v1/schemas/election.py` |
 | Project instructions | `CLAUDE.md` |
 | All documentation | `documentation/` directory |
