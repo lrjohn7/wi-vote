@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.api.v1.schemas.election import RaceTypeLiteral
 from app.services.aggregation_service import AggregationService
 
 router = APIRouter(prefix="/aggregations", tags=["aggregations"])
@@ -11,7 +12,7 @@ router = APIRouter(prefix="/aggregations", tags=["aggregations"])
 async def get_county_aggregation(
     county: str,
     year: int,
-    race_type: str,
+    race_type: RaceTypeLiteral,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Get aggregated results for a county."""
@@ -27,7 +28,7 @@ async def get_district_aggregation(
     district_type: str,
     district_id: str,
     year: int,
-    race_type: str,
+    race_type: RaceTypeLiteral,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Get aggregated results for a district."""
@@ -47,7 +48,7 @@ async def get_district_aggregation(
 @router.get("/statewide/{year}/{race_type}")
 async def get_statewide_aggregation(
     year: int,
-    race_type: str,
+    race_type: RaceTypeLiteral,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Get statewide aggregated results."""

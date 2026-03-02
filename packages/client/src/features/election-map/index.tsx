@@ -10,15 +10,7 @@ import { MapLegend } from './components/MapLegend';
 import { WardTooltip } from './components/WardTooltip';
 import { WardDetailPanel } from './components/WardDetailPanel';
 import { MetricToggle } from './components/MetricToggle';
-
-interface TooltipState {
-  wardId: string;
-  wardName: string;
-  municipality: string;
-  county: string;
-  x: number;
-  y: number;
-}
+import type { TooltipState } from '@/shared/types/tooltip';
 
 export default function ElectionMap() {
   const activeElection = useMapStore((s) => s.activeElection);

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { WISCONSIN_CENTER } from '@/shared/lib/mapConstants';
 import type { RaceType } from '@/types/election';
 import type { DisplayMetric } from '@/shared/lib/colorScale';
 
@@ -19,9 +20,6 @@ interface MapState {
   toggleCompareMode: () => void;
   setCompareElection: (year: number, raceType: RaceType) => void;
 }
-
-// Wisconsin center coordinates
-const WISCONSIN_CENTER: [number, number] = [-87.95, 43.04]; // Milwaukee metro
 
 export const useMapStore = create<MapState>((set) => ({
   viewport: { center: WISCONSIN_CENTER, zoom: 7 },

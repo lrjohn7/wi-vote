@@ -18,6 +18,7 @@ import type {
   PrimaryRuPrediction,
 } from '@/types/primary';
 import type { PrimaryWardData as HookWardData } from './hooks/usePrimaryData';
+import type { TooltipState } from '@/shared/types/tooltip';
 
 interface WorkerWardData {
   ruId: string;
@@ -32,15 +33,6 @@ interface WorkerWardData {
   urbanRuralClass: 'urban' | 'suburban' | 'rural';
   votingAgePopulation: number;
   partisanLean: number;
-}
-
-interface TooltipState {
-  wardId: string;
-  wardName: string;
-  county: string;
-  municipality: string;
-  x: number;
-  y: number;
 }
 
 const MAP_MODE_OPTIONS: { mode: PrimaryMapMode; label: string; icon: typeof MapPin }[] = [

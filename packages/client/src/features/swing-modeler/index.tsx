@@ -19,15 +19,7 @@ import { fetchMrpPrediction, mrpResponseToPredictions } from '@/services/mrpApi'
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import type { RaceType, Prediction, UncertaintyBand, DemographicData } from '@/types/election';
 import type { MapDataResponse, WardMapEntry } from '@/features/election-map/hooks/useMapData';
-
-interface TooltipState {
-  wardId: string;
-  wardName: string;
-  municipality: string;
-  county: string;
-  x: number;
-  y: number;
-}
+import type { TooltipState } from '@/shared/types/tooltip';
 
 function predictionsToMapData(
   predictions: Prediction[],

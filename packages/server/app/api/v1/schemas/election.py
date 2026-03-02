@@ -1,4 +1,18 @@
+from typing import Literal
+
 from pydantic import BaseModel
+
+RaceTypeLiteral = Literal[
+    "president",
+    "governor",
+    "us_senate",
+    "us_house",
+    "state_senate",
+    "state_assembly",
+    "attorney_general",
+    "secretary_of_state",
+    "treasurer",
+]
 
 
 class ElectionSummary(BaseModel):

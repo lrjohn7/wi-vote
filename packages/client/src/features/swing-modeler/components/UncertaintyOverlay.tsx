@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { UncertaintyBand } from '@/types/election';
 
 interface UncertaintyOverlayProps {
@@ -9,7 +10,7 @@ interface UncertaintyOverlayProps {
  * Displays uncertainty information as a summary panel.
  * The actual opacity modulation happens via the map's setFeatureState.
  */
-export function UncertaintyOverlay({ uncertainty, visible }: UncertaintyOverlayProps) {
+export const UncertaintyOverlay = memo(function UncertaintyOverlay({ uncertainty, visible }: UncertaintyOverlayProps) {
   if (!visible || !uncertainty || uncertainty.length === 0) return null;
 
   // Compute summary statistics
@@ -47,4 +48,4 @@ export function UncertaintyOverlay({ uncertainty, visible }: UncertaintyOverlayP
       </div>
     </div>
   );
-}
+});

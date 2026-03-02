@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.api.v1.schemas.election import RaceTypeLiteral
 from app.services.election_service import ElectionService
 
 router = APIRouter(prefix="/elections", tags=["elections"])
@@ -22,7 +23,7 @@ async def list_elections(
 @router.get("/{year}/{race_type}")
 async def get_election_results(
     year: int,
-    race_type: str,
+    race_type: RaceTypeLiteral,
     county: str | None = None,
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=1000),
@@ -42,7 +43,7 @@ async def get_election_results(
 @router.get("/map-data/{year}/{race_type}")
 async def get_map_data(
     year: int,
-    race_type: str,
+    race_type: RaceTypeLiteral,
     response: Response,
     db: AsyncSession = Depends(get_db),
 ) -> dict:

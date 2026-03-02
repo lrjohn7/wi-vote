@@ -10,20 +10,12 @@ import {
   NO_DATA_COLOR,
   PRIMARY_MAP_COLORS,
 } from '../lib/primaryColors';
+import { WISCONSIN_GEO_CENTER, WISCONSIN_BOUNDS } from '@/shared/lib/mapConstants';
 import type { PrimaryRuPrediction, PrimaryMapMode } from '@/stores/primaryStore';
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-
-/** Geographic center of Wisconsin. */
-const WISCONSIN_CENTER: [number, number] = [-89.5, 44.5];
-
-/** Bounding box for Wisconsin to prevent panning away. */
-const WISCONSIN_BOUNDS: [[number, number], [number, number]] = [
-  [-93.0, 42.3],
-  [-86.7, 47.2],
-];
 
 const PRIMARY_SOURCE = 'primary-wards';
 const PRIMARY_FILL_LAYER = 'primary-fills';
@@ -145,7 +137,7 @@ export const PrimaryMap = memo(function PrimaryMap({
           },
         ],
       },
-      center: WISCONSIN_CENTER,
+      center: WISCONSIN_GEO_CENTER,
       zoom: 6.5,
       maxBounds: WISCONSIN_BOUNDS,
     });
@@ -396,7 +388,7 @@ export const PrimaryMap = memo(function PrimaryMap({
           break;
         case 'Escape':
           e.preventDefault();
-          m.jumpTo({ center: WISCONSIN_CENTER, zoom: 6.5 });
+          m.jumpTo({ center: WISCONSIN_GEO_CENTER, zoom: 6.5 });
           break;
       }
     };
@@ -407,7 +399,7 @@ export const PrimaryMap = memo(function PrimaryMap({
 
   // ---- Reset view button handler ----
   const handleResetView = useCallback(() => {
-    map.current?.jumpTo({ center: WISCONSIN_CENTER, zoom: 6.5 });
+    map.current?.jumpTo({ center: WISCONSIN_GEO_CENTER, zoom: 6.5 });
   }, []);
 
   return (

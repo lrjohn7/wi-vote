@@ -3,13 +3,8 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Protocol } from 'pmtiles';
 import { diffChoroplethFillColor, DIFF_LEGEND_BINS } from '@/shared/lib/diffColorScale';
+import { WISCONSIN_CENTER, WISCONSIN_BOUNDS } from '@/shared/lib/mapConstants';
 import type { DiffMapData } from '../hooks/useComparisonData';
-
-const WISCONSIN_CENTER: [number, number] = [-87.95, 43.04];
-const WISCONSIN_BOUNDS: [[number, number], [number, number]] = [
-  [-93.0, 42.3],
-  [-86.7, 47.2],
-];
 
 const WARD_SOURCE = 'wards';
 const WARD_SOURCE_LAYER = 'wards';
