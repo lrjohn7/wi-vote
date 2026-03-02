@@ -1,4 +1,4 @@
-from sqlalchemy import select, func, or_
+from sqlalchemy import select, func, or_, case
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from geoalchemy2.functions import ST_AsGeoJSON, ST_Contains, ST_SetSRID, ST_MakePoint
@@ -277,7 +277,7 @@ class WardService:
                 select(
                     ElectionResult.ward_id.label("ward_id"),
                     func.avg(
-                        func.case(
+                        case(
                             (
                                 ElectionResult.total_votes > 0,
                                 (ElectionResult.dem_votes - ElectionResult.rep_votes)
