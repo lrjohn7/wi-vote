@@ -315,11 +315,10 @@ class WardService:
         for yr, sq in margin_subqueries:
             stmt = stmt.add_columns(sq.c[f"margin_{yr}"])
 
-        # Join demographics
+        # Join demographics (demographics may be stored under a different vintage)
         stmt = stmt.join(
             WardDemographic,
-            (WardDemographic.ward_id == Ward.ward_id)
-            & (WardDemographic.ward_vintage == Ward.ward_vintage),
+            WardDemographic.ward_id == Ward.ward_id,
         )
 
         # Left-join each margin subquery
