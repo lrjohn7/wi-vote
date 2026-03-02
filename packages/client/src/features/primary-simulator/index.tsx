@@ -4,7 +4,13 @@ import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { usePrimaryStore } from '@/stores/primaryStore';
 import { usePrimaryData } from './hooks/usePrimaryData';
 import { usePrimaryUrlState } from './hooks/usePrimaryUrlState';
-import { PollPresetSelector } from './components/PollPresetSelector';
+import { PrimaryMap } from './components/PrimaryMap';
+import { CandidateCardList } from './components/CandidateCardList';
+import { PrimaryControlsPanel } from './components/PrimaryControlsPanel';
+import { PrimaryResultsSummary } from './components/PrimaryResultsSummary';
+import { WinProbabilityBars } from './components/WinProbabilityBars';
+import { PrimaryMapLegend } from './components/PrimaryMapLegend';
+import { PrimaryTooltip } from './components/PrimaryTooltip';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import type { PrimaryMapMode } from '@/stores/primaryStore';
 import type {
@@ -58,8 +64,6 @@ export default function PrimarySimulator() {
   const mapMode = usePrimaryStore((s) => s.mapMode);
   const heatmapCandidateId = usePrimaryStore((s) => s.heatmapCandidateId);
   const predictions = usePrimaryStore((s) => s.predictions);
-  const statewideTotals = usePrimaryStore((s) => s.statewideTotals);
-  const monteCarlo = usePrimaryStore((s) => s.monteCarlo);
   const isComputing = usePrimaryStore((s) => s.isComputing);
 
   const setMapMode = usePrimaryStore((s) => s.setMapMode);
@@ -70,8 +74,6 @@ export default function PrimarySimulator() {
   const setIsComputing = usePrimaryStore((s) => s.setIsComputing);
 
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
-  // setTooltip will be passed to PrimaryMap component; void prevents unused-var error
-  void setTooltip;
   const [workerError, setWorkerError] = useState<string | null>(null);
 
   usePrimaryUrlState();
@@ -103,18 +105,7 @@ export default function PrimarySimulator() {
 
   const wardCount = predictions?.length ?? 0;
 
-  const candidateNameMap = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const c of candidates) map.set(c.id, c.shortName);
-    return map;
-  }, [candidates]);
-
-  const candidateColorMap = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const c of candidates) map.set(c.id, c.color);
-    return map;
-  }, [candidates]);
-
+  // ---- Worker lifecycle ----
   const workerRef = useRef<Worker | null>(null);
 
   useEffect(() => {
@@ -144,6 +135,7 @@ export default function PrimarySimulator() {
     };
   }, [setPredictions, setStatewideTotals, setMonteCarlo, setIsComputing]);
 
+  // ---- Debounced model computation ----
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -174,11 +166,13 @@ export default function PrimarySimulator() {
     };
   }, [candidates, globalParams, workerWardData, setIsComputing]);
 
+  // ---- Hovered ward prediction lookup ----
   const hoveredPrediction = useMemo((): PrimaryRuPrediction | null => {
     if (!tooltip || !predictions) return null;
     return predictions.find((p) => p.ruId === tooltip.wardId) ?? null;
   }, [tooltip, predictions]);
 
+  // ---- Map mode handlers ----
   const handleMapModeChange = useCallback(
     (mode: PrimaryMapMode) => {
       setMapMode(mode);
@@ -197,19 +191,28 @@ export default function PrimarySimulator() {
     [setHeatmapCandidate],
   );
 
-  const getCandidateName = useCallback(
-    (id: string) => candidateNameMap.get(id) ?? id,
-    [candidateNameMap],
+  // ---- Map hover callback ----
+  const handleWardHover = useCallback(
+    (
+      ruId: string | null,
+      properties: Record<string, unknown> | null,
+      point: { x: number; y: number } | null,
+    ) => {
+      if (!ruId || !properties || !point) {
+        setTooltip(null);
+        return;
+      }
+      setTooltip({
+        wardId: ruId,
+        wardName: String(properties.ward_name ?? properties._wardId ?? ruId),
+        county: String(properties.county ?? ''),
+        municipality: String(properties.municipality ?? ''),
+        x: point.x,
+        y: point.y,
+      });
+    },
+    [],
   );
-
-  const getCandidateColor = useCallback(
-    (id: string) => candidateColorMap.get(id) ?? '#94a3b8',
-    [candidateColorMap],
-  );
-
-  const mapModeLabel = mapMode === 'candidate-heatmap' && heatmapCandidateId
-    ? ' (' + getCandidateName(heatmapCandidateId) + ' heatmap)'
-    : ' (winner view)';
 
   return (
     <div className="flex h-full flex-col">
@@ -274,77 +277,17 @@ export default function PrimarySimulator() {
       <div className="flex flex-1 overflow-hidden">
         {/* Left sidebar */}
         <div className="flex w-80 shrink-0 flex-col gap-3 overflow-y-auto border-r border-border/40 bg-background/50 p-4" aria-label="Primary simulator controls">
-          <PollPresetSelector />
+          {/* Candidate cards with expandable parameter sliders */}
+          <CandidateCardList />
 
-          {/* CandidateCards placeholder -- separate component */}
-          <div className="space-y-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Candidates</h3>
-            {candidates.map((c) => {
-              const cls = 'flex items-center gap-2 rounded-lg border border-border/40 px-3 py-2 text-sm '
-                + (c.isActive ? 'opacity-100' : 'opacity-40');
-              return (
-                <div key={c.id} className={cls}>
-                  <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: c.color }} aria-hidden="true" />
-                  <span className="flex-1 truncate font-medium">{c.name}</span>
-                  <span className="text-xs text-muted-foreground">{c.pollingBaseline}%</span>
-                </div>
-              );
-            })}
-            {/* TODO: Replace with <CandidateCards /> component */}
-          </div>
+          {/* Global model parameters with sliders */}
+          <PrimaryControlsPanel />
 
-          {/* Global parameters placeholder */}
-          <div className="space-y-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Model Parameters</h3>
-            <div className="rounded-lg border border-border/40 px-3 py-2 text-xs text-muted-foreground">
-              <p>Turnout: {globalParams.turnoutRate}%</p>
-              <p>Temperature: {globalParams.temperature}</p>
-              <p>Geo weight: {globalParams.geoWeight}</p>
-              <p>Ideology weight: {globalParams.ideologyWeight}</p>
-              <p>Demo weight: {globalParams.demographicWeight}</p>
-              <p>Endorsement weight: {globalParams.endorsementWeight}</p>
-            </div>
-            {/* TODO: Replace with <GlobalParamsPanel /> component */}
-          </div>
+          {/* Statewide results summary with regional breakdown */}
+          <PrimaryResultsSummary />
 
-          {/* Statewide results summary placeholder */}
-          <div className="space-y-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Statewide Results</h3>
-            {statewideTotals && statewideTotals.length > 0 ? (
-              <div className="space-y-1">
-                {statewideTotals.slice().sort((a, b) => b.votes - a.votes).map((cv) => (
-                  <div key={cv.candidateId} className="flex items-center gap-2 text-sm">
-                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: getCandidateColor(cv.candidateId) }} aria-hidden="true" />
-                    <span className="flex-1 truncate">{getCandidateName(cv.candidateId)}</span>
-                    <span className="tabular-nums text-xs text-muted-foreground">{(cv.voteShare * 100).toFixed(1)}%</span>
-                    <span className="tabular-nums text-xs text-muted-foreground">{cv.votes.toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                {dataLoading ? 'Loading...' : 'Adjust parameters to see results'}
-              </p>
-            )}
-            {/* TODO: Replace with <PrimaryResultsSummary /> component */}
-          </div>
-
-          {/* Monte Carlo win probabilities placeholder */}
-          {monteCarlo && monteCarlo.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Win Probabilities</h3>
-              <div className="space-y-1">
-                {monteCarlo.slice().sort((a, b) => b.winProbability - a.winProbability).map((mc) => (
-                  <div key={mc.candidateId} className="flex items-center gap-2 text-sm">
-                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: getCandidateColor(mc.candidateId) }} aria-hidden="true" />
-                    <span className="flex-1 truncate">{getCandidateName(mc.candidateId)}</span>
-                    <span className="tabular-nums text-xs font-medium">{(mc.winProbability * 100).toFixed(0)}%</span>
-                  </div>
-                ))}
-              </div>
-              {/* TODO: Replace with <MonteCarloPanel /> component */}
-            </div>
-          )}
+          {/* Monte Carlo win probability bars */}
+          <WinProbabilityBars />
         </div>
 
         {/* Map area */}
@@ -361,38 +304,26 @@ export default function PrimarySimulator() {
             </div>
           )}
 
-          {/* PrimaryMap placeholder -- separate component */}
-          <div className="flex h-full w-full items-center justify-center bg-content2/30 text-muted-foreground" aria-label="Primary election results map">
-            {dataLoading ? (
-              <span className="text-sm">Loading map data...</span>
-            ) : wardCount > 0 ? (
-              <span className="text-sm">Map rendering {wardCount.toLocaleString()} wards{mapModeLabel}</span>
-            ) : (
-              <span className="text-sm">Waiting for prediction data...</span>
-            )}
-            {/* TODO: Replace with <PrimaryMap /> component */}
-          </div>
+          {/* Interactive MapLibre GL map */}
+          <PrimaryMap
+            predictions={predictions}
+            mapMode={mapMode}
+            heatmapCandidateId={heatmapCandidateId}
+            onWardHover={handleWardHover}
+          />
+
+          {/* Map legend overlay */}
+          <PrimaryMapLegend />
 
           {/* Tooltip for hovered ward */}
           {tooltip && hoveredPrediction && (
-            <div
-              className="pointer-events-none absolute z-40 rounded-lg border border-border/60 bg-background/95 px-3 py-2 shadow-lg backdrop-blur-sm"
-              style={{ left: tooltip.x + 12, top: tooltip.y - 12, maxWidth: 260 }}
-              role="tooltip"
-            >
-              <p className="text-xs font-semibold">{tooltip.wardName}</p>
-              <p className="text-xs text-muted-foreground">{tooltip.municipality}, {tooltip.county}</p>
-              <div className="mt-1.5 space-y-0.5">
-                {hoveredPrediction.candidates.slice().sort((a, b) => b.voteShare - a.voteShare).slice(0, 4).map((cv) => (
-                  <div key={cv.candidateId} className="flex items-center gap-1.5 text-xs">
-                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: getCandidateColor(cv.candidateId) }} aria-hidden="true" />
-                    <span className="flex-1 truncate">{getCandidateName(cv.candidateId)}</span>
-                    <span className="tabular-nums font-medium">{(cv.voteShare * 100).toFixed(1)}%</span>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">{hoveredPrediction.totalVotes.toLocaleString()} total votes</p>
-            </div>
+            <PrimaryTooltip
+              ruName={tooltip.wardName}
+              county={tooltip.county}
+              prediction={hoveredPrediction}
+              x={tooltip.x}
+              y={tooltip.y}
+            />
           )}
         </div>
       </div>
