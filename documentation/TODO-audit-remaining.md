@@ -61,27 +61,31 @@ Five parallel specialist agents audited the entire codebase:
 - `vite build` — clean in 13.34s, PWA generated
 - Railway: both **api** (`35b7c7fe`) and **client** (`47cedfc2`) deployed **SUCCESS**
 
+### Sprint 2 — Performance (4 items — commit `23ca771`)
+
+| # | Severity | Finding | Fix |
+|---|----------|---------|-----|
+| M2 | MEDIUM | URL state hooks write on every change (no debounce) | Added 300ms debounce timers to `usePrimaryUrlState`, `useModelerUrlState`, `useUrlState` |
+| M3 | MEDIUM | Primary simulator fires predict + MC sequentially | Split into separate predict (80ms) and Monte Carlo (500ms) debounce timers |
+| M4 | MEDIUM | Inconsistent TanStack Query staleTime | Added staleTime to `useWardRegistration` (5m), `useScenarioList` (5m), `useScenario` (5m), `useLiveElections` (15s), `useLiveResults` (5s) |
+| M9 | MEDIUM | Double JSON serialization in boundaries | Build raw JSON string embedding PostGIS geometry directly, return via `Response` instead of dict |
+
+**Verification:**
+- `tsc -b` — zero errors
+- `vite build` — clean in 15.63s, PWA generated
+- Railway: both **api** (`b58976dc`) and **client** (`1a36cad1`) deployed **SUCCESS**
+
 ---
 
 ## Remaining Findings — MEDIUM Severity
 
 ### ~~M1. UncertaintyOverlay not wrapped in memo()~~ DONE (Sprint 1)
 
-### M2. URL state hooks write on every change (no debounce)
-- **File:** `packages/client/src/features/primary-simulator/hooks/usePrimaryUrlState.ts` (lines 189-285)
-- **Also:** Similar pattern in `useModelUrlState` and other URL sync hooks
-- **Issue:** URL is updated synchronously on every state change, causing excessive history entries and potential performance jank.
-- **Fix:** Add `useDebouncedEffect` (300ms) or batch URL writes with `requestAnimationFrame`.
+### ~~M2. URL state hooks write on every change (no debounce)~~ DONE (Sprint 2)
 
-### M3. Primary simulator fires predict + Monte Carlo sequentially
-- **File:** `packages/client/src/features/primary-simulator/index.tsx` (lines 152-178)
-- **Issue:** Worker prediction has 80ms debounce, but Monte Carlo fires 100ms after predict completes. Both fire on every parameter change.
-- **Fix:** Combine into single debounced worker call, or increase MC debounce to 500ms.
+### ~~M3. Primary simulator fires predict + Monte Carlo sequentially~~ DONE (Sprint 2)
 
-### M4. Inconsistent TanStack Query staleTime/gcTime
-- **Files:** Multiple hooks across features
-- **Issue:** `useWardDemographics` has proper staleTime (10min/30min), but many hooks use defaults (staleTime=0, always stale).
-- **Fix:** Add appropriate staleTime to: `useElections` (30min), `useMapData` (5min), `useWardSearch` (2min), `useLiveResults` (30s).
+### ~~M4. Inconsistent TanStack Query staleTime/gcTime~~ DONE (Sprint 2)
 
 ### M5. Raw fetch() instead of shared API client (19 files)
 - **Files:** `useElections.ts`, `useMapData.ts`, `useLiveResults.ts`, `useWardSearch.ts`, `useWardBoundaries.ts`, and ~14 more
@@ -97,10 +101,7 @@ Five parallel specialist agents audited the entire codebase:
 
 ### ~~M8. race_type parameter not validated~~ DONE (Sprint 1)
 
-### M9. Double JSON serialization in get_boundaries_geojson
-- **File:** `packages/server/app/services/ward_service.py` (line 245)
-- **Issue:** `ST_AsGeoJSON(Ward.geom)` returns a JSON string. `json.loads(row.geojson)` parses it to dict, then FastAPI serializes it back to JSON. Double parse/serialize for ~7,000 features.
-- **Fix:** Use `func.ST_AsGeoJSON(Ward.geom)` as a raw string and embed directly, or use `orjson` for faster serialization.
+### ~~M9. Double JSON serialization in get_boundaries_geojson~~ DONE (Sprint 2)
 
 ### M10. Broad exception catches
 - **File:** `packages/server/app/services/scenario_service.py` (lines 37-40)
@@ -196,11 +197,11 @@ Five parallel specialist agents audited the entire codebase:
 - ~~L1: Extract shared TooltipState interface~~
 - ~~L2: Extract shared WISCONSIN map constants~~
 
-### Sprint 2 — Performance (2-3 hours)
-- M2: Debounce URL state writes
-- M3: Optimize Primary simulator worker calls
-- M4: Set staleTime on all TanStack Query hooks
-- M9: Fix double JSON serialization in boundaries
+### ~~Sprint 2 — Performance~~ DONE (commit `23ca771`)
+- ~~M2: Debounce URL state writes~~ — 300ms debounce in 3 URL state hooks
+- ~~M3: Optimize Primary simulator worker calls~~ — separate predict (80ms) and Monte Carlo (500ms) timers
+- ~~M4: Set staleTime on all TanStack Query hooks~~ — added to 5 hooks (registration, scenarios, live)
+- ~~M9: Fix double JSON serialization in boundaries~~ — raw JSON string builder, Response() instead of dict
 
 ### Sprint 3 — Testing (3-4 hours)
 - M11: Add tests for pure functions (pollAveraging, aggregatePredictions, regionMapping)
