@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import {
   Select,
   SelectContent,
@@ -10,22 +11,26 @@ import { useMapStore } from '@/stores/mapStore';
 import { RACE_LABELS } from '@/shared/lib/raceLabels';
 import type { RaceType } from '@/types/election';
 
-export function ElectionSelector() {
+export const ElectionSelector = memo(function ElectionSelector() {
   const { data, isLoading } = useElections();
   const activeElection = useMapStore((s) => s.activeElection);
   const setActiveElection = useMapStore((s) => s.setActiveElection);
 
+  const elections = data?.elections;
+
+  // Memoize derived arrays to avoid recalculating on every render
+  const years = useMemo(
+    () => (elections ? [...new Set(elections.map((e) => e.year))].sort((a, b) => b - a) : []),
+    [elections],
+  );
+  const racesForYear = useMemo(
+    () => (elections ? elections.filter((e) => e.year === activeElection?.year).map((e) => e.race_type) : []),
+    [elections, activeElection?.year],
+  );
+
   if (isLoading || !data) {
     return <div className="text-sm text-muted-foreground">Loading elections...</div>;
   }
-
-  const elections = data.elections;
-
-  // Get unique years and race types
-  const years = [...new Set(elections.map((e) => e.year))].sort((a, b) => b - a);
-  const racesForYear = elections
-    .filter((e) => e.year === activeElection?.year)
-    .map((e) => e.race_type);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -34,7 +39,7 @@ export function ElectionSelector() {
         onValueChange={(val) => {
           const year = Number(val);
           // Find first available race for this year
-          const firstRace = elections.find((e) => e.year === year);
+          const firstRace = data.elections.find((e) => e.year === year);
           if (firstRace) {
             setActiveElection(year, firstRace.race_type as RaceType);
           }
@@ -73,4 +78,4 @@ export function ElectionSelector() {
       </Select>
     </div>
   );
-}
+});

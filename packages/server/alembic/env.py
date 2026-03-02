@@ -13,6 +13,12 @@ from app.models import (  # noqa: F401
     WardDemographic,
     SpringElectionResult,
     ElectionAggregation,
+    Scenario,
+    WardNote,
+    VoterRegistration,
+    LiveResult,
+    LiveElection,
+    AnalyticsEvent,
     PrimaryReportingUnit,
     PrimaryResult,
 )

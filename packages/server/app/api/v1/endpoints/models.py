@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.security import verify_admin_key
 from app.services.mrp_service import MrpService
 from app.services.scenario_service import ScenarioService
 
@@ -140,9 +141,9 @@ async def predict(
     return result
 
 
-@router.post("/mrp/fit")
+@router.post("/mrp/fit", dependencies=[Depends(verify_admin_key)])
 async def trigger_mrp_fit(request: MrpFitRequest) -> dict:
-    """Trigger async MRP model fitting via Celery."""
+    """Trigger async MRP model fitting via Celery. Requires X-Admin-Key header."""
     try:
         from app.tasks.mrp_tasks import fit_mrp_model_task
     except ImportError:

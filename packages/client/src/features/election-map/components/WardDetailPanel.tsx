@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useNavigate } from 'react-router';
 import { X, ClipboardList } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +13,7 @@ import { RACE_LABELS_SHORT } from '@/shared/lib/raceLabels';
 import { useWardDemographics } from '@/shared/hooks/useWardDemographics';
 import { DemographicsSection } from '@/shared/components/DemographicsSection';
 
-export function WardDetailPanel() {
+export const WardDetailPanel = memo(function WardDetailPanel() {
   const navigate = useNavigate();
   const selectedWardId = useMapStore((s) => s.selectedWardId);
   const setSelectedWard = useMapStore((s) => s.setSelectedWard);
@@ -200,4 +201,4 @@ export function WardDetailPanel() {
       )}
     </aside>
   );
-}
+});

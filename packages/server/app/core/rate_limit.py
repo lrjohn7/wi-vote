@@ -1,16 +1,35 @@
 """Simple in-memory rate limiting middleware for FastAPI.
 
-Uses a sliding window counter per IP address. Not suitable for
+Uses a fixed-window counter per IP address. Not suitable for
 multi-process deployments (use Redis-based limiting instead).
 Sufficient for single-process Railway deployments.
 """
 
 import time
-from collections import defaultdict
 from typing import Callable
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+
+# Maximum unique IPs to track before evicting stale entries
+_MAX_COUNTER_ENTRIES = 10_000
+
+
+def _get_client_ip(request: Request) -> str:
+    """Extract the real client IP, respecting proxy headers.
+
+    Priority: X-Forwarded-For (first IP) > X-Real-IP > request.client.host
+    """
+    forwarded_for = request.headers.get("x-forwarded-for")
+    if forwarded_for:
+        # X-Forwarded-For may contain: "client, proxy1, proxy2"
+        return forwarded_for.split(",")[0].strip()
+
+    real_ip = request.headers.get("x-real-ip")
+    if real_ip:
+        return real_ip.strip()
+
+    return request.client.host if request.client else "unknown"
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
@@ -35,18 +54,35 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.window_seconds = window_seconds
         self.expensive_paths = expensive_paths or []
         # ip -> (window_start, count)
-        self._counters: dict[str, tuple[float, int]] = defaultdict(lambda: (0.0, 0))
+        self._counters: dict[str, tuple[float, int]] = {}
+        self._last_cleanup = time.monotonic()
+
+    def _cleanup_stale_entries(self, now: float) -> None:
+        """Remove expired counter entries to prevent unbounded memory growth."""
+        if len(self._counters) < _MAX_COUNTER_ENTRIES:
+            return
+        stale_keys = [
+            ip for ip, (window_start, _) in self._counters.items()
+            if now - window_start >= self.window_seconds
+        ]
+        for key in stale_keys:
+            del self._counters[key]
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        client_ip = request.client.host if request.client else "unknown"
+        client_ip = _get_client_ip(request)
         now = time.monotonic()
+
+        # Periodic cleanup to prevent memory leak
+        if now - self._last_cleanup > self.window_seconds * 2:
+            self._cleanup_stale_entries(now)
+            self._last_cleanup = now
 
         # Determine limit based on path
         path = request.url.path
         is_expensive = any(path.startswith(p) for p in self.expensive_paths)
         limit = self.max_requests // 4 if is_expensive else self.max_requests
 
-        window_start, count = self._counters[client_ip]
+        window_start, count = self._counters.get(client_ip, (0.0, 0))
 
         # Reset window if expired
         if now - window_start >= self.window_seconds:

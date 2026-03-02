@@ -66,6 +66,25 @@ function AggregationTable({ rows }: { rows: AggregatedResult[] }) {
 }
 
 export const ResultsSummary = memo(function ResultsSummary({ predictions, baseMapData, wardMetadata }: ResultsSummaryProps) {
+  // All hooks must be called unconditionally before any early returns
+  const meta = wardMetadata ?? {};
+  const countyRows = useMemo(
+    () => (predictions ? aggregateByCounty(predictions, meta) : []),
+    [predictions, meta],
+  );
+  const cdRows = useMemo(
+    () => (predictions ? aggregateByCongressionalDistrict(predictions, meta) : []),
+    [predictions, meta],
+  );
+  const sdRows = useMemo(
+    () => (predictions ? aggregateBySenateDistrict(predictions, meta) : []),
+    [predictions, meta],
+  );
+  const adRows = useMemo(
+    () => (predictions ? aggregateByAssemblyDistrict(predictions, meta) : []),
+    [predictions, meta],
+  );
+
   if (!predictions || predictions.length === 0) {
     return (
       <div className="text-sm text-muted-foreground">
@@ -101,17 +120,6 @@ export const ResultsSummary = memo(function ResultsSummary({ predictions, baseMa
   const shift = baselineMargin != null ? margin - baselineMargin : null;
   const winner = margin > 0 ? 'DEM' : margin < 0 ? 'REP' : 'TIE';
   const winnerColorClass = margin > 0 ? 'text-dem' : 'text-rep';
-
-  // Aggregations by geography
-  const meta = wardMetadata ?? {};
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const countyRows = useMemo(() => aggregateByCounty(predictions, meta), [predictions, meta]);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const cdRows = useMemo(() => aggregateByCongressionalDistrict(predictions, meta), [predictions, meta]);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const sdRows = useMemo(() => aggregateBySenateDistrict(predictions, meta), [predictions, meta]);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const adRows = useMemo(() => aggregateByAssemblyDistrict(predictions, meta), [predictions, meta]);
 
   const hasAggregations = Object.keys(meta).length > 0;
 

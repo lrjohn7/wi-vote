@@ -7,6 +7,11 @@ from app.models.ward import Ward
 from app.models.election_result import ElectionResult
 
 
+def _escape_like(value: str) -> str:
+    """Escape special SQL LIKE pattern characters to prevent wildcard injection."""
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 class WardService:
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
@@ -23,9 +28,9 @@ class WardService:
         stmt = select(Ward)
 
         if county:
-            stmt = stmt.where(Ward.county.ilike(f"%{county}%"))
+            stmt = stmt.where(Ward.county.ilike(f"%{_escape_like(county)}%"))
         if municipality:
-            stmt = stmt.where(Ward.municipality.ilike(f"%{municipality}%"))
+            stmt = stmt.where(Ward.municipality.ilike(f"%{_escape_like(municipality)}%"))
         if vintage:
             stmt = stmt.where(Ward.ward_vintage == vintage)
 
@@ -155,7 +160,7 @@ class WardService:
         Deduplicates across ward vintages by keeping only the most
         recent vintage for each ward_id.
         """
-        pattern = f"%{query}%"
+        pattern = f"%{_escape_like(query)}%"
 
         # Subquery: rank rows per ward_id by vintage descending
         ranked = (

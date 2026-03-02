@@ -14,7 +14,7 @@ class WardNote(Base):
     author_name: Mapped[str] = mapped_column(String(100), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     category: Mapped[str | None] = mapped_column(String(50))  # local_knowledge, correction, context
-    is_approved: Mapped[bool] = mapped_column(default=True)
+    is_approved: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
 
     __table_args__ = (

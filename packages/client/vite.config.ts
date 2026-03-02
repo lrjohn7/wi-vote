@@ -114,6 +114,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           'vendor-map': ['maplibre-gl', 'pmtiles'],
+          'vendor-chart': ['recharts'],
           'vendor-react': ['react', 'react-dom', 'react-router'],
           'vendor-state': ['zustand', '@tanstack/react-query'],
         },
