@@ -141,10 +141,12 @@ export function useModelerUrlState() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Write store state to URL params
+  // Write store state to URL params (debounced to avoid jank)
+  const urlWriteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!initialized.current) return;
-
+    if (urlWriteTimer.current) clearTimeout(urlWriteTimer.current);
+    urlWriteTimer.current = setTimeout(() => {
     const params = new URLSearchParams();
 
     if (activeModelId && activeModelId !== 'uniform-swing') {
@@ -201,5 +203,7 @@ export function useModelerUrlState() {
     }
 
     setSearchParams(params, { replace: true });
+    }, 300);
+    return () => { if (urlWriteTimer.current) clearTimeout(urlWriteTimer.current); };
   }, [parameters, activeModelId, setSearchParams]);
 }

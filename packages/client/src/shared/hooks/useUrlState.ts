@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 import { useMapStore } from '@/stores/mapStore';
 import type { RaceType } from '@/types/election';
@@ -38,21 +38,26 @@ export function useUrlState() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Write store state to URL params
+  // Write store state to URL params (debounced to avoid jank)
+  const urlWriteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    const params = new URLSearchParams();
+    if (urlWriteTimer.current) clearTimeout(urlWriteTimer.current);
+    urlWriteTimer.current = setTimeout(() => {
+      const params = new URLSearchParams();
 
-    if (activeElection) {
-      params.set('year', String(activeElection.year));
-      params.set('race', activeElection.raceType);
-    }
-    if (selectedWardId) {
-      params.set('ward', selectedWardId);
-    }
-    if (displayMetric !== 'margin') {
-      params.set('metric', displayMetric);
-    }
+      if (activeElection) {
+        params.set('year', String(activeElection.year));
+        params.set('race', activeElection.raceType);
+      }
+      if (selectedWardId) {
+        params.set('ward', selectedWardId);
+      }
+      if (displayMetric !== 'margin') {
+        params.set('metric', displayMetric);
+      }
 
-    setSearchParams(params, { replace: true });
+      setSearchParams(params, { replace: true });
+    }, 300);
+    return () => { if (urlWriteTimer.current) clearTimeout(urlWriteTimer.current); };
   }, [activeElection, selectedWardId, displayMetric, setSearchParams]);
 }

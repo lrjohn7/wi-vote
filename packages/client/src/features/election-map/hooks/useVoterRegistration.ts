@@ -37,5 +37,6 @@ export function useWardRegistration(wardId: string | null) {
       return res.json();
     },
     enabled: !!wardId,
+    staleTime: 300_000, // 5 minutes
   });
 }

@@ -6,6 +6,7 @@ export function useScenarioList(limit = 10) {
   return useQuery({
     queryKey: queryKeys.scenarios.list(limit),
     queryFn: () => api.listScenarios(limit),
+    staleTime: 300_000, // 5 minutes
   });
 }
 
@@ -14,6 +15,7 @@ export function useScenario(shortId: string | null) {
     queryKey: queryKeys.scenarios.detail(shortId ?? ''),
     queryFn: () => api.loadScenario(shortId!),
     enabled: !!shortId,
+    staleTime: 300_000, // 5 minutes
   });
 }
 

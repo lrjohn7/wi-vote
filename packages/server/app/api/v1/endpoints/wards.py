@@ -32,18 +32,24 @@ async def list_wards(
 
 @router.get("/boundaries")
 async def get_boundaries(
-    response: Response,
     vintage: int | None = None,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> Response:
     """Get all ward boundaries as GeoJSON FeatureCollection.
 
     Used by the frontend map to render ward polygons.
     Features include ward_id as the 'id' field for setFeatureState.
+
+    Returns a pre-built JSON string to avoid double-serialization
+    of PostGIS geometry (ST_AsGeoJSON → json.loads → FastAPI re-serialize).
     """
-    response.headers["Cache-Control"] = "public, max-age=604800"
     service = WardService(db)
-    return await service.get_boundaries_geojson(vintage=vintage)
+    raw_json = await service.get_boundaries_geojson(vintage=vintage)
+    return Response(
+        content=raw_json,
+        media_type="application/json",
+        headers={"Cache-Control": "public, max-age=604800"},
+    )
 
 
 @router.get("/geocode")

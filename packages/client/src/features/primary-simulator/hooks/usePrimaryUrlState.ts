@@ -186,10 +186,12 @@ export function usePrimaryUrlState() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Write store state to URL params on change
+  // Write store state to URL params on change (debounced to avoid jank)
+  const urlWriteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!initialized.current) return;
-
+    if (urlWriteTimer.current) clearTimeout(urlWriteTimer.current);
+    urlWriteTimer.current = setTimeout(() => {
     const params = new URLSearchParams();
 
     // Poll source mode
@@ -282,6 +284,8 @@ export function usePrimaryUrlState() {
     }
 
     setSearchParams(params, { replace: true });
+    }, 300);
+    return () => { if (urlWriteTimer.current) clearTimeout(urlWriteTimer.current); };
   }, [candidates, globalParams, activePresetId, mapMode, heatmapCandidateId, pollSource, polls, pollAveragingConfig, setSearchParams]);
 }
 

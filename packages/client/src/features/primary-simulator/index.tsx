@@ -139,12 +139,16 @@ export default function PrimarySimulator() {
   }, [setPredictions, setStatewideTotals, setMonteCarlo, setIsComputing]);
 
   // ---- Debounced model computation ----
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Predict fires quickly (80ms) for responsive map updates.
+  // Monte Carlo has its own slower debounce (500ms) to avoid redundant expensive runs.
+  const predictTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mcTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!workerWardData || !workerRef.current) return;
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
+
+    if (predictTimer.current) clearTimeout(predictTimer.current);
+    predictTimer.current = setTimeout(() => {
       setIsComputing(true);
       setWorkerError(null);
       const activeCandidates = candidates.filter((c) => c.isActive);
@@ -154,18 +158,23 @@ export default function PrimarySimulator() {
         wardData: workerWardData,
         globalParams,
       });
-      setTimeout(() => {
-        workerRef.current?.postMessage({
-          type: 'monteCarlo',
-          candidates: activeCandidates,
-          wardData: workerWardData,
-          globalParams,
-          monteCarloIterations: 2000,
-        });
-      }, 100);
     }, 80);
+
+    if (mcTimer.current) clearTimeout(mcTimer.current);
+    mcTimer.current = setTimeout(() => {
+      const activeCandidates = candidates.filter((c) => c.isActive);
+      workerRef.current?.postMessage({
+        type: 'monteCarlo',
+        candidates: activeCandidates,
+        wardData: workerWardData,
+        globalParams,
+        monteCarloIterations: 2000,
+      });
+    }, 500);
+
     return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (predictTimer.current) clearTimeout(predictTimer.current);
+      if (mcTimer.current) clearTimeout(mcTimer.current);
     };
   }, [candidates, globalParams, workerWardData, setIsComputing]);
 

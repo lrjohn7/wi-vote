@@ -51,6 +51,7 @@ export function useLiveElections() {
       return res.json();
     },
     refetchInterval: 30000, // Poll every 30 seconds
+    staleTime: 15_000, // 15 seconds — half the poll interval
   });
 }
 
@@ -69,5 +70,6 @@ export function useLiveResults(electionDate: string | null, enabled = true) {
       if (data?.election?.is_active) return 10000; // 10 seconds
       return false; // Don't poll if not active
     },
+    staleTime: 5_000, // 5 seconds — avoids refetch on remount during active polling
   });
 }

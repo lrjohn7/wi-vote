@@ -204,11 +204,14 @@ class WardService:
             for w in wards
         ]
 
-    async def get_boundaries_geojson(self, vintage: int | None = None) -> dict:
-        """Get all ward boundaries as GeoJSON FeatureCollection.
+    async def get_boundaries_geojson(self, vintage: int | None = None) -> str:
+        """Get all ward boundaries as a raw GeoJSON string.
 
-        Returns features with ward_id as the feature 'id' field,
-        required for MapLibre setFeatureState.
+        Returns a FeatureCollection JSON string with ward_id as each
+        feature 'id' field, required for MapLibre setFeatureState.
+
+        Builds the JSON string directly, embedding PostGIS ST_AsGeoJSON
+        output without an intermediate parse/re-serialize cycle.
         """
         stmt = select(
             Ward.ward_id,
@@ -228,24 +231,21 @@ class WardService:
         rows = result.all()
 
         import json
-        features = []
+        feature_parts: list[str] = []
         for row in rows:
-            features.append({
-                "type": "Feature",
-                "id": row.ward_id,
-                "properties": {
-                    "ward_id": row.ward_id,
-                    "ward_name": row.ward_name,
-                    "municipality": row.municipality,
-                    "county": row.county,
-                    "assembly_district": row.assembly_district,
-                    "state_senate_district": row.state_senate_district,
-                    "congressional_district": row.congressional_district,
-                },
-                "geometry": json.loads(row.geojson),
+            props = json.dumps({
+                "ward_id": row.ward_id,
+                "ward_name": row.ward_name,
+                "municipality": row.municipality,
+                "county": row.county,
+                "assembly_district": row.assembly_district,
+                "state_senate_district": row.state_senate_district,
+                "congressional_district": row.congressional_district,
             })
+            ward_id_json = json.dumps(row.ward_id)
+            # row.geojson is already a valid JSON string from PostGIS
+            feature_parts.append(
+                f'{{"type":"Feature","id":{ward_id_json},"properties":{props},"geometry":{row.geojson}}}'
+            )
 
-        return {
-            "type": "FeatureCollection",
-            "features": features,
-        }
+        return '{"type":"FeatureCollection","features":[' + ",".join(feature_parts) + "]}"
