@@ -137,3 +137,124 @@ class ElectionService:
             "repCandidate": rep_candidate,
             "data": data,
         }
+
+    async def get_turnout_gaps(
+        self,
+        year: int,
+        race_type: str,
+        party: str = "dem",
+        limit: int = 200,
+    ) -> dict:
+        """Find wards with untapped vote potential for a party.
+
+        Computes county-level average turnout, then identifies wards where
+        turnout is below the county average and the party has strong support.
+        The 'potential votes' metric shows how many additional votes the party
+        would gain if that ward matched its county average turnout.
+        """
+        from app.models.ward import Ward
+
+        # Subquery: county-level average turnout (total_votes per ward)
+        county_avg_sq = (
+            select(
+                Ward.county,
+                func.avg(ElectionResult.total_votes).label("avg_turnout"),
+            )
+            .join(
+                Ward,
+                (ElectionResult.ward_id == Ward.ward_id)
+                & (ElectionResult.ward_vintage == Ward.ward_vintage),
+            )
+            .where(
+                ElectionResult.election_year == year,
+                ElectionResult.race_type == race_type,
+                ElectionResult.total_votes > 0,
+            )
+            .group_by(Ward.county)
+            .subquery()
+        )
+
+        # Main query: join results + wards + county averages
+        stmt = (
+            select(
+                ElectionResult.ward_id,
+                Ward.ward_name,
+                Ward.municipality,
+                Ward.county,
+                ElectionResult.total_votes,
+                ElectionResult.dem_votes,
+                ElectionResult.rep_votes,
+                county_avg_sq.c.avg_turnout,
+            )
+            .join(
+                Ward,
+                (ElectionResult.ward_id == Ward.ward_id)
+                & (ElectionResult.ward_vintage == Ward.ward_vintage),
+            )
+            .join(
+                county_avg_sq,
+                Ward.county == county_avg_sq.c.county,
+            )
+            .where(
+                ElectionResult.election_year == year,
+                ElectionResult.race_type == race_type,
+                ElectionResult.total_votes > 0,
+            )
+        )
+
+        result = await self.db.execute(stmt)
+        rows = result.all()
+
+        wards: list[dict] = []
+        total_potential = 0.0
+        for row in rows:
+            total = row.total_votes
+            avg_turnout = float(row.avg_turnout)
+            gap = avg_turnout - total  # positive = below county average
+
+            if gap <= 0:
+                continue  # Ward already at or above county average
+
+            # Party strength
+            if party == "dem":
+                party_pct = row.dem_votes / total * 100
+            else:
+                party_pct = row.rep_votes / total * 100
+
+            potential_votes = gap * (party_pct / 100)
+
+            wards.append({
+                "ward_id": row.ward_id,
+                "ward_name": row.ward_name,
+                "municipality": row.municipality,
+                "county": row.county,
+                "total_votes": total,
+                "county_avg_turnout": round(avg_turnout, 1),
+                "turnout_gap": round(-gap, 1),  # negative = below average
+                "party_pct": round(party_pct, 2),
+                "potential_votes": round(potential_votes, 1),
+            })
+            total_potential += potential_votes
+
+        # Sort by potential_votes descending
+        wards.sort(key=lambda w: w["potential_votes"], reverse=True)
+
+        # Limit results
+        wards = wards[:limit]
+
+        # Summary
+        avg_gap = (
+            sum(w["turnout_gap"] for w in wards) / len(wards)
+            if wards
+            else 0.0
+        )
+
+        return {
+            "year": year,
+            "race_type": race_type,
+            "party": party,
+            "total_potential_votes": round(total_potential, 0),
+            "ward_count": len(wards),
+            "avg_gap": round(avg_gap, 1),
+            "wards": wards,
+        }

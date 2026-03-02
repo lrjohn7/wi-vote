@@ -18,6 +18,7 @@ import { TrendClassificationBadge } from './components/TrendClassificationBadge'
 import { AreaTrendSummary } from './components/AreaTrendSummary';
 import { TrendSparklineGrid } from './components/TrendSparklineGrid';
 import { TrendMapOverlay } from './components/TrendMapOverlay';
+import { VolatilityTab } from './components/VolatilityTab';
 import { RACE_OPTIONS } from '@/shared/lib/raceLabels';
 
 export default function Trends() {
@@ -74,6 +75,7 @@ export default function Trends() {
             <TabsTrigger value="ward">Ward Trends</TabsTrigger>
             <TabsTrigger value="area">Area Trends</TabsTrigger>
             <TabsTrigger value="map">Trend Map</TabsTrigger>
+            <TabsTrigger value="volatility">Volatility</TabsTrigger>
           </TabsList>
         </div>
 
@@ -279,6 +281,11 @@ export default function Trends() {
         {/* Trend Map Tab */}
         <TabsContent value="map" className="min-h-0 flex-1 overflow-hidden">
           <TrendMapOverlay />
+        </TabsContent>
+
+        {/* Volatility Tab */}
+        <TabsContent value="volatility" className="min-h-0 flex-1 overflow-y-auto p-4">
+          <VolatilityTab />
         </TabsContent>
       </Tabs>
     </div>

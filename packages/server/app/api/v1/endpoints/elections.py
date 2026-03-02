@@ -20,6 +20,36 @@ async def list_elections(
     return {"elections": elections}
 
 
+@router.get("/turnout-gaps/{year}/{race_type}")
+async def get_turnout_gaps(
+    year: int,
+    race_type: RaceTypeLiteral,
+    party: str = Query("dem", pattern="^(dem|rep)$"),
+    limit: int = Query(200, ge=1, le=1000),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Find wards with untapped vote potential for a party."""
+    service = ElectionService(db)
+    return await service.get_turnout_gaps(year, race_type, party=party, limit=limit)
+
+
+@router.get("/map-data/{year}/{race_type}")
+async def get_map_data(
+    year: int,
+    race_type: RaceTypeLiteral,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Get ward results optimized for map rendering.
+
+    Returns compact dict keyed by ward_id with demPct/repPct/margin/totalVotes.
+    Designed for efficient setFeatureState updates on the frontend.
+    """
+    response.headers["Cache-Control"] = "public, max-age=86400"
+    service = ElectionService(db)
+    return await service.get_map_data(year, race_type)
+
+
 @router.get("/{year}/{race_type}")
 async def get_election_results(
     year: int,
@@ -38,20 +68,3 @@ async def get_election_results(
         page=page,
         page_size=page_size,
     )
-
-
-@router.get("/map-data/{year}/{race_type}")
-async def get_map_data(
-    year: int,
-    race_type: RaceTypeLiteral,
-    response: Response,
-    db: AsyncSession = Depends(get_db),
-) -> dict:
-    """Get ward results optimized for map rendering.
-
-    Returns compact dict keyed by ward_id with demPct/repPct/margin/totalVotes.
-    Designed for efficient setFeatureState updates on the frontend.
-    """
-    response.headers["Cache-Control"] = "public, max-age=86400"
-    service = ElectionService(db)
-    return await service.get_map_data(year, race_type)

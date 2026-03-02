@@ -98,6 +98,20 @@ async def search_wards(
     return {"results": results, "query": q, "count": len(results)}
 
 
+@router.get("/{ward_id}/similar")
+async def get_similar_wards(
+    ward_id: str,
+    limit: int = Query(10, ge=1, le=50),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Find wards most statistically similar to the given ward."""
+    service = WardService(db)
+    results = await service.get_similar_wards(ward_id, limit=limit)
+    if results is None:
+        raise HTTPException(status_code=404, detail=f"Ward {ward_id} not found or has no demographics")
+    return {"ward_id": ward_id, "similar_wards": results, "count": len(results)}
+
+
 @router.get("/{ward_id}/report-card")
 async def get_ward_report_card(
     ward_id: str,

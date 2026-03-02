@@ -14,6 +14,7 @@ import { ComparisonChart } from './components/ComparisonChart';
 import { TurnoutChart } from './components/TurnoutChart';
 import { ElectionHistoryTable } from './components/ElectionHistoryTable';
 import { QueryErrorState } from '@/shared/components/QueryErrorState';
+import { SimilarWards } from './components/SimilarWards';
 
 export default function WardReport() {
   const { wardId } = useParams<{ wardId: string }>();
@@ -127,6 +128,9 @@ export default function WardReport() {
 
         {/* Turnout chart */}
         <TurnoutChart turnout={report.turnout} elections={report.elections} />
+
+        {/* Similar wards */}
+        <SimilarWards wardId={wardId} />
 
         {/* Estimated data disclosure */}
         {report.has_estimates && (

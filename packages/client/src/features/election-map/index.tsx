@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { Box } from 'lucide-react';
 import { WisconsinMap } from '@/shared/components/WisconsinMap';
 import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { useMapStore } from '@/stores/mapStore';
@@ -6,10 +7,12 @@ import { useUrlState } from '@/shared/hooks/useUrlState';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import { useMapData } from './hooks/useMapData';
 import { ElectionSelector } from './components/ElectionSelector';
+import { ElectionTimeLapse, TimeLapseOverlay } from './components/ElectionTimeLapse';
 import { MapLegend } from './components/MapLegend';
 import { WardTooltip } from './components/WardTooltip';
 import { WardDetailPanel } from './components/WardDetailPanel';
 import { MetricToggle } from './components/MetricToggle';
+import { useTimeLapse } from './hooks/useTimeLapse';
 import type { TooltipState } from '@/shared/types/tooltip';
 
 export default function ElectionMap() {
@@ -17,8 +20,12 @@ export default function ElectionMap() {
   const selectedWardId = useMapStore((s) => s.selectedWardId);
   const setSelectedWard = useMapStore((s) => s.setSelectedWard);
   const displayMetric = useMapStore((s) => s.displayMetric);
+  const is3DMode = useMapStore((s) => s.is3DMode);
+  const toggle3DMode = useMapStore((s) => s.toggle3DMode);
 
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+
+  const { isPlaying: tlPlaying, currentYear: tlYear } = useTimeLapse();
 
   // Sync map state with URL params
   useUrlState();
@@ -80,8 +87,29 @@ export default function ElectionMap() {
             {mapData.wardCount.toLocaleString()} wards
           </span>
         )}
-        <div className={`ml-auto rounded-lg bg-content2/60 p-0.5${selectedWardId ? ' hidden md:block' : ''}`}>
-          <MetricToggle />
+
+        {/* Time-lapse playback controls */}
+        <ElectionTimeLapse />
+
+        <div className="ml-auto flex items-center gap-2">
+          {/* 3D mode toggle */}
+          <button
+            onClick={toggle3DMode}
+            aria-pressed={is3DMode}
+            className={`flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
+              is3DMode
+                ? 'bg-foreground/10 text-foreground'
+                : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground'
+            }`}
+            aria-label={is3DMode ? 'Disable 3D mode' : 'Enable 3D vote density mode'}
+          >
+            <Box className="h-3.5 w-3.5" aria-hidden="true" />
+            3D
+          </button>
+
+          <div className={`rounded-lg bg-content2/60 p-0.5${selectedWardId ? ' hidden md:block' : ''}`}>
+            <MetricToggle />
+          </div>
         </div>
       </div>
 
@@ -108,7 +136,11 @@ export default function ElectionMap() {
           onWardClick={handleWardClick}
           onWardHover={handleWardHover}
           displayMetric={displayMetric}
+          is3DMode={is3DMode}
         />
+
+        {/* Time-lapse year overlay */}
+        {tlPlaying && tlYear && <TimeLapseOverlay year={tlYear} />}
 
         {/* Legend */}
         <div className="absolute bottom-3 left-2 z-20 max-w-[calc(100%-1rem)] sm:bottom-6 sm:left-4">

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router';
-import { Map, Search, TrendingUp, SlidersHorizontal, Scale, ClipboardList, GitCompareArrows, Radio, History, Vote, Sun, Moon, Monitor } from 'lucide-react';
+import { Map, Search, TrendingUp, SlidersHorizontal, Scale, ClipboardList, GitCompareArrows, Radio, History, Vote, BarChart3, Sun, Moon, Monitor } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
 import { MobileNav } from '@/shared/components/MobileNav';
 import { OfflineIndicator } from '@/shared/components/OfflineIndicator';
@@ -18,6 +18,7 @@ const navItems = [
   { to: '/compare', label: 'Compare', icon: GitCompareArrows, end: false },
   { to: '/live', label: 'Live', icon: Radio, end: false },
   { to: '/boundaries', label: 'Boundaries', icon: History, end: false },
+  { to: '/turnout-gaps', label: 'Turnout Gaps', icon: BarChart3, end: false },
 ];
 
 function ThemeToggle() {

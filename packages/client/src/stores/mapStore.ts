@@ -11,6 +11,7 @@ interface MapState {
   displayMetric: DisplayMetric;
   compareMode: boolean;
   compareElection: { year: number; raceType: RaceType } | null;
+  is3DMode: boolean;
 
   setViewport: (viewport: { center: [number, number]; zoom: number }) => void;
   setSelectedWard: (wardId: string | null) => void;
@@ -19,6 +20,7 @@ interface MapState {
   setDisplayMetric: (metric: DisplayMetric) => void;
   toggleCompareMode: () => void;
   setCompareElection: (year: number, raceType: RaceType) => void;
+  toggle3DMode: () => void;
 }
 
 export const useMapStore = create<MapState>((set) => ({
@@ -29,6 +31,7 @@ export const useMapStore = create<MapState>((set) => ({
   displayMetric: 'margin',
   compareMode: false,
   compareElection: null,
+  is3DMode: false,
 
   setViewport: (viewport) => set({ viewport }),
   setSelectedWard: (wardId) => set({ selectedWardId: wardId }),
@@ -40,4 +43,6 @@ export const useMapStore = create<MapState>((set) => ({
     set((state) => ({ compareMode: !state.compareMode })),
   setCompareElection: (year, raceType) =>
     set({ compareElection: { year, raceType } }),
+  toggle3DMode: () =>
+    set((state) => ({ is3DMode: !state.is3DMode })),
 }));

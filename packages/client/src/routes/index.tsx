@@ -16,6 +16,7 @@ const WardReport = lazy(() => import('@/features/ward-report'));
 const ElectionComparison = lazy(() => import('@/features/election-comparison'));
 const ElectionNight = lazy(() => import('@/features/election-night'));
 const BoundaryHistory = lazy(() => import('@/features/boundary-history'));
+const TurnoutGaps = lazy(() => import('@/features/turnout-gaps'));
 const DataManager = lazy(() => import('@/features/data-manager'));
 const AnalyticsDashboard = lazy(() => import('@/features/analytics-dashboard'));
 
@@ -140,6 +141,16 @@ export const router = createBrowserRouter([
           <ErrorBoundary featureName="Boundary History">
             <Suspense fallback={<MapPageSkeleton />}>
               <BoundaryHistory />
+            </Suspense>
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: 'turnout-gaps',
+        element: (
+          <ErrorBoundary featureName="Turnout Gaps">
+            <Suspense fallback={<ContentPageSkeleton />}>
+              <TurnoutGaps />
             </Suspense>
           </ErrorBoundary>
         ),

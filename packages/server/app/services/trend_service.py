@@ -1,4 +1,6 @@
-from sqlalchemy import select, func
+import math
+
+from sqlalchemy import select, func, case, cast, Float
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.ward_trend import WardTrend
@@ -180,3 +182,61 @@ class TrendService:
             }
 
         return {"race_type": race_type, "classifications": classifications}
+
+    async def get_volatility_map(self, race_type: str = "president") -> dict:
+        """Compute volatility (stddev of margin) for every ward with 3+ elections."""
+        margin_expr = case(
+            (ElectionResult.total_votes > 0,
+             cast(ElectionResult.dem_votes - ElectionResult.rep_votes, Float)
+             / cast(ElectionResult.total_votes, Float) * 100),
+            else_=0.0,
+        )
+
+        stmt = (
+            select(
+                ElectionResult.ward_id,
+                func.count().label("cnt"),
+                func.array_agg(margin_expr).label("margins"),
+                Ward.ward_name,
+                Ward.municipality,
+                Ward.county,
+            )
+            .join(Ward, Ward.ward_id == ElectionResult.ward_id)
+            .where(ElectionResult.race_type == race_type)
+            .group_by(
+                ElectionResult.ward_id,
+                Ward.ward_name,
+                Ward.municipality,
+                Ward.county,
+            )
+            .having(func.count() >= 3)
+        )
+
+        result = await self.db.execute(stmt)
+        rows = result.all()
+
+        data: dict[str, dict] = {}
+        for row in rows:
+            margins = [float(m) for m in row.margins]
+            n = len(margins)
+            mean = sum(margins) / n
+            variance = sum((m - mean) ** 2 for m in margins) / n
+            stddev = round(math.sqrt(variance), 2)
+
+            data[row.ward_id] = {
+                "volatility": stddev,
+                "mean_margin": round(mean, 2),
+                "min_margin": round(min(margins), 2),
+                "max_margin": round(max(margins), 2),
+                "election_count": n,
+                "range": round(max(margins) - min(margins), 2),
+                "ward_name": row.ward_name,
+                "municipality": row.municipality,
+                "county": row.county,
+            }
+
+        return {
+            "race_type": race_type,
+            "ward_count": len(data),
+            "data": data,
+        }

@@ -11,6 +11,7 @@ const WARD_SOURCE = 'wards';
 const WARD_LAYER_FILL = 'ward-fills';
 const WARD_LAYER_LINE = 'ward-lines';
 const WARD_LAYER_HIGHLIGHT = 'ward-highlight';
+const WARD_LAYER_EXTRUSION = 'ward-extrusion';
 
 let protocolAdded = false;
 
@@ -40,6 +41,8 @@ interface WisconsinMapProps {
   displayMetric?: DisplayMetric;
   /** Optional GeoJSON overlay (e.g., comparison vintage boundaries) */
   overlayGeoJSON?: GeoJSON.FeatureCollection | null;
+  /** Enable 3D extruded ward polygons based on totalVotes */
+  is3DMode?: boolean;
 }
 
 const WARD_SOURCE_LAYER = 'wards';
@@ -55,6 +58,7 @@ export const WisconsinMap = memo(function WisconsinMap({
   onVisibleWardsChange,
   displayMetric,
   overlayGeoJSON,
+  is3DMode,
 }: WisconsinMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -488,6 +492,73 @@ export const WisconsinMap = memo(function WisconsinMap({
 
     m.setPaintProperty(WARD_LAYER_FILL, 'fill-color', expression);
   }, [displayMetric]);
+
+  // 3D extrusion layer management
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !layersAdded.current) return;
+
+    if (is3DMode) {
+      // Add fill-extrusion layer if not present
+      if (!m.getLayer(WARD_LAYER_EXTRUSION)) {
+        const colorExpr = displayMetric
+          ? getFillColorForMetric(displayMetric)
+          : choroplethFillColor;
+
+        m.addLayer({
+          id: WARD_LAYER_EXTRUSION,
+          type: 'fill-extrusion',
+          source: WARD_SOURCE,
+          'source-layer': WARD_SOURCE_LAYER,
+          paint: {
+            'fill-extrusion-color': colorExpr as maplibregl.ExpressionSpecification,
+            'fill-extrusion-height': [
+              'interpolate',
+              ['linear'],
+              ['coalesce', ['feature-state', 'totalVotes'], 0],
+              0, 0,
+              100, 500,
+              500, 2000,
+              1000, 5000,
+              2000, 10000,
+              5000, 25000,
+            ] as maplibregl.ExpressionSpecification,
+            'fill-extrusion-base': 0,
+            'fill-extrusion-opacity': 0.85,
+          },
+        }, WARD_LAYER_LINE); // Insert below the line layer
+      }
+
+      // Hide flat fill layer to avoid z-fighting
+      m.setLayoutProperty(WARD_LAYER_FILL, 'visibility', 'none');
+
+      // Tilt the camera for a 3D perspective
+      m.easeTo({ pitch: 50, duration: 500 });
+    } else {
+      // Remove extrusion layer
+      if (m.getLayer(WARD_LAYER_EXTRUSION)) {
+        m.removeLayer(WARD_LAYER_EXTRUSION);
+      }
+
+      // Show flat fill layer again
+      m.setLayoutProperty(WARD_LAYER_FILL, 'visibility', 'visible');
+
+      // Reset camera pitch
+      m.easeTo({ pitch: 0, duration: 500 });
+    }
+  }, [is3DMode, displayMetric]);
+
+  // Update 3D extrusion color when displayMetric changes and 3D mode is active
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !is3DMode || !m.getLayer(WARD_LAYER_EXTRUSION)) return;
+
+    const expression = displayMetric
+      ? getFillColorForMetric(displayMetric)
+      : choroplethFillColor;
+
+    m.setPaintProperty(WARD_LAYER_EXTRUSION, 'fill-extrusion-color', expression);
+  }, [displayMetric, is3DMode]);
 
   // Keyboard navigation handler
   useEffect(() => {

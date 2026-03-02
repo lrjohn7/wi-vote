@@ -51,6 +51,16 @@ async def get_bulk_elections(
     return {"ward_count": len(data), "elections": data}
 
 
+@router.get("/volatility")
+async def get_volatility(
+    race_type: str = Query("president"),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Get volatility (margin stddev) for all wards."""
+    service = TrendService(db)
+    return await service.get_volatility_map(race_type=race_type)
+
+
 @router.get("/classify")
 async def classify_trends(
     race_type: str = Query("president"),
