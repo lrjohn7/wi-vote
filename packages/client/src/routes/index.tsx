@@ -7,6 +7,7 @@ import { MapPageSkeleton, SidebarPageSkeleton, ContentPageSkeleton } from '@/sha
 
 const LandingPage = lazy(() => import('@/features/landing'));
 const ElectionMap = lazy(() => import('@/features/election-map'));
+const PrimarySimulator = lazy(() => import('@/features/primary-simulator'));
 const WardExplorer = lazy(() => import('@/features/ward-explorer'));
 const Trends = lazy(() => import('@/features/trends'));
 const SwingModeler = lazy(() => import('@/features/swing-modeler'));
@@ -39,6 +40,16 @@ export const router = createBrowserRouter([
           <ErrorBoundary featureName="Election Map">
             <Suspense fallback={<MapPageSkeleton />}>
               <ElectionMap />
+            </Suspense>
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: 'primary',
+        element: (
+          <ErrorBoundary featureName="Primary Simulator">
+            <Suspense fallback={<MapPageSkeleton />}>
+              <PrimarySimulator />
             </Suspense>
           </ErrorBoundary>
         ),

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router';
-import { Map, Search, TrendingUp, SlidersHorizontal, Scale, ClipboardList, GitCompareArrows, Radio, History, Sun, Moon, Monitor } from 'lucide-react';
+import { Map, Search, TrendingUp, SlidersHorizontal, Scale, ClipboardList, GitCompareArrows, Radio, History, Vote, Sun, Moon, Monitor } from 'lucide-react';
 import { useThemeStore } from '@/stores/themeStore';
 import { MobileNav } from '@/shared/components/MobileNav';
 import { OfflineIndicator } from '@/shared/components/OfflineIndicator';
@@ -9,6 +9,7 @@ import { useAnalytics } from '@/shared/hooks/useAnalytics';
 
 const navItems = [
   { to: '/map', label: 'Election Map', icon: Map, end: false },
+  { to: '/primary', label: 'Primary', icon: Vote, end: false },
   { to: '/supreme-court', label: 'Supreme Court', icon: Scale, end: false },
   { to: '/wards', label: 'Ward Explorer', icon: Search, end: true },
   { to: '/wards/report', label: 'My Ward', icon: ClipboardList, end: false },

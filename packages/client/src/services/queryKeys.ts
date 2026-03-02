@@ -36,4 +36,12 @@ export const queryKeys = {
     statewide: (year: number, raceType: string) =>
       ['aggregations', 'statewide', year, raceType] as const,
   },
+  primary: {
+    all: ['primary'] as const,
+    elections: () => ['primary', 'elections'] as const,
+    results: (year: number) => ['primary', 'results', year] as const,
+    mapData: (year: number) => ['primary', 'map-data', year] as const,
+    counties: (year: number) => ['primary', 'counties', year] as const,
+    ruDetail: (ruId: string) => ['primary', 'ru', ruId] as const,
+  },
 };

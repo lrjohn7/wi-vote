@@ -216,6 +216,43 @@ interface ScenarioCreateBody {
   parameters: Record<string, unknown>;
 }
 
+
+// -- Primary election types --
+
+export interface PrimaryElectionInfo {
+  year: number;
+  race_type: string;
+  party: string;
+  n_candidates: number;
+  total_votes: number;
+}
+
+export interface PrimaryCandidateResult {
+  candidate: string;
+  votes: number;
+  vote_pct: number;
+}
+
+export interface PrimaryCountyCandidateResult {
+  name: string;
+  votes: number;
+  pct: number;
+}
+
+export interface PrimaryCountyResult {
+  county: string;
+  candidates: PrimaryCountyCandidateResult[];
+  total_votes: number;
+}
+
+export interface PrimaryMapDataResponse {
+  type: string;
+  year: number;
+  race_type: string;
+  party: string;
+  ru_count: number;
+  features: GeoJSON.Feature[];
+}
 // ── API methods ──
 
 export const api = {
@@ -297,4 +334,28 @@ export const api = {
     ),
   listScenarios: (limit = 20) =>
     request<ScenarioListResponse>(`/api/v1/models/scenarios?limit=${limit}`),
+
+  // Primary elections
+  getPrimaryElections: () =>
+    request<{ elections: PrimaryElectionInfo[] }>('/api/v1/primary/elections'),
+
+  getPrimaryResults: (year: number, raceType = 'governor', party = 'DEM') =>
+    request<{ year: number; race_type: string; party: string; candidates: PrimaryCandidateResult[] }>(
+      `/api/v1/primary/results/${year}?race_type=${raceType}&party=${party}`,
+    ),
+
+  getPrimaryMapData: (year: number, raceType = 'governor', party = 'DEM') =>
+    request<PrimaryMapDataResponse>(
+      `/api/v1/primary/map-data/${year}?race_type=${raceType}&party=${party}`,
+    ),
+
+  getPrimaryCountyResults: (year: number, raceType = 'governor', party = 'DEM') =>
+    request<{ counties: PrimaryCountyResult[] }>(
+      `/api/v1/primary/counties/${year}?race_type=${raceType}&party=${party}`,
+    ),
+
+  getPrimaryRuDetail: (ruId: string) =>
+    request<{ ru_id: string; ru_name: string; county: string; elections: Record<string, unknown>[] }>(
+      `/api/v1/primary/ru/${encodeURIComponent(ruId)}`,
+    ),
 };

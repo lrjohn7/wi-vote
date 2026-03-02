@@ -23,15 +23,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Rate limiting — 120 req/min default, 30 req/min for expensive endpoints
+# Rate limiting -- 120 req/min default, 30 req/min for expensive endpoints
 app.add_middleware(
     RateLimitMiddleware,
     max_requests=120,
     window_seconds=60,
-    expensive_paths=["/api/v1/wards/boundaries", "/api/v1/elections/map-data"],
+    expensive_paths=["/api/v1/wards/boundaries", "/api/v1/elections/map-data", "/api/v1/primary/map-data"],
 )
 
-# GZip compression — biggest win for boundaries GeoJSON (~25MB → ~3MB)
+# GZip compression -- biggest win for boundaries GeoJSON (~25MB -> ~3MB)
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # CORS
@@ -50,3 +50,4 @@ app.include_router(api_router)
 @app.get("/health")
 async def health_check() -> dict:
     return {"status": "healthy", "version": settings.app_version}
+

@@ -13,6 +13,8 @@ from app.models import (  # noqa: F401
     WardDemographic,
     SpringElectionResult,
     ElectionAggregation,
+    PrimaryReportingUnit,
+    PrimaryResult,
 )
 
 config = context.config
