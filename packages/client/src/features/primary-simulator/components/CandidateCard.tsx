@@ -216,7 +216,7 @@ export const CandidateCard = memo(function CandidateCard({ candidateId }: Candid
 
         {/* Polling percentage */}
         <span className="text-xs font-mono text-muted-foreground">
-          {candidate.pollingBaseline}%
+          {Math.round(candidate.pollingBaseline)}%
         </span>
 
         {/* Active toggle */}
@@ -253,7 +253,7 @@ export const CandidateCard = memo(function CandidateCard({ candidateId }: Candid
               min={0}
               max={50}
               step={0.5}
-              format={(v) => v + '%'}
+              format={(v) => Math.round(v * 10) / 10 + '%'}
               candidateId={candidateId}
               color={candidate.color}
               disabled={!isActive}
