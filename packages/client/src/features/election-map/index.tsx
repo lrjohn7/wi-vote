@@ -88,7 +88,7 @@ export default function ElectionMap() {
             {mapData.wardCount.toLocaleString()} wards
           </span>
         )}
-        <div className="ml-auto rounded-lg bg-content2/60 p-0.5">
+        <div className={`ml-auto rounded-lg bg-content2/60 p-0.5${selectedWardId ? ' hidden md:block' : ''}`}>
           <MetricToggle />
         </div>
       </div>
