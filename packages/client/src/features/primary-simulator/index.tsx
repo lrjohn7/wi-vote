@@ -11,6 +11,7 @@ import { PrimaryResultsSummary } from './components/PrimaryResultsSummary';
 import { WinProbabilityBars } from './components/WinProbabilityBars';
 import { PrimaryMapLegend } from './components/PrimaryMapLegend';
 import { PrimaryTooltip } from './components/PrimaryTooltip';
+import { PrimaryGuide } from './components/PrimaryGuide';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import type { PrimaryMapMode } from '@/stores/primaryStore';
 import type {
@@ -81,7 +82,7 @@ export default function PrimarySimulator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { wardData, isLoading: dataLoading } = usePrimaryData();
+  const { wardData, isLoading: dataLoading, isDemographicsLoading } = usePrimaryData();
 
   const workerWardData = useMemo((): WorkerWardData[] | null => {
     if (!wardData) return null;
@@ -251,7 +252,14 @@ export default function PrimarySimulator() {
         {dataLoading && (
           <span className="flex items-center gap-1.5 text-sm text-muted-foreground" role="status" aria-label="Loading primary data">
             <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" aria-hidden="true" />
-            Loading data
+            Loading ward data
+          </span>
+        )}
+
+        {!dataLoading && isDemographicsLoading && (
+          <span className="flex items-center gap-1.5 text-sm text-muted-foreground/60" role="status" aria-label="Loading demographics">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400" aria-hidden="true" />
+            Loading demographics
           </span>
         )}
 
@@ -289,6 +297,9 @@ export default function PrimarySimulator() {
       <div className="flex flex-1 overflow-hidden">
         {/* Left sidebar */}
         <div className="flex w-80 shrink-0 flex-col gap-3 overflow-y-auto border-r border-border/40 bg-background/50 p-4" aria-label="Primary simulator controls">
+          {/* Onboarding guide (dismissible) */}
+          <PrimaryGuide />
+
           {/* Candidate cards with expandable parameter sliders */}
           <CandidateCardList />
 

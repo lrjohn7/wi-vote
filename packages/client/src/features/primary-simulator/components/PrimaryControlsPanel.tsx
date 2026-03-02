@@ -276,8 +276,8 @@ export function PrimaryControlsPanel({ children }: PrimaryControlsPanelProps) {
         {panelContent}
       </div>
 
-      {/* Desktop sidebar */}
-      <div className="hidden w-80 shrink-0 flex-col border-r border-border/30 bg-content1 md:flex">
+      {/* Desktop: render inline (parent sidebar provides the container) */}
+      <div className="hidden md:block">
         {panelContent}
       </div>
     </>

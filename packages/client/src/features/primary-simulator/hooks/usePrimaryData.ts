@@ -32,33 +32,32 @@ export interface PrimaryWardData {
  * Computes the centroid of a GeoJSON geometry.
  * For MultiPolygon/Polygon, averages all coordinate positions.
  * Returns [lng, lat].
+ *
+ * Optimized: inline summation avoids intermediate array allocation.
  */
 function computeCentroid(geometry: GeoJSON.Geometry): [number, number] {
-  const coords: number[][] = [];
+  let sumLng = 0;
+  let sumLat = 0;
+  let count = 0;
 
-  function collectCoords(c: GeoJSON.Position | GeoJSON.Position[] | GeoJSON.Position[][] | GeoJSON.Position[][][]): void {
+  function scan(c: GeoJSON.Position | GeoJSON.Position[] | GeoJSON.Position[][] | GeoJSON.Position[][][]): void {
     if (typeof c[0] === 'number') {
-      coords.push(c as number[]);
+      sumLng += (c as number[])[0];
+      sumLat += (c as number[])[1];
+      count++;
       return;
     }
     for (const item of c as (GeoJSON.Position | GeoJSON.Position[] | GeoJSON.Position[][] | GeoJSON.Position[][][])[]) {
-      collectCoords(item);
+      scan(item);
     }
   }
 
   if ('coordinates' in geometry) {
-    collectCoords(geometry.coordinates as GeoJSON.Position[]);
+    scan(geometry.coordinates as GeoJSON.Position[]);
   }
 
-  if (coords.length === 0) return [-89.5, 43.0]; // Wisconsin center fallback
-
-  let sumLng = 0;
-  let sumLat = 0;
-  for (const [lng, lat] of coords) {
-    sumLng += lng;
-    sumLat += lat;
-  }
-  return [sumLng / coords.length, sumLat / coords.length];
+  if (count === 0) return [-89.5, 43.0]; // Wisconsin center fallback
+  return [sumLng / count, sumLat / count];
 }
 
 /**
@@ -138,6 +137,7 @@ export function usePrimaryData() {
 
   return {
     wardData,
-    isLoading: boundariesLoading || demosLoading || electionLoading,
+    isLoading: boundariesLoading || electionLoading,
+    isDemographicsLoading: demosLoading,
   };
 }
