@@ -1,34 +1,15 @@
 import type { PollPreset } from '@/types/primary';
 
 /**
- * Poll snapshot presets for the primary simulator.
+ * Hypothetical scenario presets for the primary simulator.
  *
- * Each preset represents either a real poll (with source and date) or a
- * hypothetical scenario. When applied, the preset sets each candidate's
- * pollingBaseline to the corresponding percentage value.
+ * These are "what-if" scenarios, not real polls. They set each candidate's
+ * pollingBaseline to a hypothetical percentage to model different outcomes.
  *
- * The 'undecided' field represents the share of voters not committed to
- * any named candidate. The model allocates undecided voters based on
- * geographic, demographic, and ideological factors.
+ * Real poll data is stored separately in builtInPolls.ts and managed through
+ * the multi-poll averaging system.
  */
-export const POLL_PRESETS: PollPreset[] = [
-  {
-    id: 'marquette-feb-2026',
-    name: 'Marquette Feb 2026',
-    source: 'Marquette Law School',
-    date: '2026-02-19',
-    candidates: {
-      hong: 11,
-      barnes: 10,
-      rodriguez: 6,
-      crowley: 5,
-      roys: 4,
-      hughes: 3,
-      brennan: 3,
-      mcguire: 2,
-    },
-    undecided: 56,
-  },
+export const SCENARIO_PRESETS: PollPreset[] = [
   {
     id: 'even-field',
     name: 'Even Field',
@@ -82,12 +63,12 @@ export const POLL_PRESETS: PollPreset[] = [
   },
 ];
 
+/** Backward-compatible alias. */
+export const POLL_PRESETS = SCENARIO_PRESETS;
+
 /**
- * Look up a poll preset by its unique ID.
- *
- * @param id - Preset identifier (e.g. 'marquette-feb-2026')
- * @returns The matching preset, or undefined if not found
+ * Look up a scenario preset by its unique ID.
  */
 export function getPreset(id: string): PollPreset | undefined {
-  return POLL_PRESETS.find((p) => p.id === id);
+  return SCENARIO_PRESETS.find((p) => p.id === id);
 }

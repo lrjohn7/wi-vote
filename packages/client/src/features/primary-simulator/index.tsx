@@ -65,6 +65,8 @@ export default function PrimarySimulator() {
   const heatmapCandidateId = usePrimaryStore((s) => s.heatmapCandidateId);
   const predictions = usePrimaryStore((s) => s.predictions);
   const isComputing = usePrimaryStore((s) => s.isComputing);
+  const pollSource = usePrimaryStore((s) => s.pollSource);
+  const applyPollAverage = usePrimaryStore((s) => s.applyPollAverage);
 
   const setMapMode = usePrimaryStore((s) => s.setMapMode);
   const setHeatmapCandidate = usePrimaryStore((s) => s.setHeatmapCandidate);
@@ -77,6 +79,15 @@ export default function PrimarySimulator() {
   const [workerError, setWorkerError] = useState<string | null>(null);
 
   usePrimaryUrlState();
+
+  // Apply poll average on mount when in average mode so candidate baselines
+  // reflect the EWMA-weighted poll data rather than hardcoded defaults.
+  useEffect(() => {
+    if (pollSource === 'average') {
+      applyPollAverage();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { wardData, isLoading: dataLoading } = usePrimaryData();
 

@@ -1,4 +1,7 @@
 import { create } from 'zustand';
+import type { PrimaryPoll, PollAveragingConfig } from '@/types/primary';
+import { computePollingAverage, DEFAULT_AVERAGING_CONFIG } from '@/features/primary-simulator/lib/pollAveraging';
+import { BUILT_IN_POLLS } from '@/features/primary-simulator/lib/builtInPolls';
 
 // -- Candidate state --
 
@@ -62,6 +65,11 @@ export interface PrimaryMonteCarloResult {
 // -- Map display mode --
 
 export type PrimaryMapMode = 'winner' | 'candidate-heatmap';
+
+// -- Poll source mode --
+
+/** Whether candidate baselines come from the multi-poll average or a hypothetical scenario. */
+export type PollSourceMode = 'average' | 'scenario';
 
 // -- Default candidate profiles --
 
@@ -246,7 +254,7 @@ interface PrimaryState {
   // Global model parameters
   globalParams: PrimaryGlobalParams;
 
-  // Selected poll preset ID (or 'custom' for manual)
+  // Selected scenario preset ID (or 'custom' for manual)
   activePresetId: string;
 
   // Map display
@@ -259,22 +267,71 @@ interface PrimaryState {
   monteCarlo: PrimaryMonteCarloResult[] | null;
   isComputing: boolean;
 
-  // Actions
+  // Poll averaging system
+  polls: PrimaryPoll[];
+  pollAveragingConfig: PollAveragingConfig;
+  pollSource: PollSourceMode;
+
+  // Actions — candidates
   setCandidates: (candidates: PrimaryCandidateState[]) => void;
   setCandidateParam: (candidateId: string, param: string, value: number | boolean | string) => void;
   toggleCandidateActive: (candidateId: string) => void;
+
+  // Actions — global params
   setGlobalParam: (param: keyof PrimaryGlobalParams, value: number) => void;
   setGlobalParams: (params: Partial<PrimaryGlobalParams>) => void;
+
+  // Actions — scenario presets
   setActivePresetId: (id: string) => void;
   applyPreset: (candidateBaselines: Record<string, number>) => void;
+
+  // Actions — map
   setMapMode: (mode: PrimaryMapMode) => void;
   setHeatmapCandidate: (candidateId: string | null) => void;
+
+  // Actions — model results
   setPredictions: (predictions: PrimaryRuPrediction[] | null) => void;
   setStatewideTotals: (totals: PrimaryCandidateVote[] | null) => void;
   setMonteCarlo: (mc: PrimaryMonteCarloResult[] | null) => void;
   setIsComputing: (computing: boolean) => void;
+
+  // Actions — poll averaging
+  addPoll: (poll: PrimaryPoll) => void;
+  removePoll: (pollId: string) => void;
+  togglePollEnabled: (pollId: string) => void;
+  updatePoll: (pollId: string, updates: Partial<PrimaryPoll>) => void;
+  setPollAveragingConfig: (config: Partial<PollAveragingConfig>) => void;
+  setPollSource: (source: PollSourceMode) => void;
+  applyPollAverage: () => void;
+
+  // Actions — reset
   resetToDefaults: () => void;
 }
+
+// -- Helper: run poll average and update candidate baselines --
+
+function runPollAverage(state: PrimaryState): Partial<PrimaryState> {
+  const candidateIds = state.candidates.map((c) => c.id);
+  const config: PollAveragingConfig = {
+    ...state.pollAveragingConfig,
+    referenceDate: new Date().toISOString().slice(0, 10),
+  };
+  const { averages } = computePollingAverage(state.polls, config, candidateIds);
+
+  // Only update if we got valid averages (at least one poll enabled)
+  const hasAnyAverage = averages.some((a) => a.average > 0);
+  if (!hasAnyAverage) return {};
+
+  const averageMap = new Map(averages.map((a) => [a.candidateId, a.average]));
+  return {
+    candidates: state.candidates.map((c) => ({
+      ...c,
+      pollingBaseline: averageMap.get(c.id) ?? c.pollingBaseline,
+    })),
+  };
+}
+
+// -- Store creation --
 
 export const usePrimaryStore = create<PrimaryState>((set) => ({
   candidates: DEFAULT_CANDIDATES.map((c) => ({ ...c })),
@@ -286,6 +343,9 @@ export const usePrimaryStore = create<PrimaryState>((set) => ({
   statewideTotals: null,
   monteCarlo: null,
   isComputing: false,
+  polls: BUILT_IN_POLLS.map((p) => ({ ...p })),
+  pollAveragingConfig: { ...DEFAULT_AVERAGING_CONFIG },
+  pollSource: 'average',
 
   setCandidates: (candidates) => set({ candidates }),
 
@@ -335,6 +395,79 @@ export const usePrimaryStore = create<PrimaryState>((set) => ({
 
   setIsComputing: (computing) => set({ isComputing: computing }),
 
+  // -- Poll averaging actions --
+
+  addPoll: (poll) =>
+    set((state) => {
+      const newState = { polls: [...state.polls, poll] };
+      if (state.pollSource === 'average') {
+        const withNewPoll = { ...state, ...newState };
+        return { ...newState, ...runPollAverage(withNewPoll) };
+      }
+      return newState;
+    }),
+
+  removePoll: (pollId) =>
+    set((state) => {
+      const newPolls = state.polls.filter((p) => p.id !== pollId || p.isBuiltIn);
+      const newState = { polls: newPolls };
+      if (state.pollSource === 'average') {
+        const withUpdatedPolls = { ...state, ...newState };
+        return { ...newState, ...runPollAverage(withUpdatedPolls) };
+      }
+      return newState;
+    }),
+
+  togglePollEnabled: (pollId) =>
+    set((state) => {
+      const newPolls = state.polls.map((p) =>
+        p.id === pollId ? { ...p, isEnabled: !p.isEnabled } : p,
+      );
+      const newState = { polls: newPolls };
+      if (state.pollSource === 'average') {
+        const withUpdatedPolls = { ...state, ...newState };
+        return { ...newState, ...runPollAverage(withUpdatedPolls) };
+      }
+      return newState;
+    }),
+
+  updatePoll: (pollId, updates) =>
+    set((state) => {
+      const newPolls = state.polls.map((p) =>
+        p.id === pollId ? { ...p, ...updates } : p,
+      );
+      const newState = { polls: newPolls };
+      if (state.pollSource === 'average') {
+        const withUpdatedPolls = { ...state, ...newState };
+        return { ...newState, ...runPollAverage(withUpdatedPolls) };
+      }
+      return newState;
+    }),
+
+  setPollAveragingConfig: (config) =>
+    set((state) => {
+      const newConfig = { ...state.pollAveragingConfig, ...config };
+      const newState = { pollAveragingConfig: newConfig };
+      if (state.pollSource === 'average') {
+        const withUpdatedConfig = { ...state, ...newState };
+        return { ...newState, ...runPollAverage(withUpdatedConfig) };
+      }
+      return newState;
+    }),
+
+  setPollSource: (source) =>
+    set((state) => {
+      const newState: Partial<PrimaryState> = { pollSource: source };
+      if (source === 'average') {
+        const withNewSource = { ...state, ...newState };
+        return { ...newState, ...runPollAverage(withNewSource) };
+      }
+      return newState;
+    }),
+
+  applyPollAverage: () =>
+    set((state) => runPollAverage(state)),
+
   resetToDefaults: () =>
     set({
       candidates: DEFAULT_CANDIDATES.map((c) => ({ ...c })),
@@ -346,5 +479,8 @@ export const usePrimaryStore = create<PrimaryState>((set) => ({
       statewideTotals: null,
       monteCarlo: null,
       isComputing: false,
+      polls: BUILT_IN_POLLS.map((p) => ({ ...p })),
+      pollAveragingConfig: { ...DEFAULT_AVERAGING_CONFIG },
+      pollSource: 'average',
     }),
 }));

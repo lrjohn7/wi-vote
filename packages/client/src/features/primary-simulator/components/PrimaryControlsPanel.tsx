@@ -1,7 +1,7 @@
 import { useState, memo, useCallback } from 'react';
 import { SlidersHorizontal, X, Info } from 'lucide-react';
 import { usePrimaryStore } from '@/stores/primaryStore';
-import { PollPresetSelector } from './PollPresetSelector';
+import { PollManager } from './PollManager';
 import type { PrimaryGlobalParams } from '@/types/primary';
 
 /** Slider configuration for a single global parameter. */
@@ -183,10 +183,8 @@ export function PrimaryControlsPanel({ children }: PrimaryControlsPanelProps) {
         </button>
       </div>
 
-      {/* Poll Preset Selector */}
-      <div className="rounded-lg border border-border/30 bg-content2/50 p-3">
-        <PollPresetSelector />
-      </div>
+      {/* Poll Manager (Polls + Scenarios tabs) */}
+      <PollManager />
 
       <hr className="border-border/40 my-3" />
 

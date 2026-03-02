@@ -206,6 +206,89 @@ export interface PollPreset {
   undecided: number;
 }
 
+// -- Poll Averaging System -------------------------------------------------------
+
+/** The population sampled by a poll. */
+export type PollPopulation = 'lv' | 'rv' | 'a';
+
+/** A single poll with full metadata, used for multi-poll EWMA averaging. */
+export interface PrimaryPoll {
+  /** Unique ID. Built-in polls use slugs; user polls use crypto.randomUUID(). */
+  id: string;
+  /** Pollster name, e.g. "Marquette Law School" */
+  pollster: string;
+  /** Start date of fieldwork (ISO YYYY-MM-DD) */
+  startDate: string;
+  /** End date of fieldwork (ISO YYYY-MM-DD) */
+  endDate: string;
+  /** Total respondents */
+  sampleSize: number;
+  /** Population type: likely voters, registered voters, or all adults */
+  population: PollPopulation;
+  /** Methodology description, e.g. "Live phone + online panel" */
+  methodology: string;
+  /** Pollster quality rating on a 0.0-3.0 scale (analogous to 538 ratings) */
+  pollsterRating: number;
+  /** Whether the poll was commissioned by a partisan organization */
+  isPartisan: boolean;
+  /** Reported margin of error (+/- percentage points), or null if unreported */
+  marginOfError: number | null;
+  /** URL to the original poll release */
+  sourceUrl: string;
+  /** Optional notes about the poll */
+  notes: string;
+  /** Per-candidate result percentages. Key = candidateId, value = poll % (0-100). */
+  candidates: Record<string, number>;
+  /** Percentage of respondents who were undecided/no preference */
+  undecided: number;
+  /** Whether this poll is included in the current average */
+  isEnabled: boolean;
+  /** Whether this is a built-in (shipped) poll vs user-added */
+  isBuiltIn: boolean;
+}
+
+/** Configuration for the EWMA poll averaging algorithm. */
+export interface PollAveragingConfig {
+  /** Half-life for recency decay in days. Older polls lose influence exponentially. Default 25. */
+  halfLifeDays: number;
+  /** Apply frequency dampening to prevent one pollster from flooding the average. */
+  frequencyDampening: boolean;
+  /** Apply a 30% weight penalty to polls from partisan organizations. */
+  partisanPenalty: boolean;
+  /** Reference date for recency weighting (ISO YYYY-MM-DD). Updated to today on each computation. */
+  referenceDate: string;
+}
+
+/** The output of the poll averaging engine for a single candidate. */
+export interface PollAverageResult {
+  /** Candidate ID */
+  candidateId: string;
+  /** Weighted average poll percentage (0-100 scale) */
+  average: number;
+  /** Number of enabled polls that included this candidate */
+  pollCount: number;
+}
+
+/** Weight breakdown for a single poll, shown in the poll table UI. */
+export interface PollWeightBreakdown {
+  /** Poll ID this breakdown applies to */
+  pollId: string;
+  /** Weight from recency decay */
+  recencyWeight: number;
+  /** Weight from sample size */
+  sampleWeight: number;
+  /** Weight from pollster quality rating */
+  qualityWeight: number;
+  /** Weight from frequency dampening */
+  frequencyWeight: number;
+  /** Weight from partisan penalty */
+  partisanWeight: number;
+  /** Product of all weight components */
+  compositeWeight: number;
+  /** Fraction of total weight across all polls (0-1) */
+  normalizedWeight: number;
+}
+
 // -- Map Display Modes -----------------------------------------------------------
 
 /** How the primary results are visualized on the map. */
