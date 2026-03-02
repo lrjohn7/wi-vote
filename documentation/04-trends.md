@@ -56,6 +56,10 @@ Returns aggregated trends for an area with ward-level breakdowns.
 
 Body: `{ "ward_ids": ["..."] }` (max 500). Returns election histories for multiple wards.
 
+### `GET /api/v1/trends/volatility?race_type=president`
+
+Returns volatility (margin stddev) for all wards with 3+ elections. Response: `{ race_type, ward_count, data: Record<wardId, WardVolatility> }`. Each ward has: volatility, mean_margin, min_margin, max_margin, election_count, range, ward_name, municipality, county.
+
 ### `GET /api/v1/trends/classify?race_type=president`
 
 Bulk trend classification for all wards. Returns `Record<wardId, Classification>`.
@@ -73,6 +77,7 @@ Bulk trend classification for all wards. Returns `Record<wardId, Classification>
 | Ward Trends | Inline in index.tsx | Search for wards, view individual trend charts |
 | Area Trends | Inline in index.tsx | County/district-level aggregated trends |
 | Trend Map | `TrendMapOverlay` | Statewide map colored by trend classification |
+| Volatility | `VolatilityTab` | Ward volatility index: stddev of partisan margin across elections |
 
 ### Ward Trends Tab
 
@@ -118,9 +123,25 @@ Bulk trend classification for all wards. Returns `Record<wardId, Classification>
 
 ## Edge Cases
 
+### Volatility Tab
+
+| Element | Type | Behavior |
+|---------|------|----------|
+| Summary cards (4) | `SummaryCard` | Wards Analyzed, Avg Volatility, Most Volatile, Most Stable |
+| Info note | Text box | Explains volatility = stddev of partisan margin, 3+ election minimum |
+| Ranked table | Table with 50 rows | Top 50 most volatile wards, color-coded bars (green/yellow/red) |
+| Volatility bar | Progress bar | Width proportional to max volatility, color: green (<33%), yellow (<66%), red |
+| Avg Margin | Colored text | Blue for D+, red for R+ using `marginColor()` |
+| Range | Tabular nums | Max margin - min margin |
+| Elections count | Number | How many elections contributed to the calculation |
+
+---
+
+## Edge Cases
+
 | Scenario | Behavior |
 |----------|----------|
-| Ward has < 3 elections | Trend may be "inconclusive" due to insufficient data |
+| Ward has < 3 elections | Trend may be "inconclusive" due to insufficient data. Excluded from volatility |
 | Area with no wards | Empty sparkline grid |
 | All wards in viewport inconclusive | Summary shows 100% gray bar |
 | Bulk elections request > 500 wards | Server caps at 500 |
@@ -144,3 +165,7 @@ Bulk trend classification for all wards. Returns `Record<wardId, Classification>
 | `features/trends/components/TrendSummaryDashboard.tsx` | Viewport-scoped summary panel |
 | `features/trends/hooks/useTrends.ts` | TanStack Query: `useWardTrend`, `useAreaTrends`, `useTrendClassifications` |
 | `features/trends/hooks/useBulkWardElections.ts` | TanStack Query: bulk election history fetch |
+| `features/trends/hooks/useVolatility.ts` | TanStack Query: `GET /trends/volatility` (10 min stale time) |
+| `features/trends/components/VolatilityTab.tsx` | Volatility summary + ranked table component |
+| `server/services/trend_service.py` | `get_volatility_map()` — population stddev of margin per ward |
+| `server/api/v1/endpoints/trends.py` | `GET /volatility` endpoint |

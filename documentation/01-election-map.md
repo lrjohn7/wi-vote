@@ -114,6 +114,8 @@ Returns full ward metadata + all election results.
 | Year dropdown | `<Select>` (shadcn) | 100px wide. Options from `/elections` endpoint, sorted descending. Changing year auto-selects first available race for that year |
 | Race dropdown | `<Select>` (shadcn) | 160px wide. Options filtered to selected year. Race labels: `RACE_LABELS` map provides human names |
 | Ward count | Static text | Shows `{n} wards` from map data response |
+| Time-Lapse controls | `ElectionTimeLapse` | Play/pause, speed (0.5x-4x), year slider, race type selector |
+| 3D Mode toggle | Button with `Box` icon | Toggles `is3DMode` in mapStore. `aria-pressed` for state |
 | Loading indicator | Amber pulsing dot | Visible while `mapData` is loading |
 
 ### Map (WisconsinMap shared component)
@@ -125,6 +127,24 @@ Returns full ward metadata + all election results.
 | Ward hover | Shows floating tooltip at cursor position with ward name, municipality, county, DEM/REP %, margin, total votes |
 | Zoom +/- buttons | MapLibre NavigationControl |
 | Compass rose | Reset north button |
+
+### Time-Lapse Overlay
+
+| Element | Behavior |
+|---------|----------|
+| Year display | Large `text-4xl font-black` year number, pointer-events-none glass panel |
+| Visibility | Only shown during playback (`isPlaying && currentYear`) |
+| Position | Bottom-right, semi-transparent backdrop |
+
+### 3D Mode
+
+| Element | Behavior |
+|---------|----------|
+| Extrusion layer | `fill-extrusion` layer type with height mapped to `totalVotes` feature state |
+| Height interpolation | 0→0, 100→500, 500→2000, 1000→5000, 2000→10000, 5000→25000 |
+| Flat layer | Hidden (`visibility: 'none'`) when 3D mode active to prevent z-fighting |
+| Camera pitch | Animates to 50 degrees on enable, 0 on disable (500ms `easeTo`) |
+| Color | Matches current displayMetric color expression |
 
 ### Map Legend (bottom-left)
 
@@ -167,6 +187,9 @@ Returns full ward metadata + all election results.
 5. **Year change auto-selects first race:** Prevents invalid year+race combinations.
 6. **Estimated data disclosure is mandatory:** Any ward from a combined reporting unit must show the amber badge and footnote.
 7. **Ward click toggles:** Clicking the already-selected ward deselects it.
+8. **Time-Lapse prefetch:** All election data for the selected race type is prefetched into TanStack Query cache before playback starts.
+9. **Time-Lapse speed:** Configurable interval: 2000ms (0.5x), 1000ms (1x), 500ms (2x), 300ms (4x).
+10. **3D mode toggle:** Adds/removes `fill-extrusion` layer dynamically. Extrusion color syncs with current displayMetric.
 
 ---
 
@@ -198,4 +221,6 @@ Returns full ward metadata + all election results.
 | `features/election-map/hooks/useWardDetail.ts` | TanStack Query: `GET /wards/{id}` (shared with Ward Explorer) |
 | `shared/components/WisconsinMap.tsx` | Reusable MapLibre + PMTiles choropleth component |
 | `shared/lib/colorScale.ts` | chroma-js RdBu palette, legend bins, MapLibre paint expressions |
-| `stores/mapStore.ts` | Zustand: activeElection, selectedWardId, hoveredWardId, displayMetric |
+| `features/election-map/hooks/useTimeLapse.ts` | Time-lapse animation hook: play/pause/stop, prefetch, speed control |
+| `features/election-map/components/ElectionTimeLapse.tsx` | Time-lapse controls + year overlay components |
+| `stores/mapStore.ts` | Zustand: activeElection, selectedWardId, hoveredWardId, displayMetric, is3DMode |

@@ -1025,6 +1025,7 @@ A `documentation/` directory contains audited, structured docs for every feature
 | Election Night (`/live`), live polling, race summaries | `documentation/16-election-night.md` |
 | Voter Registration data, registration overlay, hooks | `documentation/17-voter-registration.md` |
 | Community Notes, ward notes, user submissions | `documentation/18-community-notes.md` |
+| Turnout Gaps (`/turnout-gaps`), votes left on the table | `documentation/19-turnout-gaps.md` |
 | Audit findings, PASS/WARN/FAIL items, prioritized fix plan | `documentation/00-audit-report.md` |
 | Shared race labels, error classes, geocode hook | `src/shared/lib/raceLabels.ts`, `src/shared/lib/errors.ts`, `src/shared/hooks/useGeocodeAddress.ts` |
 

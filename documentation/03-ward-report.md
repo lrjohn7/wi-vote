@@ -116,6 +116,19 @@ Returns full report card for a ward. Computes partisan lean percentile, fetches 
 | Estimate marker | Asterisk | Shown next to estimated results |
 | Responsive scroll | `overflow-x-auto` | Horizontal scroll on narrow screens |
 
+### Similar Wards (Ward Twins)
+
+| Element | Type | Behavior |
+|---------|------|----------|
+| Section heading | "Similar Wards" | Glass panel below turnout chart |
+| Cards grid | Clickable cards | Each links to `/wards/{ward_id}/report` |
+| Similarity bar | Progress bar | Width proportional to `similarity_score` (0-1) |
+| Partisan lean | Colored label | Blue for D+, red for R+ via `getColorForMargin()` |
+| Demographics | Text | College %, median income |
+| Loading state | Skeleton cards | 3 skeleton cards while loading |
+| Empty state | "No similar wards found" | When API returns empty array |
+| Error state | `QueryErrorState` | With retry button |
+
 ### Estimate Disclosure
 
 | Element | Type | Behavior |
@@ -134,6 +147,8 @@ Returns full report card for a ward. Computes partisan lean percentile, fetches 
 6. **Turnout card subtitle:** Says "votes per presidential election" but underlying computation uses the `race_type` parameter. See audit item #33.
 7. **Share button:** Uses `navigator.clipboard.writeText(window.location.href)`.
 8. **WardFinder reuse:** Landing page imports `useWardSearch` from `ward-explorer/hooks/`.
+9. **Ward Twins algorithm:** 9-dimensional feature vector (college_pct, median_income, population_density, white_pct, black_pct, hispanic_pct + 3 presidential margins), min-max normalized, cosine similarity.
+10. **Similar wards staleTime:** 10 minutes. Query key: `['wards', wardId, 'similar']`.
 
 ---
 
@@ -165,4 +180,8 @@ Returns full report card for a ward. Computes partisan lean percentile, fetches 
 | `features/ward-report/components/ElectionHistoryTable.tsx` | Filterable election results table |
 | `features/ward-report/hooks/useReportCard.ts` | TanStack Query: `GET /wards/{id}/report-card` (10 min stale time) |
 | `services/api.ts` | `getWardReportCard(wardId, raceType)` function |
+| `features/ward-report/components/SimilarWards.tsx` | Similar wards panel with clickable cards |
+| `shared/hooks/useSimilarWards.ts` | TanStack Query: `GET /wards/{id}/similar` |
+| `server/services/ward_service.py` | `get_similar_wards()` — cosine similarity on demographics + margins |
+| `server/api/v1/endpoints/wards.py` | `GET /{ward_id}/similar` endpoint |
 | `server/services/report_card_service.py` | Backend: builds full report card from ward + trends + aggregations |
