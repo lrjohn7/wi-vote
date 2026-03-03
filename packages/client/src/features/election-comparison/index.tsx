@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { WisconsinMap, type MapViewState } from '@/shared/components/WisconsinMap';
 import { MapLegend } from '@/features/election-map/components/MapLegend';
 import { QueryErrorState } from '@/shared/components/QueryErrorState';
+import { DismissibleInfoBanner } from '@/shared/components/DismissibleInfoBanner';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import { formatElectionLabel } from '@/shared/lib/raceLabels';
 import { ComparisonSelector } from './components/ComparisonSelector';
@@ -109,6 +110,14 @@ export default function ElectionComparison() {
           <QueryErrorState error={error} onRetry={refetch} />
         </div>
       )}
+
+      {/* Guidance banner */}
+      <DismissibleInfoBanner storageKey="wi-vote-compare-guide" className="mx-4 mt-2">
+        Pick two elections above, then switch between{' '}
+        <strong className="text-blue-400">Side by Side</strong> (synced maps you
+        can pan together) and <strong className="text-blue-400">Difference</strong>{' '}
+        (a purple-orange map showing where each party gained ground).
+      </DismissibleInfoBanner>
 
       {/* Map content */}
       <div className="flex-1 overflow-hidden">

@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { Box } from 'lucide-react';
 import { WisconsinMap } from '@/shared/components/WisconsinMap';
 import { QueryErrorState } from '@/shared/components/QueryErrorState';
+import { DismissibleInfoBanner } from '@/shared/components/DismissibleInfoBanner';
 import { useMapStore } from '@/stores/mapStore';
 import { useUrlState } from '@/shared/hooks/useUrlState';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
@@ -120,6 +121,14 @@ export default function ElectionMap() {
             <QueryErrorState error={error} onRetry={() => refetch()} compact />
           </div>
         )}
+
+        <DismissibleInfoBanner storageKey="wi-vote-map-guide" overlay>
+          Explore Wisconsin election results at the ward level. Select an election
+          year and race above, then click any ward for detailed results. Use the
+          metric toggle to switch between margin, vote share, and turnout views.
+          Try <strong className="text-blue-400">3D mode</strong> for vote density
+          or <strong className="text-blue-400">Time-Lapse</strong> to animate across years.
+        </DismissibleInfoBanner>
 
         {mapDataLoading && !mapData && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/50">

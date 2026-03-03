@@ -3,6 +3,7 @@ import { BarChart3 } from 'lucide-react';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import { useElections } from '@/features/election-map/hooks/useElections';
 import { RACE_LABELS } from '@/shared/lib/raceLabels';
+import { DismissibleInfoBanner } from '@/shared/components/DismissibleInfoBanner';
 import { useTurnoutGaps } from './hooks/useTurnoutGaps';
 import type { RaceType } from '@/types/election';
 
@@ -100,6 +101,13 @@ export default function TurnoutGaps() {
       {/* Content area */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+          <DismissibleInfoBanner storageKey="wi-vote-turnout-gaps-guide">
+            This page identifies wards where voter turnout fell below their
+            county average. The <strong className="text-blue-400">potential votes</strong>{' '}
+            column estimates how many additional votes a party could gain if
+            those wards matched average turnout. Select a party to see its
+            specific opportunity.
+          </DismissibleInfoBanner>
           {/* Loading state */}
           {isLoading && (
             <div className="space-y-4">
