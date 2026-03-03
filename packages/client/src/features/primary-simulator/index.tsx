@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { Vote, MapPin, Flame } from 'lucide-react';
+import { Vote, MapPin, Flame, SlidersHorizontal, X } from 'lucide-react';
 import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { usePrimaryStore } from '@/stores/primaryStore';
 import { usePrimaryData } from './hooks/usePrimaryData';
@@ -70,6 +70,7 @@ export default function PrimarySimulator() {
 
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [workerError, setWorkerError] = useState<string | null>(null);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   usePrimaryUrlState();
 
@@ -295,22 +296,57 @@ export default function PrimarySimulator() {
 
       {/* Main content: sidebar + map */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left sidebar */}
-        <div className="flex w-80 shrink-0 flex-col gap-3 overflow-y-auto border-r border-border/40 bg-background/50 p-4" aria-label="Primary simulator controls">
-          {/* Onboarding guide (dismissible) */}
+        {/* Desktop sidebar — hidden on mobile (drawer below handles mobile) */}
+        <div className="hidden md:flex w-80 shrink-0 flex-col gap-3 overflow-y-auto border-r border-border/40 bg-background/50 p-4" aria-label="Primary simulator controls">
           <PrimaryGuide />
-
-          {/* Candidate cards with expandable parameter sliders */}
           <CandidateCardList />
-
-          {/* Global model parameters with sliders */}
           <PrimaryControlsPanel />
-
-          {/* Statewide results summary with regional breakdown */}
           <PrimaryResultsSummary />
-
-          {/* Monte Carlo win probability bars */}
           <WinProbabilityBars />
+        </div>
+
+        {/* Mobile FAB to open controls drawer */}
+        {!mobileDrawerOpen && (
+          <button
+            onClick={() => setMobileDrawerOpen(true)}
+            className="absolute bottom-20 left-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-content1 shadow-lg border border-border/30 md:hidden"
+            aria-label="Open controls"
+          >
+            <SlidersHorizontal className="h-5 w-5" />
+          </button>
+        )}
+
+        {/* Mobile drawer overlay */}
+        {mobileDrawerOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/40 md:hidden"
+            onClick={() => setMobileDrawerOpen(false)}
+          />
+        )}
+
+        {/* Mobile drawer — contains same controls as desktop sidebar */}
+        <div
+          className={`fixed inset-y-0 left-0 z-50 flex w-[85vw] max-w-sm flex-col border-r border-border/30 bg-content1 transition-transform duration-300 md:hidden ${
+            mobileDrawerOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="flex items-center justify-between border-b border-border/30 px-4 py-3">
+            <h3 className="text-sm font-semibold">Primary Controls</h3>
+            <button
+              onClick={() => setMobileDrawerOpen(false)}
+              className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-content2"
+              aria-label="Close controls"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <PrimaryGuide />
+            <CandidateCardList />
+            <PrimaryControlsPanel />
+            <PrimaryResultsSummary />
+            <WinProbabilityBars />
+          </div>
         </div>
 
         {/* Map area */}

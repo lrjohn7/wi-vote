@@ -1,5 +1,5 @@
-import { useState, memo, useCallback } from 'react';
-import { SlidersHorizontal, X, Info } from 'lucide-react';
+import { memo, useState, useCallback } from 'react';
+import { Info } from 'lucide-react';
 import { usePrimaryStore } from '@/stores/primaryStore';
 import { PollManager } from './PollManager';
 import type { PrimaryGlobalParams } from '@/types/primary';
@@ -113,23 +113,17 @@ const ParamSlider = memo(function ParamSlider({
   );
 });
 
-interface PrimaryControlsPanelProps {
-  children?: React.ReactNode;
-}
-
 /**
- * Main sidebar panel for the Primary Simulator.
+ * Inline controls panel for the Primary Simulator.
  *
  * Contains the Poll Preset Selector, global parameter sliders (turnout,
- * temperature, factor weights), and a children slot for CandidateCardList
- * and ResultsSummary.
+ * temperature, factor weights), and a reset button.
  *
- * Follows the same layout patterns as the SwingModeler ControlsPanel:
- * w-80 desktop sidebar, mobile drawer with overlay, overflow-y-auto.
+ * Mobile drawer handling is done by the parent (index.tsx) so this component
+ * renders purely inline — it works the same in the desktop sidebar and inside
+ * the mobile slide-in drawer.
  */
-export function PrimaryControlsPanel({ children }: PrimaryControlsPanelProps) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-
+export function PrimaryControlsPanel() {
   const globalParams = usePrimaryStore((s) => s.globalParams);
   const setGlobalParam = usePrimaryStore((s) => s.setGlobalParam);
   const resetToDefaults = usePrimaryStore((s) => s.resetToDefaults);
@@ -169,24 +163,10 @@ export function PrimaryControlsPanel({ children }: PrimaryControlsPanelProps) {
     endorsementWeight: handleEndorsementWeight,
   };
 
-  const panelContent = (
-    <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-0">
-      {/* Mobile close button */}
-      <div className="mb-3 flex items-center justify-between md:hidden">
-        <h3 className="text-sm font-semibold">Primary Controls</h3>
-        <button
-          onClick={() => setMobileOpen(false)}
-          className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-content2"
-          aria-label="Close controls"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
+  return (
+    <div className="space-y-3">
       {/* Poll Manager (Polls + Scenarios tabs) */}
       <PollManager />
-
-      <hr className="border-border/40 my-3" />
 
       {/* Global Parameters */}
       <div className="space-y-3 rounded-lg border border-border/30 bg-content2/50 p-3">
@@ -209,8 +189,6 @@ export function PrimaryControlsPanel({ children }: PrimaryControlsPanelProps) {
         ))}
       </div>
 
-      <hr className="border-border/40 my-3" />
-
       {/* Factor Weights */}
       <div className="space-y-3 rounded-lg border border-border/30 bg-content2/50 p-3">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -231,13 +209,6 @@ export function PrimaryControlsPanel({ children }: PrimaryControlsPanelProps) {
         ))}
       </div>
 
-      <hr className="border-border/40 my-3" />
-
-      {/* Children slot: CandidateCardList, ResultsSummary, etc. */}
-      {children}
-
-      <hr className="border-border/40 my-3" />
-
       {/* Reset button */}
       <button
         onClick={resetToDefaults}
@@ -246,40 +217,5 @@ export function PrimaryControlsPanel({ children }: PrimaryControlsPanelProps) {
         Reset All to Defaults
       </button>
     </div>
-  );
-
-  return (
-    <>
-      {/* Mobile toggle button */}
-      <button
-        onClick={() => setMobileOpen(true)}
-        className="absolute bottom-36 left-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-content1 shadow-lg border border-border/30 md:hidden"
-        aria-label="Open primary controls"
-      >
-        <SlidersHorizontal className="h-5 w-5" />
-      </button>
-
-      {/* Mobile overlay */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 md:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
-
-      {/* Mobile drawer */}
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-[85vw] max-w-sm flex-col border-r border-border/30 bg-content1 transition-transform duration-300 md:hidden ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        {panelContent}
-      </div>
-
-      {/* Desktop: render inline (parent sidebar provides the container) */}
-      <div className="hidden md:block">
-        {panelContent}
-      </div>
-    </>
   );
 }

@@ -61,6 +61,23 @@ export const SCENARIO_PRESETS: PollPreset[] = [
     },
     undecided: 20,
   },
+  {
+    id: 'crowley-surge',
+    name: 'Crowley Surge',
+    source: 'Hypothetical',
+    date: '',
+    candidates: {
+      crowley: 24,
+      barnes: 16,
+      hong: 12,
+      rodriguez: 8,
+      roys: 6,
+      brennan: 5,
+      hughes: 4,
+      mcguire: 3,
+    },
+    undecided: 22,
+  },
 ];
 
 /** Backward-compatible alias. */
