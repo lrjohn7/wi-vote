@@ -72,6 +72,16 @@ export default function PrimarySimulator() {
   const [workerError, setWorkerError] = useState<string | null>(null);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
+  // Close mobile drawer on Escape key
+  useEffect(() => {
+    if (!mobileDrawerOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileDrawerOpen(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [mobileDrawerOpen]);
+
   usePrimaryUrlState();
 
   // Apply poll average on mount when in average mode so candidate baselines
@@ -296,7 +306,7 @@ export default function PrimarySimulator() {
 
       {/* Main content: sidebar + map */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Desktop sidebar — hidden on mobile (drawer below handles mobile) */}
+        {/* Desktop sidebar */}
         <div className="hidden md:flex w-80 shrink-0 flex-col gap-3 overflow-y-auto border-r border-border/40 bg-background/50 p-4" aria-label="Primary simulator controls">
           <PrimaryGuide />
           <CandidateCardList />
@@ -324,8 +334,11 @@ export default function PrimarySimulator() {
           />
         )}
 
-        {/* Mobile drawer — contains same controls as desktop sidebar */}
+        {/* Mobile drawer — children only mount when open to avoid double subscriptions */}
         <div
+          role="dialog"
+          aria-modal={mobileDrawerOpen}
+          aria-label="Primary controls"
           className={`fixed inset-y-0 left-0 z-50 flex w-[85vw] max-w-sm flex-col border-r border-border/30 bg-content1 transition-transform duration-300 md:hidden ${
             mobileDrawerOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
@@ -341,11 +354,15 @@ export default function PrimarySimulator() {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            <PrimaryGuide />
-            <CandidateCardList />
-            <PrimaryControlsPanel />
-            <PrimaryResultsSummary />
-            <WinProbabilityBars />
+            {mobileDrawerOpen && (
+              <>
+                <PrimaryGuide />
+                <CandidateCardList />
+                <PrimaryControlsPanel />
+                <PrimaryResultsSummary />
+                <WinProbabilityBars />
+              </>
+            )}
           </div>
         </div>
 

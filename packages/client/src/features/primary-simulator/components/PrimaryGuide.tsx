@@ -1,7 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { X, Users, SlidersHorizontal, Map, BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
-
-const DISMISS_KEY = 'wi-vote-primary-guide-dismissed';
+import { useDismissible } from '@/shared/hooks/useDismissible';
 
 /**
  * Dismissible onboarding guide for the Primary Simulator.
@@ -11,15 +10,8 @@ const DISMISS_KEY = 'wi-vote-primary-guide-dismissed';
  * don't see it again.
  */
 export function PrimaryGuide() {
-  const [dismissed, setDismissed] = useState(
-    () => localStorage.getItem(DISMISS_KEY) === '1',
-  );
+  const [dismissed, handleDismiss] = useDismissible('wi-vote-primary-guide-dismissed');
   const [expanded, setExpanded] = useState(true);
-
-  const handleDismiss = useCallback(() => {
-    setDismissed(true);
-    localStorage.setItem(DISMISS_KEY, '1');
-  }, []);
 
   if (dismissed) return null;
 

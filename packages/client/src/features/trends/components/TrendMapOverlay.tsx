@@ -4,7 +4,7 @@ import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { useTrendClassifications } from '../hooks/useTrends';
 import type { MapDataResponse, WardMapEntry } from '@/features/election-map/hooks/useMapData';
 import type { TrendClassificationEntry } from '@/services/api';
-import { TrendInfoBanner } from './TrendInfoBanner';
+import { DismissibleInfoBanner } from '@/shared/components/DismissibleInfoBanner';
 import { TrendLegend } from './TrendLegend';
 import { TrendHoverTooltip } from './TrendHoverTooltip';
 import { TrendSummaryDashboard } from './TrendSummaryDashboard';
@@ -190,7 +190,14 @@ export const TrendMapOverlay = memo(function TrendMapOverlay() {
         )}
       </div>
 
-      <TrendInfoBanner />
+      <DismissibleInfoBanner storageKey="wi-vote-trend-info" title="How trends are calculated" className="mx-4 mt-3">
+        Each ward's partisan trend is determined by linear regression on its
+        Democratic margin across all available elections.{' '}
+        <span className="font-medium text-blue-400">Blue</span> = trending Democratic,{' '}
+        <span className="font-medium text-red-400">Red</span> = trending Republican,{' '}
+        <span className="font-medium text-muted-foreground">Gray</span> = inconclusive (p &gt; 0.05).
+        Color intensity reflects the magnitude of the shift.
+      </DismissibleInfoBanner>
 
       {classError && (
         <div className="flex flex-1 items-center justify-center">

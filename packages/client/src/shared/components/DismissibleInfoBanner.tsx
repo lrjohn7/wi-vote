@@ -1,5 +1,6 @@
-import { useState, useCallback, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { X, Info } from 'lucide-react';
+import { useDismissible } from '@/shared/hooks/useDismissible';
 
 interface DismissibleInfoBannerProps {
   /** LocalStorage key for persisting dismissal. Must be unique per page. */
@@ -29,14 +30,7 @@ export function DismissibleInfoBanner({
   className = '',
   overlay = false,
 }: DismissibleInfoBannerProps) {
-  const [dismissed, setDismissed] = useState(
-    () => localStorage.getItem(storageKey) === '1',
-  );
-
-  const handleDismiss = useCallback(() => {
-    setDismissed(true);
-    localStorage.setItem(storageKey, '1');
-  }, [storageKey]);
+  const [dismissed, handleDismiss] = useDismissible(storageKey);
 
   if (dismissed) return null;
 
@@ -48,7 +42,7 @@ export function DismissibleInfoBanner({
 
   return (
     <div
-      role="status"
+      role="note"
       className={`${baseClasses} ${overlayClasses} ${className}`}
     >
       <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-400" aria-hidden="true" />

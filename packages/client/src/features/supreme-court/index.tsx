@@ -66,52 +66,7 @@ export default function SupremeCourt() {
 
   return (
     <div className="flex h-full w-full max-w-full flex-col overflow-hidden">
-      {/* Header */}
-      <div className="border-b border-border/30 bg-content1 px-4 py-4 md:px-6">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h2 className="text-xl font-bold sm:text-2xl">Wisconsin Supreme Court Elections</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Spring election results by reporting unit
-            </p>
-          </div>
-          {contest && (
-            <div className="sm:text-right">
-              <div className="text-sm text-muted-foreground">
-                {contest.election_date
-                  ? new Date(contest.election_date + 'T00:00:00').toLocaleDateString('en-US', {
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })
-                  : contest.year}
-              </div>
-              <div className="mt-1 text-lg font-semibold">
-                {contest.total_votes.toLocaleString()} total votes
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Statewide summary */}
-        {contest && <StatewideSummary contest={contest} />}
-
-        {/* Disclaimer */}
-        <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-          <p className="text-xs text-amber-800">
-            <strong>Why no map?</strong> Wisconsin Supreme Court elections are spring nonpartisan
-            races. The Wisconsin Elections Commission reports results at the{' '}
-            <em>reporting unit</em> level, where a single reporting unit may combine multiple
-            wards (e.g., "Town of Westport Wards 1-4"). Unlike November general elections, the
-            Legislative Technology Services Bureau (LTSB) has not disaggregated these results to
-            individual ward boundaries. Until that data is available, we display results in table
-            format grouped by county and reporting unit.
-          </p>
-        </div>
-      </div>
-
-      {/* Controls */}
+      {/* Controls — sticky on top */}
       <div className="flex flex-wrap items-center gap-2 border-b border-border/30 px-3 py-3 sm:gap-3 sm:px-4 md:px-6">
         <Select value={String(selectedYear)} onValueChange={handleYearChange}>
           <SelectTrigger className="w-[80px] sm:w-[100px]">
@@ -162,8 +117,53 @@ export default function SupremeCourt() {
         )}
       </div>
 
-      {/* Table */}
+      {/* Scrollable content: header + table */}
       <div className="min-h-0 flex-1 overflow-auto px-3 py-4 sm:px-4 md:px-6">
+        {/* Header */}
+        <div className="mb-4">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-xl font-bold sm:text-2xl">Wisconsin Supreme Court Elections</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Spring election results by reporting unit
+              </p>
+            </div>
+            {contest && (
+              <div className="sm:text-right">
+                <div className="text-sm text-muted-foreground">
+                  {contest.election_date
+                    ? new Date(contest.election_date + 'T00:00:00').toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })
+                    : contest.year}
+                </div>
+                <div className="mt-1 text-lg font-semibold">
+                  {contest.total_votes.toLocaleString()} total votes
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Statewide summary */}
+          {contest && <StatewideSummary contest={contest} />}
+
+          {/* Disclaimer */}
+          <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+            <p className="text-xs text-amber-800">
+              <strong>Why no map?</strong> Wisconsin Supreme Court elections are spring nonpartisan
+              races. The Wisconsin Elections Commission reports results at the{' '}
+              <em>reporting unit</em> level, where a single reporting unit may combine multiple
+              wards (e.g., &ldquo;Town of Westport Wards 1-4&rdquo;). Unlike November general elections, the
+              Legislative Technology Services Bureau (LTSB) has not disaggregated these results to
+              individual ward boundaries. Until that data is available, we display results in table
+              format grouped by county and reporting unit.
+            </p>
+          </div>
+        </div>
+
         {contestsError && (
           <QueryErrorState error={contestsErrorObj!} />
         )}
