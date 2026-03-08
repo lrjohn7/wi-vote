@@ -26,11 +26,14 @@ async def get_turnout_gaps(
     race_type: RaceTypeLiteral,
     party: str = Query("dem", pattern="^(dem|rep)$"),
     limit: int = Query(200, ge=1, le=1000),
+    min_votes: int = Query(50, ge=1, le=10000),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Find wards with untapped vote potential for a party."""
     service = ElectionService(db)
-    return await service.get_turnout_gaps(year, race_type, party=party, limit=limit)
+    return await service.get_turnout_gaps(
+        year, race_type, party=party, limit=limit, min_votes=min_votes
+    )
 
 
 @router.get("/map-data/{year}/{race_type}")

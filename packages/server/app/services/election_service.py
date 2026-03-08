@@ -144,6 +144,7 @@ class ElectionService:
         race_type: str,
         party: str = "dem",
         limit: int = 200,
+        min_votes: int = 50,
     ) -> dict:
         """Find wards with untapped vote potential for a party.
 
@@ -151,6 +152,9 @@ class ElectionService:
         turnout is below the county average and the party has strong support.
         The 'potential votes' metric shows how many additional votes the party
         would gain if that ward matched its county average turnout.
+
+        min_votes filters out micro-wards (parks, institutions, near-empty
+        areas) whose tiny vote counts produce misleading turnout gaps.
         """
         from app.models.ward import Ward
 
@@ -168,7 +172,7 @@ class ElectionService:
             .where(
                 ElectionResult.election_year == year,
                 ElectionResult.race_type == race_type,
-                ElectionResult.total_votes > 0,
+                ElectionResult.total_votes >= min_votes,
             )
             .group_by(Ward.county)
             .subquery()
@@ -198,7 +202,7 @@ class ElectionService:
             .where(
                 ElectionResult.election_year == year,
                 ElectionResult.race_type == race_type,
-                ElectionResult.total_votes > 0,
+                ElectionResult.total_votes >= min_votes,
             )
         )
 
@@ -253,6 +257,7 @@ class ElectionService:
             "year": year,
             "race_type": race_type,
             "party": party,
+            "min_votes": min_votes,
             "total_potential_votes": round(total_potential, 0),
             "ward_count": len(wards),
             "avg_gap": round(avg_gap, 1),
