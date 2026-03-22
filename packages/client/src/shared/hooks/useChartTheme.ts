@@ -15,9 +15,10 @@ export function useChartTheme() {
     textColor: dark ? '#a3a3a3' : '#737373',
     axisColor: dark ? '#404040' : '#d4d4d4',
 
-    // Tooltip
-    tooltipBg: dark ? '#262626' : '#ffffff',
+    // Tooltip (dark bg #1c1c1c ensures 7:1+ contrast with #d4d4d4 text)
+    tooltipBg: dark ? '#1c1c1c' : '#ffffff',
     tooltipBorder: dark ? '#404040' : '#e5e5e5',
+    tooltipText: dark ? '#d4d4d4' : '#374151',
 
     // Political colors (lighter in dark mode for readability)
     dem: dark ? '#67a9cf' : '#2166ac',
