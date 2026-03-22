@@ -33,15 +33,15 @@ function ChartTooltip({
 
   return (
     <div className="glass-panel rounded px-2 py-1.5 shadow-lg border border-border/30">
-      <p className="text-[10px] text-muted-foreground mb-1">{label}</p>
+      <p className="text-[11px] text-muted-foreground mb-1">{label}</p>
       {payload.map((entry) => (
         <div key={entry.dataKey} className="flex items-center gap-1.5">
           <span
             className="h-1.5 w-1.5 rounded-full shrink-0"
             style={{ backgroundColor: entry.color }}
           />
-          <span className="text-[10px]">{entry.name}</span>
-          <span className="text-[10px] font-mono tabular-nums ml-auto">
+          <span className="text-[11px]">{entry.name}</span>
+          <span className="text-[11px] font-mono tabular-nums ml-auto">
             {entry.value.toFixed(1)}%
           </span>
         </div>

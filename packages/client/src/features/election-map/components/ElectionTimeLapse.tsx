@@ -34,7 +34,7 @@ export const ElectionTimeLapse = memo(function ElectionTimeLapse() {
       {(isPlaying || currentIdx > 0) && (
         <button
           onClick={stop}
-          className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
           aria-label="Reset time-lapse"
         >
           <RotateCcw className="h-3.5 w-3.5" />
@@ -77,6 +77,8 @@ export const ElectionTimeLapse = memo(function ElectionTimeLapse() {
           className="h-1.5 w-24 cursor-pointer accent-foreground sm:w-32"
           aria-label="Time-lapse year"
           aria-valuetext={String(currentYear)}
+          aria-valuemin={0}
+          aria-valuemax={years.length - 1}
         />
         {currentYear && (
           <span className="min-w-[3ch] text-xs font-bold tabular-nums text-foreground">

@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import {
-  LineChart,
+  AreaChart,
+  Area,
   Line,
   XAxis,
   YAxis,
@@ -11,6 +12,12 @@ import {
 } from 'recharts';
 import type { TrendElection, WardTrendInfo } from '@/services/api';
 import { useChartTheme } from '@/shared/hooks/useChartTheme';
+import { formatMargin } from '@/shared/lib/formatters';
+
+const tooltipFormatter = (value: number | string | undefined) => {
+  return formatMargin(Number(value ?? 0));
+};
+const tooltipLabelFormatter = (label: unknown) => `${label}`;
 
 interface TrendTimeSeriesProps {
   elections: TrendElection[];
@@ -67,7 +74,13 @@ export const TrendTimeSeries = memo(function TrendTimeSeries({ elections, raceTy
   return (
     <div className="rounded-xl border border-border/30 bg-content1 p-4 shadow-sm" role="figure" aria-label={chartDescription}>
     <ResponsiveContainer width="100%" height={280}>
-      <LineChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+      <AreaChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+        <defs>
+          <linearGradient id="gradientMargin" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={directionColor} stopOpacity={0.3} />
+            <stop offset="95%" stopColor={directionColor} stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
         <CartesianGrid strokeDasharray="3 3" stroke={chart.gridColor} opacity={0.5} />
         <XAxis
           dataKey="year"
@@ -84,22 +97,21 @@ export const TrendTimeSeries = memo(function TrendTimeSeries({ elections, raceTy
           stroke={chart.axisColor}
         />
         <Tooltip
-          formatter={(value) => {
-            const v = Number(value);
-            return v > 0 ? `D+${v.toFixed(1)}` : v < 0 ? `R+${Math.abs(v).toFixed(1)}` : 'Even';
-          }}
-          labelFormatter={(label) => `${label}`}
-          contentStyle={{ backgroundColor: chart.tooltipBg, borderColor: chart.tooltipBorder, borderRadius: 8 }}
-          itemStyle={{ color: chart.textColor }}
-          labelStyle={{ color: chart.textColor }}
+          formatter={tooltipFormatter}
+          labelFormatter={tooltipLabelFormatter}
+          contentStyle={{ backgroundColor: chart.tooltipBg, borderColor: chart.tooltipBorder, borderRadius: 8, backdropFilter: 'blur(8px)' }}
+          itemStyle={{ color: chart.tooltipText }}
+          labelStyle={{ color: chart.tooltipText }}
         />
         <ReferenceLine y={0} stroke={chart.zeroLine} strokeDasharray="4 4" />
-        <Line
+        <Area
           type="monotone"
           dataKey="margin"
           stroke={directionColor}
           strokeWidth={2}
-          dot={{ r: 4 }}
+          fill="url(#gradientMargin)"
+          fillOpacity={1}
+          dot={{ r: 4, fill: directionColor, stroke: directionColor }}
           activeDot={{ r: 6 }}
           name="Margin"
         />
@@ -114,7 +126,7 @@ export const TrendTimeSeries = memo(function TrendTimeSeries({ elections, raceTy
             name="Trend"
           />
         )}
-      </LineChart>
+      </AreaChart>
     </ResponsiveContainer>
     </div>
   );

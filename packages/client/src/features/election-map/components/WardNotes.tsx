@@ -30,7 +30,7 @@ function useWardNotes(wardId: string | null) {
     queryKey: ['ward-notes', wardId],
     queryFn: async () => {
       const res = await fetch(`/api/v1/ward-notes/${wardId}`);
-      if (!res.ok) return { notes: [], total: 0, ward_id: wardId ?? '' };
+      if (!res.ok) throw new Error(`Failed to load notes (${res.status})`);
       return res.json();
     },
     enabled: !!wardId,
@@ -44,7 +44,7 @@ interface WardNotesProps {
 
 export const WardNotes = memo(function WardNotes({ wardId }: WardNotesProps) {
   const queryClient = useQueryClient();
-  const { data, isLoading } = useWardNotes(wardId);
+  const { data, isLoading, isError } = useWardNotes(wardId);
   const [showForm, setShowForm] = useState(false);
   const [authorName, setAuthorName] = useState('');
   const [content, setContent] = useState('');
@@ -145,6 +145,13 @@ export const WardNotes = memo(function WardNotes({ wardId }: WardNotesProps) {
         </div>
       )}
 
+      {/* Error state */}
+      {isError && (
+        <p className="text-center text-xs text-destructive">
+          Failed to load community notes. Please try again later.
+        </p>
+      )}
+
       {/* Notes list */}
       {isLoading && (
         <div className="space-y-2">
@@ -170,11 +177,11 @@ export const WardNotes = memo(function WardNotes({ wardId }: WardNotesProps) {
                 <span className="text-xs font-medium">{note.author_name}</span>
                 <div className="flex items-center gap-1.5">
                   {note.category && (
-                    <span className="rounded bg-content2 px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                    <span className="rounded bg-content2 px-1.5 py-0.5 text-[11px] text-muted-foreground">
                       {CATEGORY_LABELS[note.category] ?? note.category}
                     </span>
                   )}
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-[11px] text-muted-foreground">
                     {new Date(note.created_at).toLocaleDateString()}
                   </span>
                 </div>

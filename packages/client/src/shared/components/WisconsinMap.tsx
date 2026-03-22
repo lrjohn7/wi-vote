@@ -4,6 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { Protocol } from 'pmtiles';
 import { choroplethFillColor, getFillColorForMetric } from '@/shared/lib/colorScale';
 import { WISCONSIN_CENTER, WISCONSIN_BOUNDS } from '@/shared/lib/mapConstants';
+import { useThemeStore } from '@/stores/themeStore';
 import type { DisplayMetric } from '@/shared/lib/colorScale';
 import type { MapDataResponse } from '@/features/election-map/hooks/useMapData';
 
@@ -60,6 +61,8 @@ export const WisconsinMap = memo(function WisconsinMap({
   overlayGeoJSON,
   is3DMode,
 }: WisconsinMapProps) {
+  const resolvedTheme = useThemeStore((s) => s.resolvedTheme);
+  const isDark = resolvedTheme === 'dark';
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const mapLoaded = useRef(false);
@@ -88,7 +91,7 @@ export const WisconsinMap = memo(function WisconsinMap({
           {
             id: 'background',
             type: 'background',
-            paint: { 'background-color': '#f0f0f0' },
+            paint: { 'background-color': isDark ? '#1a1a2e' : '#f0f0f0' },
           },
         ],
       },
@@ -137,7 +140,7 @@ export const WisconsinMap = memo(function WisconsinMap({
         source: WARD_SOURCE,
         'source-layer': WARD_SOURCE_LAYER,
         paint: {
-          'line-color': '#666',
+          'line-color': isDark ? '#444' : '#666',
           'line-width': [
             'interpolate',
             ['linear'],
@@ -157,7 +160,7 @@ export const WisconsinMap = memo(function WisconsinMap({
         source: WARD_SOURCE,
         'source-layer': WARD_SOURCE_LAYER,
         paint: {
-          'line-color': '#000',
+          'line-color': isDark ? '#fff' : '#000',
           'line-width': 3,
           'line-opacity': [
             'case',
@@ -253,6 +256,19 @@ export const WisconsinMap = memo(function WisconsinMap({
       return () => { m.off('load', onLoad); };
     }
   }, [mapData, applyMapData]);
+
+  // Update map colors when theme changes
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !layersAdded.current) return;
+    try {
+      m.setPaintProperty('background', 'background-color', isDark ? '#1a1a2e' : '#f0f0f0');
+      m.setPaintProperty(WARD_LAYER_LINE, 'line-color', isDark ? '#444' : '#666');
+      m.setPaintProperty(WARD_LAYER_HIGHLIGHT, 'line-color', isDark ? '#fff' : '#000');
+    } catch {
+      // Map may not be fully loaded yet
+    }
+  }, [isDark]);
 
   // Apply per-ward opacity overrides (uncertainty visualization)
   useEffect(() => {

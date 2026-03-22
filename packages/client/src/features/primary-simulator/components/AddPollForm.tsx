@@ -316,7 +316,7 @@ export function AddPollForm({ isOpen, onClose }: AddPollFormProps) {
         <div className="flex justify-end">
           <span
             className={
-              'text-[10px] font-mono tabular-nums ' +
+              'text-[11px] font-mono tabular-nums ' +
               (sumIsValid ? 'text-green-500' : 'text-amber-500')
             }
           >

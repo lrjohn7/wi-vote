@@ -45,7 +45,7 @@ export const ElectionSelector = memo(function ElectionSelector() {
           }
         }}
       >
-        <SelectTrigger className="w-[90px] sm:w-[100px]">
+        <SelectTrigger className="w-[90px] sm:w-[100px]" aria-label="Election year">
           <SelectValue placeholder="Year" />
         </SelectTrigger>
         <SelectContent>
@@ -65,7 +65,7 @@ export const ElectionSelector = memo(function ElectionSelector() {
           }
         }}
       >
-        <SelectTrigger className="w-[130px] sm:w-[160px]">
+        <SelectTrigger className="w-[130px] sm:w-[160px]" aria-label="Race type">
           <SelectValue placeholder="Race" />
         </SelectTrigger>
         <SelectContent>

@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import {
-  LineChart,
+  ComposedChart,
+  Area,
   Line,
   XAxis,
   YAxis,
@@ -12,6 +13,7 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useChartTheme } from '@/shared/hooks/useChartTheme';
+import { formatMargin } from '@/shared/lib/formatters';
 import type { ReportCardComparison } from '@/services/api';
 
 interface ComparisonChartProps {
@@ -33,12 +35,6 @@ export const ComparisonChart = memo(function ComparisonChart({ comparisons, coun
     state: c.state_margin,
   }));
 
-  const formatMargin = (value: number) => {
-    if (value > 0) return `D+${value.toFixed(1)}`;
-    if (value < 0) return `R+${Math.abs(value).toFixed(1)}`;
-    return 'Even';
-  };
-
   const firstYear = data[0]?.year;
   const lastYear = data[data.length - 1]?.year;
 
@@ -51,8 +47,14 @@ export const ComparisonChart = memo(function ComparisonChart({ comparisons, coun
       </CardHeader>
       <CardContent role="figure" aria-label={`Presidential margin comparison chart, ${firstYear} to ${lastYear}. Compares ward margin to ${county} County and Wisconsin statewide.`}>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={chart.gridColor} />
+          <ComposedChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
+            <defs>
+              <linearGradient id="gradientWard" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={chart.line1} stopOpacity={0.25} />
+                <stop offset="95%" stopColor={chart.line1} stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke={chart.gridColor} opacity={0.6} />
             <XAxis
               dataKey="year"
               tick={{ fontSize: 12, fill: chart.textColor }}
@@ -70,9 +72,9 @@ export const ComparisonChart = memo(function ComparisonChart({ comparisons, coun
                 name === 'ward' ? 'Ward' : name === 'county' ? `${county} Co.` : 'Wisconsin',
               ]}
               labelFormatter={(label) => `${label} Presidential`}
-              contentStyle={{ backgroundColor: chart.tooltipBg, borderColor: chart.tooltipBorder, borderRadius: 8 }}
-              itemStyle={{ color: chart.textColor }}
-              labelStyle={{ color: chart.textColor }}
+              contentStyle={{ backgroundColor: chart.tooltipBg, borderColor: chart.tooltipBorder, borderRadius: 8, backdropFilter: 'blur(8px)' }}
+              itemStyle={{ color: chart.tooltipText }}
+              labelStyle={{ color: chart.tooltipText }}
             />
             <Legend
               formatter={(value) =>
@@ -80,12 +82,15 @@ export const ComparisonChart = memo(function ComparisonChart({ comparisons, coun
               }
             />
             <ReferenceLine y={0} stroke={chart.zeroLine} strokeDasharray="3 3" />
-            <Line
+            <Area
               type="monotone"
               dataKey="ward"
               stroke={chart.line1}
               strokeWidth={2.5}
-              dot={{ r: 4 }}
+              fill="url(#gradientWard)"
+              fillOpacity={1}
+              dot={{ r: 4, fill: chart.line1, stroke: chart.line1 }}
+              name="ward"
             />
             <Line
               type="monotone"
@@ -103,7 +108,7 @@ export const ComparisonChart = memo(function ComparisonChart({ comparisons, coun
               strokeDasharray="2 2"
               dot={{ r: 3 }}
             />
-          </LineChart>
+          </ComposedChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>

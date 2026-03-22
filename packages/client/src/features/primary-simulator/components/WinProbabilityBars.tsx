@@ -109,7 +109,7 @@ export const WinProbabilityBars = memo(function WinProbabilityBars() {
       </div>
 
       {/* Simulation metadata */}
-      <p className="text-[10px] text-muted-foreground/60 mt-2 italic">
+      <p className="text-[11px] text-muted-foreground/60 mt-2 italic">
         Based on Monte Carlo simulation
       </p>
     </div>

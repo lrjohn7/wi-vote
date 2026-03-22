@@ -53,7 +53,7 @@ export function QueryErrorState({ error, onRetry, compact }: QueryErrorStateProp
       {onRetry && (
         <button
           onClick={onRetry}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-content2 px-3 py-1.5 text-sm font-medium transition-colors hover:bg-content2/80"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-content2 px-3 py-1.5 text-sm font-medium transition-colors hover:bg-content2/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <RefreshCw className="h-3.5 w-3.5" />
           Retry

@@ -75,7 +75,7 @@ export function PrimaryGuide() {
             />
           </div>
 
-          <p className="text-[10px] text-muted-foreground/50 italic">
+          <p className="text-[11px] text-muted-foreground/50 italic">
             Tip: Use the Polls tab to import real polling data or switch between poll scenarios.
           </p>
         </div>

@@ -86,7 +86,7 @@ export const PollAveragingConfig = memo(function PollAveragingConfig() {
               className="w-full h-1.5 accent-foreground cursor-pointer"
               aria-label={`Half-life: ${config.halfLifeDays} days`}
             />
-            <p className="text-[10px] text-muted-foreground/60">
+            <p className="text-[11px] text-muted-foreground/60">
               Older polls lose weight exponentially. Lower = favors recent polls.
             </p>
           </div>
@@ -103,7 +103,7 @@ export const PollAveragingConfig = memo(function PollAveragingConfig() {
               Frequency dampening
             </span>
           </label>
-          <p className="text-[10px] text-muted-foreground/60 -mt-2 ml-5">
+          <p className="text-[11px] text-muted-foreground/60 -mt-2 ml-5">
             Reduce weight of pollsters who release many polls in a short window.
           </p>
 
@@ -119,7 +119,7 @@ export const PollAveragingConfig = memo(function PollAveragingConfig() {
               Partisan penalty
             </span>
           </label>
-          <p className="text-[10px] text-muted-foreground/60 -mt-2 ml-5">
+          <p className="text-[11px] text-muted-foreground/60 -mt-2 ml-5">
             Apply a 30% weight reduction to polls from partisan organizations.
           </p>
         </div>

@@ -76,7 +76,7 @@ export const DemographicsSection = memo(function DemographicsSection({
               <div style={{ width: `${otherPct}%`, backgroundColor: '#71717a' }} />
             )}
           </div>
-          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground">
+          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
             {ETHNICITY_COLORS.map(({ key, label, color }) => {
               const pct = data[key] as number;
               if (pct < 0.5) return null;

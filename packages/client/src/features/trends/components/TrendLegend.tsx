@@ -54,7 +54,7 @@ export const TrendLegend = memo(function TrendLegend({
             background: 'linear-gradient(to right, var(--rep), var(--rep-light), var(--content3), var(--dem-light), var(--dem))',
           }}
         />
-        <div className="mt-0.5 flex justify-between text-[9px] text-muted-foreground">
+        <div className="mt-0.5 flex justify-between text-[11px] text-muted-foreground">
           <span>Strong R</span>
           <span>Neutral</span>
           <span>Strong D</span>
@@ -63,7 +63,7 @@ export const TrendLegend = memo(function TrendLegend({
 
       {/* Footer */}
       {total > 0 && (
-        <p className="mt-2 text-[9px] text-muted-foreground">
+        <p className="mt-2 text-[11px] text-muted-foreground">
           {total.toLocaleString()} wards
           {minYear != null && maxYear != null && ` \u00b7 ${minYear}\u2013${maxYear} elections`}
         </p>

@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { X, ClipboardList } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { RACE_LABELS_SHORT } from '@/shared/lib/raceLabels';
 import { useWardDemographics } from '@/shared/hooks/useWardDemographics';
 import { DemographicsSection } from '@/shared/components/DemographicsSection';
+import { useFocusTrap } from '@/shared/hooks/useFocusTrap';
 
 export const WardDetailPanel = memo(function WardDetailPanel() {
   const navigate = useNavigate();
@@ -19,11 +20,26 @@ export const WardDetailPanel = memo(function WardDetailPanel() {
   const setSelectedWard = useMapStore((s) => s.setSelectedWard);
   const { data: ward, isLoading, isError, error, refetch } = useWardDetail(selectedWardId);
   const { data: demographics } = useWardDemographics(selectedWardId);
+  const panelRef = useFocusTrap<HTMLElement>(!!selectedWardId);
+
+  // Close on Escape
+  const handleClose = useCallback(() => setSelectedWard(null), [setSelectedWard]);
+  useEffect(() => {
+    if (!selectedWardId) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [selectedWardId, handleClose]);
 
   if (!selectedWardId) return null;
 
   return (
     <aside
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
       className="absolute right-0 top-0 z-30 flex h-full w-full flex-col border-l border-border/30 bg-content1/95 shadow-lg backdrop-blur-sm animate-in slide-in-from-right-full duration-300 md:w-[420px]"
       aria-label={ward ? `Ward detail: ${ward.ward_name}` : 'Ward detail panel'}
     >
@@ -53,7 +69,7 @@ export const WardDetailPanel = memo(function WardDetailPanel() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-10 w-10"
               aria-label="View report card"
               onClick={() => navigate(`/wards/${ward.ward_id}/report`)}
             >
@@ -63,9 +79,9 @@ export const WardDetailPanel = memo(function WardDetailPanel() {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-10 w-10"
             aria-label="Close ward detail panel"
-            onClick={() => setSelectedWard(null)}
+            onClick={handleClose}
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </Button>
@@ -86,7 +102,7 @@ export const WardDetailPanel = memo(function WardDetailPanel() {
               <Badge variant="secondary">AD-{ward.assembly_district}</Badge>
             )}
             {ward.is_estimated && (
-              <Badge variant="outline" className="border-amber-300 text-amber-600">
+              <Badge variant="outline" className="border-amber-300 text-amber-600 dark:border-amber-700 dark:text-amber-400">
                 Estimated*
               </Badge>
             )}

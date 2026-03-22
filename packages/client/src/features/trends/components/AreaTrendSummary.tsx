@@ -22,7 +22,7 @@ export function AreaTrendSummary({ summary, totalWards }: AreaTrendSummaryProps)
       <div className="flex h-6 overflow-hidden rounded-full">
         {demPct > 0 && (
           <div
-            className="flex items-center justify-center text-[10px] font-medium text-white"
+            className="flex items-center justify-center text-[11px] font-medium text-white"
             style={{ width: `${demPct}%`, backgroundColor: 'var(--dem)' }}
           >
             {demPct >= 8 ? `${summary.more_democratic}` : ''}
@@ -30,7 +30,7 @@ export function AreaTrendSummary({ summary, totalWards }: AreaTrendSummaryProps)
         )}
         {incPct > 0 && (
           <div
-            className="flex items-center justify-center text-[10px] font-medium text-gray-700"
+            className="flex items-center justify-center text-[11px] font-medium text-gray-700"
             style={{ width: `${incPct}%`, backgroundColor: 'var(--content3)' }}
           >
             {incPct >= 8 ? `${summary.inconclusive}` : ''}
@@ -38,7 +38,7 @@ export function AreaTrendSummary({ summary, totalWards }: AreaTrendSummaryProps)
         )}
         {repPct > 0 && (
           <div
-            className="flex items-center justify-center text-[10px] font-medium text-white"
+            className="flex items-center justify-center text-[11px] font-medium text-white"
             style={{ width: `${repPct}%`, backgroundColor: 'var(--rep)' }}
           >
             {repPct >= 8 ? `${summary.more_republican}` : ''}

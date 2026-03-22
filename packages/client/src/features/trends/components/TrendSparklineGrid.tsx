@@ -68,6 +68,8 @@ const MiniSparkline = memo(function MiniSparkline({
 
     return (
       <svg width={width} height={height} className="block" role="img" aria-label={`${wardId}: ${dirLabel}, margin from ${points[0].margin.toFixed(1)} to ${points[points.length - 1].margin.toFixed(1)}`}>
+        <title>{wardId}: {dirLabel}</title>
+        <desc>Partisan margin sparkline from {points[0].margin.toFixed(1)} to {points[points.length - 1].margin.toFixed(1)}</desc>
         {/* Zero line if margin crosses 0 */}
         {minMargin < 0 && maxMargin > 0 && (
           <line
@@ -195,7 +197,7 @@ export function TrendSparklineGrid({
               direction={t.direction}
               slope={t.slope}
             />
-            <p className="mt-0.5 truncate text-[9px] text-muted-foreground">
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
               {t.ward_id}
             </p>
           </div>

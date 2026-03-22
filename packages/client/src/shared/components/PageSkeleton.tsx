@@ -1,6 +1,6 @@
 export function MapPageSkeleton() {
   return (
-    <div className="flex h-full flex-col animate-in fade-in duration-300">
+    <div className="flex h-full flex-col animate-in fade-in duration-300" role="status" aria-label="Loading page content">
       <div className="glass-panel flex items-center gap-3 rounded-none border-x-0 border-t-0 px-5 py-2.5">
         <div className="h-8 w-32 animate-pulse rounded-lg bg-content2" />
         <div className="h-8 w-40 animate-pulse rounded-lg bg-content2" />
@@ -13,7 +13,7 @@ export function MapPageSkeleton() {
 
 export function SidebarPageSkeleton() {
   return (
-    <div className="flex h-full flex-col animate-in fade-in duration-300 md:flex-row">
+    <div className="flex h-full flex-col animate-in fade-in duration-300 md:flex-row" role="status" aria-label="Loading page content">
       <div className="w-full space-y-3 border-b border-border/30 bg-content1 p-4 md:w-96 md:border-b-0 md:border-r">
         <div className="h-10 w-full animate-pulse rounded-lg bg-content2" />
         <div className="h-10 w-full animate-pulse rounded-lg bg-content2" />
@@ -36,7 +36,7 @@ export function SidebarPageSkeleton() {
 
 export function ContentPageSkeleton() {
   return (
-    <div className="mx-auto max-w-4xl space-y-4 p-6 animate-in fade-in duration-300">
+    <div className="mx-auto max-w-4xl space-y-4 p-6 animate-in fade-in duration-300" role="status" aria-label="Loading page content">
       <div className="h-8 w-48 animate-pulse rounded-lg bg-content2" />
       <div className="h-4 w-72 animate-pulse rounded bg-content2" />
       <div className="mt-6 space-y-3">

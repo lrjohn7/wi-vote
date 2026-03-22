@@ -2,7 +2,62 @@
   "mcpServers": {
     "chrome-devtools": {
       "command": "npx",
-      "args": ["chrome-devtools-mcp@latest"]
+      "args": [
+        "chrome-devtools-mcp@latest"
+      ]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ],
+      "env": {}
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "env": {}
+    },
+    "mcp-server-chart": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@antv/mcp-server-chart"
+      ],
+      "env": {}
+    },
+    "postgres-mcp": {
+      "type": "stdio",
+      "command": "C:/Users/acer/AppData/Roaming/Python/Python314/Scripts/uvx.exe",
+      "args": [
+        "postgres-mcp",
+        "--access-mode=unrestricted"
+      ],
+      "env": {
+        "DATABASE_URI": "postgresql://postgres:wivote2026secure@shortline.proxy.rlwy.net:36384/wivote"
+      }
+    },
+    "postgis-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "C:/Users/acer/.claude/mcp-servers/postgis-mcp/dist/server.js"
+      ],
+      "env": {
+        "DB_HOST": "shortline.proxy.rlwy.net",
+        "DB_PORT": "36384",
+        "DB_NAME": "wivote",
+        "DB_USER": "postgres",
+        "DB_PASSWORD": "wivote2026secure"
+      }
     }
   }
 }

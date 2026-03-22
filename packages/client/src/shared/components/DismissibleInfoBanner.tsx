@@ -35,7 +35,7 @@ export function DismissibleInfoBanner({
   if (dismissed) return null;
 
   const baseClasses =
-    'flex items-start gap-2.5 rounded-lg border border-blue-500/20 bg-blue-500/5 px-3 py-2 text-xs';
+    'flex items-start gap-2.5 rounded-lg border border-blue-500/20 bg-blue-500/5 dark:border-blue-400/20 dark:bg-blue-400/5 px-3 py-2 text-xs';
   const overlayClasses = overlay
     ? 'absolute top-2 left-1/2 -translate-x-1/2 z-20 max-w-lg w-[calc(100%-2rem)] shadow-lg backdrop-blur-sm'
     : '';
@@ -45,10 +45,10 @@ export function DismissibleInfoBanner({
       role="note"
       className={`${baseClasses} ${overlayClasses} ${className}`}
     >
-      <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-400" aria-hidden="true" />
+      <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-500 dark:text-blue-400" aria-hidden="true" />
       <div className="flex-1 space-y-0.5">
         {title && (
-          <p className="font-medium text-blue-400">{title}</p>
+          <p className="font-medium text-blue-600 dark:text-blue-400">{title}</p>
         )}
         <div className="leading-relaxed text-muted-foreground">
           {children}
@@ -56,7 +56,7 @@ export function DismissibleInfoBanner({
       </div>
       <button
         onClick={handleDismiss}
-        className="shrink-0 rounded p-0.5 text-muted-foreground/60 hover:text-foreground hover:bg-foreground/10 transition-colors"
+        className="shrink-0 rounded p-2 -m-1 text-muted-foreground/60 hover:text-foreground hover:bg-foreground/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label="Dismiss info"
       >
         <X className="h-3.5 w-3.5" />

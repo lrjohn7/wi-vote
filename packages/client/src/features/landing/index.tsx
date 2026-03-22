@@ -6,7 +6,12 @@ import {
   SlidersHorizontal,
   Scale,
   ArrowRight,
+  MapPin,
+  Calendar,
+  Vote,
+  Database,
 } from 'lucide-react';
+import { MetricCard } from '@/shared/components/MetricCard';
 
 const features = [
   {
@@ -51,12 +56,46 @@ const features = [
   },
 ];
 
+const stats = [
+  {
+    icon: MapPin,
+    label: 'Wards Tracked',
+    value: '~7,000',
+    color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+  },
+  {
+    icon: Calendar,
+    label: 'Elections Covered',
+    value: '2012-2024',
+    color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  },
+  {
+    icon: Vote,
+    label: 'Race Types',
+    value: '9+',
+    color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+  },
+  {
+    icon: Database,
+    label: 'Data Source',
+    value: 'LTSB',
+    color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  },
+];
+
 export default function LandingPage() {
   return (
     <div className="h-full overflow-y-auto">
+      {/* Accent line */}
+      <div className="h-1 bg-gradient-to-r from-wi-blue via-purple-500 to-wi-red" />
+
       {/* Hero section */}
       <section className="relative overflow-hidden border-b border-border/40 bg-gradient-to-b from-content2/50 to-background px-4 py-12 sm:py-20">
         <div className="mx-auto max-w-4xl text-center">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border/60 bg-content2/50 px-4 py-1.5 text-xs font-medium text-muted-foreground">
+            <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+            Ward-Level Election Intelligence
+          </div>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             <span className="text-wi-blue">Wisconsin</span>{' '}
             <span className="text-wi-red">Election Data</span>
@@ -87,23 +126,21 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Decorative gradient dots */}
+        {/* Decorative gradient line */}
         <div className="pointer-events-none absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-wi-blue/30 to-transparent" />
       </section>
 
-      {/* Stats bar */}
-      <section className="border-b border-border/40 bg-content2/30 px-4 py-6">
-        <div className="mx-auto grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-4">
-          {[
-            { label: 'Wards Tracked', value: '~7,000' },
-            { label: 'Elections Covered', value: '2012-2024' },
-            { label: 'Race Types', value: '9+' },
-            { label: 'Data Source', value: 'LTSB' },
-          ].map(({ label, value }) => (
-            <div key={label} className="text-center">
-              <div className="text-2xl font-bold">{value}</div>
-              <div className="text-xs text-muted-foreground">{label}</div>
-            </div>
+      {/* Stats bar — MetricCards */}
+      <section className="border-b border-border/40 bg-content2/20 px-4 py-6">
+        <div className="mx-auto grid max-w-4xl grid-cols-2 gap-3 sm:grid-cols-4">
+          {stats.map((s) => (
+            <MetricCard
+              key={s.label}
+              icon={s.icon}
+              label={s.label}
+              value={s.value}
+              color={s.color}
+            />
           ))}
         </div>
       </section>
@@ -117,7 +154,7 @@ export default function LandingPage() {
               <NavLink
                 key={to}
                 to={to}
-                className="group rounded-xl border border-border/50 bg-background p-5 transition-all hover:border-border hover:shadow-lg"
+                className="group rounded-xl border border-border/50 bg-background p-5 transition-all duration-200 hover:border-border hover:shadow-lg hover:shadow-wi-blue/5"
               >
                 <div className={`mb-3 inline-flex rounded-lg p-2.5 ${color}`}>
                   <Icon className="h-5 w-5" />

@@ -11,21 +11,12 @@ import {
   aggregateByAssemblyDistrict,
   type AggregatedResult,
 } from '../lib/aggregatePredictions';
+import { formatMargin, formatNumber } from '@/shared/lib/formatters';
 
 interface ResultsSummaryProps {
   predictions: Prediction[] | null;
   baseMapData: MapDataResponse | null;
   wardMetadata?: Record<string, WardMeta>;
-}
-
-function formatMargin(margin: number): string {
-  if (Math.abs(margin) < 0.05) return 'Even';
-  if (margin > 0) return `D+${margin.toFixed(1)}`;
-  return `R+${Math.abs(margin).toFixed(1)}`;
-}
-
-function formatNumber(n: number): string {
-  return n.toLocaleString();
 }
 
 function AggregationTable({ rows }: { rows: AggregatedResult[] }) {
@@ -211,10 +202,10 @@ export const ResultsSummary = memo(function ResultsSummary({ predictions, baseMa
           <Separator className="my-2" />
           <Tabs defaultValue="counties" className="w-full">
             <TabsList className="grid w-full grid-cols-4 h-8">
-              <TabsTrigger value="counties" className="text-[10px] px-1">Counties</TabsTrigger>
-              <TabsTrigger value="cd" className="text-[10px] px-1">Congress</TabsTrigger>
-              <TabsTrigger value="sd" className="text-[10px] px-1">Senate</TabsTrigger>
-              <TabsTrigger value="ad" className="text-[10px] px-1">Assembly</TabsTrigger>
+              <TabsTrigger value="counties" className="text-[11px] px-1">Counties</TabsTrigger>
+              <TabsTrigger value="cd" className="text-[11px] px-1">Congress</TabsTrigger>
+              <TabsTrigger value="sd" className="text-[11px] px-1">Senate</TabsTrigger>
+              <TabsTrigger value="ad" className="text-[11px] px-1">Assembly</TabsTrigger>
             </TabsList>
             <TabsContent value="counties">
               <AggregationTable rows={countyRows} />

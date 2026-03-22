@@ -63,16 +63,16 @@ export function ElectionHistoryTable({ elections }: ElectionHistoryTableProps) {
         {filtered.length === 0 ? (
           <p className="text-sm text-muted-foreground">No elections for this filter.</p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" style={{ maskImage: 'linear-gradient(to right, black calc(100% - 12px), transparent 100%)' }}>
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b text-left text-xs text-muted-foreground">
-                  <th scope="col" className="pb-2 pr-4">Year</th>
-                  <th scope="col" className="pb-2 pr-4">Race</th>
-                  <th scope="col" className="pb-2 pr-4 text-right">DEM</th>
-                  <th scope="col" className="pb-2 pr-4 text-right">REP</th>
-                  <th scope="col" className="pb-2 pr-4 text-right">Total</th>
-                  <th scope="col" className="pb-2 pr-2">Margin</th>
+                <tr className="sticky top-0 z-10 border-b bg-content1 text-left text-xs text-muted-foreground">
+                  <th scope="col" className="pb-2 pt-1 pr-4">Year</th>
+                  <th scope="col" className="pb-2 pt-1 pr-4">Race</th>
+                  <th scope="col" className="pb-2 pt-1 pr-4 text-right">DEM</th>
+                  <th scope="col" className="pb-2 pt-1 pr-4 text-right">REP</th>
+                  <th scope="col" className="pb-2 pt-1 pr-4 text-right">Total</th>
+                  <th scope="col" className="pb-2 pt-1 pr-2">Margin</th>
                 </tr>
               </thead>
               <tbody>
@@ -90,7 +90,7 @@ export function ElectionHistoryTable({ elections }: ElectionHistoryTableProps) {
                   return (
                     <tr
                       key={`${e.election_year}-${e.race_type}`}
-                      className="border-b last:border-b-0"
+                      className="border-b last:border-b-0 transition-colors hover:bg-content2/40"
                     >
                       <td className="py-2 pr-4 font-medium">{e.election_year}</td>
                       <td className="py-2 pr-4 text-muted-foreground">
@@ -110,12 +110,20 @@ export function ElectionHistoryTable({ elections }: ElectionHistoryTableProps) {
                       </td>
                       <td className="py-2 pr-2">
                         <div className="flex items-center gap-2">
-                          <div className="h-2 w-16 overflow-hidden rounded-full bg-content2" role="img" aria-label={`Vote split: Democrat ${demBarPct.toFixed(0)}%, Republican ${(100 - demBarPct).toFixed(0)}%`}>
+                          <div className="flex h-2.5 w-16 overflow-hidden rounded-full" role="img" aria-label={`Vote split: Democrat ${demBarPct.toFixed(0)}%, Republican ${(100 - demBarPct).toFixed(0)}%`}>
                             <div
-                              className="h-full rounded-full"
+                              className="h-full rounded-l-full"
                               style={{
                                 width: `${demBarPct}%`,
                                 backgroundColor: 'var(--dem)',
+                              }}
+                            />
+                            <div
+                              className="h-full rounded-r-full"
+                              style={{
+                                width: `${100 - demBarPct}%`,
+                                backgroundColor: 'var(--rep)',
+                                opacity: 0.7,
                               }}
                             />
                           </div>

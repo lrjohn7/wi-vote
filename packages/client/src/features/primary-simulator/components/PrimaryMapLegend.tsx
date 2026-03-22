@@ -61,7 +61,7 @@ const WinnerLegend = memo(function WinnerLegend({
 
       {/* Opacity / margin-of-victory guide */}
       <div className="mt-2 pt-2 border-t border-border/30">
-        <div className="text-[10px] text-muted-foreground mb-1">
+        <div className="text-[11px] text-muted-foreground mb-1">
           Margin of Victory
         </div>
         <div className="flex items-center gap-1">
@@ -74,7 +74,7 @@ const WinnerLegend = memo(function WinnerLegend({
             aria-hidden="true"
           />
         </div>
-        <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5">
+        <div className="flex justify-between text-[11px] text-muted-foreground mt-0.5">
           <span>Close</span>
           <span>Strong</span>
         </div>
@@ -133,7 +133,7 @@ const HeatmapLegend = memo(function HeatmapLegend({
         style={{ background: gradient }}
         aria-hidden="true"
       />
-      <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5">
+      <div className="flex justify-between text-[11px] text-muted-foreground mt-0.5">
         <span>0%</span>
         <span>25%</span>
         <span>50%+</span>

@@ -116,12 +116,12 @@ export const PollTable = memo(function PollTable() {
               </span>
 
               {/* End date */}
-              <span className="text-[10px] text-muted-foreground shrink-0 w-12 text-right">
+              <span className="text-[11px] text-muted-foreground shrink-0 w-12 text-right">
                 {formatShortDate(poll.endDate)}
               </span>
 
               {/* Sample size */}
-              <span className="text-[10px] font-mono text-muted-foreground shrink-0 w-10 text-right tabular-nums">
+              <span className="text-[11px] font-mono text-muted-foreground shrink-0 w-10 text-right tabular-nums">
                 n={poll.sampleSize}
               </span>
 
@@ -145,7 +145,7 @@ export const PollTable = memo(function PollTable() {
               </div>
 
               {/* Weight percentage */}
-              <span className="text-[10px] font-mono text-muted-foreground shrink-0 w-8 text-right tabular-nums">
+              <span className="text-[11px] font-mono text-muted-foreground shrink-0 w-8 text-right tabular-nums">
                 {poll.isEnabled ? `${normalizedPct.toFixed(0)}%` : '--'}
               </span>
 

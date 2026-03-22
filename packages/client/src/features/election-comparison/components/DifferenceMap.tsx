@@ -146,13 +146,13 @@ export const DifferenceMap = memo(function DifferenceMap({ diffData }: Differenc
             </div>
           ))}
         </div>
-        <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+        <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
           <span>R+20</span>
           <span>0</span>
           <span>D+20</span>
         </div>
         {diffData && (
-          <div className="mt-2 text-[10px] text-muted-foreground">
+          <div className="mt-2 text-[11px] text-muted-foreground">
             Avg shift: {diffData.avgDiff > 0 ? 'D' : 'R'}+{Math.abs(diffData.avgDiff).toFixed(1)}
             {' '}({diffData.wardCount.toLocaleString()} wards)
           </div>

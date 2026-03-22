@@ -69,7 +69,7 @@ export const PollAverageSummary = memo(function PollAverageSummary() {
         <h3 className="text-sm font-medium text-muted-foreground">
           Poll Average
         </h3>
-        <div className="flex items-center gap-2 text-[10px] text-muted-foreground/70">
+        <div className="flex items-center gap-2 text-[11px] text-muted-foreground/70">
           <span>{enabledCount} poll{enabledCount !== 1 ? 's' : ''}</span>
           <span className="text-border/50">|</span>
           <span>avg {undecided.toFixed(1)}% undecided</span>
@@ -131,7 +131,7 @@ export const PollAverageSummary = memo(function PollAverageSummary() {
       </div>
 
       {/* Footer */}
-      <p className="text-[10px] text-muted-foreground/60 mt-2 italic">
+      <p className="text-[11px] text-muted-foreground/60 mt-2 italic">
         Weighted EWMA average (half-life {pollAveragingConfig.halfLifeDays}d)
       </p>
     </div>

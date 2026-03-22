@@ -45,7 +45,7 @@ export const TrendHoverTooltip = memo(function TrendHoverTooltip({
       {/* Ward identity */}
       <p className="text-xs font-semibold leading-tight">{wardName}</p>
       {(municipality || county) && (
-        <p className="text-[10px] text-muted-foreground">
+        <p className="text-[11px] text-muted-foreground">
           {[municipality, county].filter(Boolean).join(', ')}
         </p>
       )}
@@ -58,13 +58,13 @@ export const TrendHoverTooltip = memo(function TrendHoverTooltip({
           />
 
           {classification.slope != null && (
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               {Math.abs(classification.slope).toFixed(2)} pts/cycle shift
             </p>
           )}
 
           {classification.elections_analyzed != null && (
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               {classification.elections_analyzed} elections
               {classification.start_year != null &&
                 classification.end_year != null &&
@@ -73,7 +73,7 @@ export const TrendHoverTooltip = memo(function TrendHoverTooltip({
           )}
 
           {classification.p_value != null && (
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               p = {classification.p_value < 0.001
                 ? '<0.001'
                 : classification.p_value.toFixed(3)}
@@ -84,7 +84,7 @@ export const TrendHoverTooltip = memo(function TrendHoverTooltip({
           )}
         </div>
       ) : (
-        <p className="mt-1.5 text-[10px] text-muted-foreground">No trend data</p>
+        <p className="mt-1.5 text-[11px] text-muted-foreground">No trend data</p>
       )}
     </div>
   );

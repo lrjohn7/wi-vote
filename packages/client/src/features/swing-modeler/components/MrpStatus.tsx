@@ -55,8 +55,18 @@ export function MrpStatus() {
   useEffect(() => {
     if (!fittingTaskId) return;
 
+    const MAX_POLL_DURATION = 60 * 60 * 1000; // 1 hour timeout
+    const startTime = Date.now();
+
     const interval = setInterval(async () => {
       try {
+        if (Date.now() - startTime > MAX_POLL_DURATION) {
+          clearInterval(interval);
+          setFittingTaskId(null);
+          setFitStatus({ task_id: fittingTaskId, status: 'FAILURE' });
+          return;
+        }
+
         const status = await checkFitStatus(fittingTaskId);
         setFitStatus(status);
 

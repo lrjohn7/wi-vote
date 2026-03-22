@@ -175,7 +175,7 @@ const ScenarioPanel = memo(function ScenarioPanel() {
         </div>
       )}
 
-      <p className="text-[10px] text-muted-foreground/60 italic">
+      <p className="text-[11px] text-muted-foreground/60 italic">
         Hypothetical scenarios override poll averages. Switch to the Polls tab
         to use real polling data.
       </p>

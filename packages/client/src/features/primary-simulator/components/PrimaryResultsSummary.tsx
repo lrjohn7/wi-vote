@@ -321,7 +321,7 @@ const RegionalBreakdown = memo(function RegionalBreakdown({
             <div key={region} className="space-y-1" role="listitem">
               <div className="flex justify-between items-baseline">
                 <span className="text-xs font-medium">{label}</span>
-                <span className="text-[10px] text-muted-foreground tabular-nums">
+                <span className="text-[11px] text-muted-foreground tabular-nums">
                   {formatNumber(total)} votes
                 </span>
               </div>

@@ -1,17 +1,21 @@
 import { useState, useMemo } from 'react';
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, Inbox, Vote, Users, TrendingDown } from 'lucide-react';
+import { MetricCard } from '@/shared/components/MetricCard';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import { useElections } from '@/features/election-map/hooks/useElections';
 import { RACE_LABELS } from '@/shared/lib/raceLabels';
 import { DismissibleInfoBanner } from '@/shared/components/DismissibleInfoBanner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { EmptyState } from '@/shared/components/EmptyState';
+import { formatNumber as fmt } from '@/shared/lib/formatters';
 import { useTurnoutGaps } from './hooks/useTurnoutGaps';
 import type { RaceType } from '@/types/election';
-
-const NUMBER_FORMAT = new Intl.NumberFormat('en-US');
-
-function fmt(n: number): string {
-  return NUMBER_FORMAT.format(Math.round(n));
-}
 
 export default function TurnoutGaps() {
   usePageTitle('Votes Left on the Table');
@@ -54,28 +58,28 @@ export default function TurnoutGaps() {
         </div>
 
         {/* Year selector */}
-        <select
-          value={year ?? ''}
-          onChange={(e) => setYear(Number(e.target.value))}
-          className="rounded-md border bg-background px-3 py-1.5 text-sm"
-          aria-label="Election year"
-        >
-          {years.map((y)=>(
-            <option key={y} value={y}>{y}</option>
-          ))}
-        </select>
+        <Select value={year != null ? String(year) : undefined} onValueChange={(v) => setYear(Number(v))}>
+          <SelectTrigger className="w-[90px] sm:w-[100px]" aria-label="Election year">
+            <SelectValue placeholder="Year" />
+          </SelectTrigger>
+          <SelectContent>
+            {years.map((y) => (
+              <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         {/* Race type selector */}
-        <select
-          value={raceType ?? ''}
-          onChange={(e) => setRaceType(e.target.value as RaceType)}
-          className="rounded-md border bg-background px-3 py-1.5 text-sm"
-          aria-label="Race type"
-        >
-          {raceTypes.map((rt)=>(
-            <option key={rt} value={rt}>{RACE_LABELS[rt] ?? rt}</option>
-          ))}
-        </select>
+        <Select value={raceType ?? undefined} onValueChange={(v) => setRaceType(v as RaceType)}>
+          <SelectTrigger className="w-[130px] sm:w-[160px]" aria-label="Race type">
+            <SelectValue placeholder="Race" />
+          </SelectTrigger>
+          <SelectContent>
+            {raceTypes.map((rt) => (
+              <SelectItem key={rt} value={rt}>{RACE_LABELS[rt] ?? rt}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         {/* Party toggle */}
         <div className="flex gap-1 rounded-lg bg-content2/60 p-1" role="radiogroup" aria-label="Party selection">
@@ -110,7 +114,7 @@ export default function TurnoutGaps() {
           </DismissibleInfoBanner>
           {/* Loading state */}
           {isLoading && (
-            <div className="space-y-4">
+            <div className="space-y-4" role="status" aria-live="polite" aria-label="Loading turnout gap data">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="animate-pulse rounded-lg border bg-content2/30 p-6">
@@ -131,41 +135,46 @@ export default function TurnoutGaps() {
 
           {/* Error state */}
           {isError && (
-            <div className="rounded-lg border border-amber-500/30 bg-amber-50 p-6 text-sm text-amber-800 dark:bg-amber-950/20 dark:text-amber-200">
+            <div role="alert" className="rounded-lg border border-amber-500/30 bg-amber-50 p-6 text-sm text-amber-800 dark:bg-amber-950/20 dark:text-amber-200">
               Failed to load turnout gap data. Please try a different election.
             </div>
           )}
 
           {/* Empty state */}
           {data && data.wards.length === 0 && (
-            <div className="rounded-lg border bg-content2/30 p-8 text-center text-muted-foreground">
-              No wards with untapped vote potential found for this election.
-            </div>
+            <EmptyState
+              icon={Inbox}
+              title="No untapped potential found"
+              description="No wards with below-average turnout for this election."
+            />
           )}
 
           {/* Summary cards */}
           {data && data.wards.length > 0 && (
             <>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="rounded-lg border bg-content2/30 p-4">
-                  <div className="text-xs uppercase tracking-wide text-muted-foreground">Total Potential Votes</div>
-                  <div className={`mt-1 text-3xl font-bold ${partyColor}`}>{fmt(data.total_potential_votes)}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    additional {party === 'dem' ? 'Democratic' : 'Republican'} votes
-                  </div>
-                </div>
-
-                <div className="rounded-lg border bg-content2/30 p-4">
-                  <div className="text-xs uppercase tracking-wide text-muted-foreground">Wards Below Average</div>
-                  <div className="mt-1 text-3xl font-bold">{fmt(data.ward_count)}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">wards with untapped potential</div>
-                </div>
-
-                <div className="rounded-lg border bg-content2/30 p-4">
-                  <div className="text-xs uppercase tracking-wide text-muted-foreground">Avg Turnout Gap</div>
-                  <div className="mt-1 text-3xl font-bold">{data.avg_gap.toFixed(1)}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">votes below county average</div>
-                </div>
+                <MetricCard
+                  icon={Vote}
+                  label="Total Potential Votes"
+                  value={fmt(data.total_potential_votes)}
+                  subtitle={`additional ${party === 'dem' ? 'Democratic' : 'Republican'} votes`}
+                  color={party === 'dem' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'}
+                  valueColor={partyColor}
+                />
+                <MetricCard
+                  icon={Users}
+                  label="Wards Below Average"
+                  value={fmt(data.ward_count)}
+                  subtitle="wards with untapped potential"
+                  color="bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                />
+                <MetricCard
+                  icon={TrendingDown}
+                  label="Avg Turnout Gap"
+                  value={data.avg_gap.toFixed(1)}
+                  subtitle="votes below county average"
+                  color="bg-orange-500/10 text-orange-600 dark:text-orange-400"
+                />
               </div>
 
               {/* Wards table */}
