@@ -1029,6 +1029,7 @@ A `documentation/` directory contains audited, structured docs for every feature
 | Audit findings, PASS/WARN/FAIL items, prioritized fix plan | `documentation/00-audit-report.md` |
 | UI/UX enhancement audit, quick wins, remaining priorities | `documentation/20-ui-ux-enhancements.md` |
 | March 2026 audit fixes (security, API, dark mode, a11y, mobile, tests) | `documentation/21-audit-march-2026.md` |
+| Primary Simulator (`/primary`), candidates, polls, Monte Carlo, mobile bottom panel | `documentation/22-primary-simulator.md` |
 | Shared race labels, error classes, geocode hook | `src/shared/lib/raceLabels.ts`, `src/shared/lib/errors.ts`, `src/shared/hooks/useGeocodeAddress.ts` |
 
 ### Auto-Documentation Rule
