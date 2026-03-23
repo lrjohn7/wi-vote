@@ -144,6 +144,11 @@ export const PrimaryMap = memo(function PrimaryMap({
 
     m.addControl(new maplibregl.NavigationControl(), 'top-right');
 
+    // On mobile, pad the bottom of the map to account for the persistent bottom panel
+    if (window.innerWidth < 768) {
+      m.setPadding({ top: 0, right: 0, bottom: 140, left: 0 });
+    }
+
     // Force resize once to fix blank maps on mobile initial load
     m.once('idle', () => {
       m.resize();

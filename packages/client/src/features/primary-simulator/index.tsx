@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { Vote, MapPin, Flame, SlidersHorizontal, X } from 'lucide-react';
+import { Vote, MapPin, Flame } from 'lucide-react';
 import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { usePrimaryStore } from '@/stores/primaryStore';
 import { usePrimaryData } from './hooks/usePrimaryData';
@@ -12,6 +12,7 @@ import { WinProbabilityBars } from './components/WinProbabilityBars';
 import { PrimaryMapLegend } from './components/PrimaryMapLegend';
 import { PrimaryTooltip } from './components/PrimaryTooltip';
 import { PrimaryGuide } from './components/PrimaryGuide';
+import { MobileBottomPanel } from './components/MobileBottomPanel';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import type { PrimaryMapMode } from '@/stores/primaryStore';
 import type {
@@ -70,17 +71,6 @@ export default function PrimarySimulator() {
 
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [workerError, setWorkerError] = useState<string | null>(null);
-  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-
-  // Close mobile drawer on Escape key
-  useEffect(() => {
-    if (!mobileDrawerOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMobileDrawerOpen(false);
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [mobileDrawerOpen]);
 
   usePrimaryUrlState();
 
@@ -315,56 +305,8 @@ export default function PrimarySimulator() {
           <WinProbabilityBars />
         </div>
 
-        {/* Mobile FAB to open controls drawer */}
-        {!mobileDrawerOpen && (
-          <button
-            onClick={() => setMobileDrawerOpen(true)}
-            className="absolute bottom-20 left-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-content1 shadow-lg border border-border/30 md:hidden"
-            aria-label="Open controls"
-          >
-            <SlidersHorizontal className="h-5 w-5" />
-          </button>
-        )}
-
-        {/* Mobile drawer overlay */}
-        {mobileDrawerOpen && (
-          <div
-            className="fixed inset-0 z-40 bg-black/40 md:hidden"
-            onClick={() => setMobileDrawerOpen(false)}
-          />
-        )}
-
-        {/* Mobile drawer — children only mount when open to avoid double subscriptions */}
-        <div
-          role="dialog"
-          aria-modal={mobileDrawerOpen}
-          aria-label="Primary controls"
-          className={`fixed inset-y-0 left-0 z-50 flex w-[85vw] max-w-sm flex-col border-r border-border/30 bg-content1 transition-transform duration-300 md:hidden ${
-            mobileDrawerOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
-        >
-          <div className="flex items-center justify-between border-b border-border/30 px-4 py-3">
-            <h3 className="text-sm font-semibold">Primary Controls</h3>
-            <button
-              onClick={() => setMobileDrawerOpen(false)}
-              className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-content2"
-              aria-label="Close controls"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {mobileDrawerOpen && (
-              <>
-                <PrimaryGuide />
-                <CandidateCardList />
-                <PrimaryControlsPanel />
-                <PrimaryResultsSummary />
-                <WinProbabilityBars />
-              </>
-            )}
-          </div>
-        </div>
+        {/* Mobile bottom panel (replaces FAB + drawer) */}
+        <MobileBottomPanel />
 
         {/* Map area */}
         <div className="relative flex-1">
@@ -388,8 +330,10 @@ export default function PrimarySimulator() {
             onWardHover={handleWardHover}
           />
 
-          {/* Map legend overlay */}
-          <PrimaryMapLegend />
+          {/* Map legend overlay — shifted up on mobile to clear bottom panel */}
+          <div className="absolute bottom-36 left-2 z-10 md:bottom-2">
+            <PrimaryMapLegend />
+          </div>
 
           {/* Tooltip for hovered ward */}
           {tooltip && hoveredPrediction && (

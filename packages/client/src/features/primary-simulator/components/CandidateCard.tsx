@@ -30,6 +30,8 @@ const REGION_KEYS = Object.keys(REGION_LABELS);
 
 interface CandidateCardProps {
   candidateId: string;
+  /** When true, display shortName (last name only) instead of full name. Used on mobile. */
+  useShortName?: boolean;
 }
 
 /**
@@ -135,7 +137,7 @@ const CandidateSlider = memo(function CandidateSlider({
  * Collapsed: shows color dot, name, polling %, and active toggle.
  * Expanded: reveals all adjustable parameters organized in sections.
  */
-export const CandidateCard = memo(function CandidateCard({ candidateId }: CandidateCardProps) {
+export const CandidateCard = memo(function CandidateCard({ candidateId, useShortName }: CandidateCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const uniqueId = useId();
 
@@ -211,7 +213,7 @@ export const CandidateCard = memo(function CandidateCard({ candidateId }: Candid
             (isActive ? '' : 'line-through text-muted-foreground')
           }
         >
-          {candidate.name}
+          {useShortName ? candidate.shortName : candidate.name}
         </span>
 
         {/* Polling percentage */}
