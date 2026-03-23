@@ -1027,6 +1027,8 @@ A `documentation/` directory contains audited, structured docs for every feature
 | Community Notes, ward notes, user submissions | `documentation/18-community-notes.md` |
 | Turnout Gaps (`/turnout-gaps`), votes left on the table | `documentation/19-turnout-gaps.md` |
 | Audit findings, PASS/WARN/FAIL items, prioritized fix plan | `documentation/00-audit-report.md` |
+| UI/UX enhancement audit, quick wins, remaining priorities | `documentation/20-ui-ux-enhancements.md` |
+| March 2026 audit fixes (security, API, dark mode, a11y, mobile, tests) | `documentation/21-audit-march-2026.md` |
 | Shared race labels, error classes, geocode hook | `src/shared/lib/raceLabels.ts`, `src/shared/lib/errors.ts`, `src/shared/hooks/useGeocodeAddress.ts` |
 
 ### Auto-Documentation Rule

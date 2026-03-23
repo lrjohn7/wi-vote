@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, Body
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -44,10 +44,13 @@ async def get_bulk_elections(
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Get election histories for a list of ward IDs."""
-    # Limit to 500 wards per request
-    capped = ward_ids[:500]
+    if len(ward_ids) > 500:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximum 500 ward_ids allowed, received {len(ward_ids)}",
+        )
     service = TrendService(db)
-    data = await service.get_bulk_elections(capped)
+    data = await service.get_bulk_elections(ward_ids)
     return {"ward_count": len(data), "elections": data}
 
 

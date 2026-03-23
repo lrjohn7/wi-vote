@@ -34,17 +34,26 @@ class DemographicService:
         }
 
     async def get_bulk_demographics(
-        self, ward_ids: list[str] | None = None
-    ) -> dict[str, dict]:
-        """Get demographics for all wards (or filtered list) as compact dict."""
-        stmt = select(WardDemographic)
+        self,
+        ward_ids: list[str] | None = None,
+        limit: int = 1000,
+        offset: int = 0,
+    ) -> tuple[dict[str, dict], int]:
+        """Get demographics for all wards (or filtered list) as compact dict with pagination."""
+        base = select(WardDemographic)
         if ward_ids:
-            stmt = stmt.where(WardDemographic.ward_id.in_(ward_ids))
+            base = base.where(WardDemographic.ward_id.in_(ward_ids))
 
+        # Total count
+        count_stmt = select(func.count()).select_from(base.subquery())
+        total = (await self.db.execute(count_stmt)).scalar() or 0
+
+        # Paginated results
+        stmt = base.order_by(WardDemographic.ward_id).limit(limit).offset(offset)
         result = await self.db.execute(stmt)
         demos = result.scalars().all()
 
-        return {
+        data = {
             d.ward_id: {
                 "total_population": d.total_population,
                 "voting_age_population": d.voting_age_population,
@@ -59,6 +68,7 @@ class DemographicService:
             }
             for d in demos
         }
+        return data, total
 
     async def get_urban_rural_counts(self) -> dict:
         """Get summary counts by urban/rural classification."""

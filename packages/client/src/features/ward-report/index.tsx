@@ -36,7 +36,7 @@ export default function WardReport() {
   // Loading
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full items-center justify-center" role="status" aria-live="polite">
         <p className="text-muted-foreground">Loading report card...</p>
       </div>
     );

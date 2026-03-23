@@ -69,5 +69,10 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 
+# Temporary/scratch directories
+_/
+tmp/
+ui-ux-pro-max-skill/
+
 # Claude
 .claude/

@@ -1,3 +1,5 @@
+import logging
+
 import httpx
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -5,6 +7,8 @@ from geoalchemy2.functions import ST_Contains, ST_SetSRID, ST_MakePoint
 
 from app.core.config import settings
 from app.models.ward import Ward
+
+logger = logging.getLogger(__name__)
 
 
 class GeocodingService:
@@ -19,10 +23,14 @@ class GeocodingService:
             "benchmark": "Public_AR_Current",
             "format": "json",
         }
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url, params=params, timeout=10)
-            response.raise_for_status()
-            data = response.json()
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, params=params, timeout=10)
+                response.raise_for_status()
+                data = response.json()
+        except (httpx.HTTPError, httpx.TimeoutException) as exc:
+            logger.warning("Geocoding failed for address=%s: %s", address, exc)
+            return None
 
         matches = data.get("result", {}).get("addressMatches", [])
         if not matches:

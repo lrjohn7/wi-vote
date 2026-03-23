@@ -73,7 +73,7 @@ export function MobileNav({ items }: MobileNavProps) {
               end={end}
               onClick={close}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
                   isActive
                     ? 'bg-content2 font-medium text-foreground'
                     : 'text-muted-foreground hover:bg-content2/50 hover:text-foreground'

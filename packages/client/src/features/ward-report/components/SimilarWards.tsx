@@ -68,7 +68,7 @@ export function SimilarWards({ wardId }: SimilarWardsProps) {
               <Link
                 key={ward.ward_id}
                 to={`/wards/${ward.ward_id}/report`}
-                className="block rounded-lg border border-border/50 p-3 transition-colors hover:border-border hover:bg-accent/50"
+                className="block rounded-lg border border-border/50 p-3 transition-all duration-200 hover:border-border hover:bg-accent/50 hover:shadow-md"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">

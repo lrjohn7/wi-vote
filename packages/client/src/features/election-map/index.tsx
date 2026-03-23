@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Box } from 'lucide-react';
+import { Box, TableProperties } from 'lucide-react';
 import { WisconsinMap } from '@/shared/components/WisconsinMap';
 import { QueryErrorState } from '@/shared/components/QueryErrorState';
 import { DismissibleInfoBanner } from '@/shared/components/DismissibleInfoBanner';
@@ -13,6 +13,7 @@ import { MapLegend } from './components/MapLegend';
 import { WardTooltip } from './components/WardTooltip';
 import { WardDetailPanel } from './components/WardDetailPanel';
 import { MetricToggle } from './components/MetricToggle';
+import { WardDataTable } from './components/WardDataTable';
 import { useTimeLapse } from './hooks/useTimeLapse';
 import type { TooltipState } from '@/shared/types/tooltip';
 
@@ -25,6 +26,7 @@ export default function ElectionMap() {
   const toggle3DMode = useMapStore((s) => s.toggle3DMode);
 
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const [showTable, setShowTable] = useState(false);
 
   const { isPlaying: tlPlaying, currentYear: tlYear } = useTimeLapse();
 
@@ -93,6 +95,21 @@ export default function ElectionMap() {
         <ElectionTimeLapse />
 
         <div className="ml-auto flex items-center gap-2">
+          {/* Table view toggle */}
+          <button
+            onClick={() => setShowTable((v) => !v)}
+            aria-pressed={showTable}
+            className={`flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
+              showTable
+                ? 'bg-foreground/10 text-foreground'
+                : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground'
+            }`}
+            aria-label={showTable ? 'Hide data table' : 'Show ward results as data table'}
+          >
+            <TableProperties className="h-3.5 w-3.5" aria-hidden="true" />
+            Table
+          </button>
+
           {/* 3D mode toggle */}
           <button
             onClick={toggle3DMode}
@@ -103,6 +120,7 @@ export default function ElectionMap() {
                 : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground'
             }`}
             aria-label={is3DMode ? 'Disable 3D mode' : 'Enable 3D vote density mode'}
+            aria-description="3D mode shows total votes as ward height. Higher wards have more votes."
           >
             <Box className="h-3.5 w-3.5" aria-hidden="true" />
             3D
@@ -130,10 +148,24 @@ export default function ElectionMap() {
           or <strong className="text-blue-400">Time-Lapse</strong> to animate across years.
         </DismissibleInfoBanner>
 
+        {/* Data table overlay */}
+        {showTable && mapData && (
+          <div className="absolute inset-0 z-30 overflow-hidden bg-background/95 p-4 backdrop-blur-sm">
+            <WardDataTable
+              mapData={mapData}
+              displayMetric={displayMetric}
+              onWardClick={(wardId) => {
+                setSelectedWard(wardId);
+                setShowTable(false);
+              }}
+            />
+          </div>
+        )}
+
         {mapDataLoading && !mapData && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/50">
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/50" role="status" aria-live="polite">
             <div className="glass-panel flex items-center gap-3 px-5 py-3">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" aria-hidden="true" />
               Loading election data...
             </div>
           </div>

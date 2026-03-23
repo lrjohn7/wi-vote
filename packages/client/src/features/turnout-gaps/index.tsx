@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { BarChart3, Inbox, Vote, Users, TrendingDown } from 'lucide-react';
 import { MetricCard } from '@/shared/components/MetricCard';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
@@ -35,7 +35,7 @@ export default function TurnoutGaps() {
   const [party, setParty] = useState<'dem' | 'rep'>('dem');
 
   // Auto-select first year and race type when data loads
-  useMemo(() => {
+  useEffect(() => {
     if (years.length > 0 && !year) setYear(years[0]);
     if (raceTypes.length > 0 && !raceType) {
       // Prefer president if available

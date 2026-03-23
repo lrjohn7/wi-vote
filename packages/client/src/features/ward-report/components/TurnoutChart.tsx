@@ -59,8 +59,8 @@ export const TurnoutChart = memo(function TurnoutChart({ turnout, elections }: T
               formatter={(value) => [Number(value).toLocaleString(), 'Total Votes']}
               labelFormatter={(label) => `${label} Presidential`}
               contentStyle={{ backgroundColor: chart.tooltipBg, borderColor: chart.tooltipBorder, borderRadius: 8 }}
-              itemStyle={{ color: chart.textColor }}
-              labelStyle={{ color: chart.textColor }}
+              itemStyle={{ color: chart.tooltipText }}
+              labelStyle={{ color: chart.tooltipText }}
             />
             <Bar dataKey="votes" radius={[4, 4, 0, 0]}>
               {data.map((entry) => (

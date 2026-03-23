@@ -1,3 +1,4 @@
+import logging
 import math
 
 from sqlalchemy import select, func, case, cast, Float
@@ -6,6 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.ward_trend import WardTrend
 from app.models.election_result import ElectionResult
 from app.models.ward import Ward
+
+logger = logging.getLogger(__name__)
 
 
 class TrendService:

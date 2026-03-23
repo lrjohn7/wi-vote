@@ -1,7 +1,11 @@
+import logging
+
 from sqlalchemy import select, func, distinct
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.election_result import ElectionResult
+
+logger = logging.getLogger(__name__)
 
 
 class ElectionService:

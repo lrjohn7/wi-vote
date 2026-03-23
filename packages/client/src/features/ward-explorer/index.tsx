@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router';
-import { MapPin, ClipboardList, Search as SearchIcon } from 'lucide-react';
+import { MapPin, ClipboardList, Search as SearchIcon, SearchX } from 'lucide-react';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { useWardDetail } from '@/features/election-map/hooks/useWardDetail';
 import { useMapStore } from '@/stores/mapStore';
 import { useGeocodeAddress } from '@/shared/hooks/useGeocodeAddress';
 import { QueryErrorState } from '@/shared/components/QueryErrorState';
+import { EmptyState } from '@/shared/components/EmptyState';
 import { RACE_LABELS_SHORT } from '@/shared/lib/raceLabels';
 
 export default function WardExplorer() {
@@ -52,7 +53,7 @@ export default function WardExplorer() {
       {/* Left panel: Search */}
       <div className="flex w-full shrink-0 flex-col border-b border-border/30 bg-content1 md:w-96 md:border-b-0 md:border-r">
         <div className="space-y-4 p-4">
-          <h2 className="text-xl font-bold">Ward Explorer</h2>
+          <h2 className="text-lg font-semibold">Ward Explorer</h2>
 
           {/* Ward search */}
           <WardSearchBox onSearch={handleSearch} />
@@ -146,9 +147,11 @@ export default function WardExplorer() {
               </div>
             )}
             {searchResults && searchResults.results.length === 0 && searchQuery.length >= 2 && (
-              <p className="text-sm text-muted-foreground">
-                No wards found for "{searchQuery}"
-              </p>
+              <EmptyState
+                icon={SearchX}
+                title={`No wards found for "${searchQuery}"`}
+                description="Try a different name, municipality, or county."
+              />
             )}
             {!searchQuery && !selectedWardId && (
               <p className="text-sm text-muted-foreground">
@@ -194,18 +197,12 @@ export default function WardExplorer() {
         )}
 
         {!selectedWardId && (
-          <div className="flex h-full items-center justify-center text-center">
-            <div className="flex flex-col items-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-content2">
-                <SearchIcon className="h-7 w-7 text-muted-foreground/60" />
-              </div>
-              <h3 className="mt-4 text-lg font-medium text-muted-foreground">
-                Select a ward to view details
-              </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Search by name or enter an address to find your ward.
-              </p>
-            </div>
+          <div className="flex h-full items-center justify-center">
+            <EmptyState
+              icon={SearchIcon}
+              title="Select a ward to view details"
+              description="Search by name or enter an address to find your ward."
+            />
           </div>
         )}
 

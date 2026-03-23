@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -39,12 +39,12 @@ async def ingest_events(
 
 @router.get("/dashboard")
 async def get_dashboard(
-    key: str = Query(..., description="Admin analytics key"),
     days: int = Query(default=30, ge=1, le=365),
+    x_admin_analytics_key: str | None = Header(default=None),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """Get aggregated analytics dashboard data. Requires admin key."""
-    if not settings.admin_analytics_key or key != settings.admin_analytics_key:
+    """Get aggregated analytics dashboard data. Requires admin key via header."""
+    if not settings.admin_analytics_key or x_admin_analytics_key != settings.admin_analytics_key:
         raise HTTPException(status_code=403, detail="Invalid analytics key")
 
     service = AnalyticsService(db)

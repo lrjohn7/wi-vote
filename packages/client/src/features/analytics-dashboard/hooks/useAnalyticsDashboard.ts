@@ -30,9 +30,9 @@ export function useAnalyticsDashboard(key: string, days = 30) {
   return useQuery<DashboardData>({
     queryKey: ['analytics', 'dashboard', days],
     queryFn: async () => {
-      const res = await fetch(
-        `/api/v1/analytics/dashboard?key=${encodeURIComponent(key)}&days=${days}`,
-      );
+      const res = await fetch(`/api/v1/analytics/dashboard?days=${days}`, {
+        headers: { 'X-Admin-Analytics-Key': key },
+      });
       if (!res.ok) throw new Error(`${res.status}`);
       return res.json();
     },

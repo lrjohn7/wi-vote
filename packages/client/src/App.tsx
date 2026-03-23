@@ -6,6 +6,7 @@ import { MobileNav } from '@/shared/components/MobileNav';
 import { OfflineIndicator } from '@/shared/components/OfflineIndicator';
 import { initAnalytics } from '@/shared/lib/analytics';
 import { useAnalytics } from '@/shared/hooks/useAnalytics';
+import { useScrollToTop } from '@/shared/hooks/useScrollToTop';
 
 const navItems = [
   { to: '/map', label: 'Election Map', icon: Map, end: false },
@@ -31,15 +32,17 @@ function ThemeToggle() {
 
   const Icon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor;
   const label = theme === 'light' ? 'Light mode' : theme === 'dark' ? 'Dark mode' : 'System theme';
+  const shortLabel = theme === 'light' ? 'Light' : theme === 'dark' ? 'Dark' : 'Auto';
 
   return (
     <button
       onClick={cycle}
-      className="flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-content2 hover:text-foreground"
+      className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-muted-foreground transition-colors hover:bg-content2 hover:text-foreground"
       aria-label={label}
       title={label}
     >
       <Icon className="h-4 w-4" />
+      <span className="hidden text-xs font-medium sm:inline">{shortLabel}</span>
     </button>
   );
 }
@@ -47,6 +50,7 @@ function ThemeToggle() {
 export default function App() {
   useEffect(() => { initAnalytics(); }, []);
   useAnalytics();
+  useScrollToTop();
 
   return (
     <div className="flex h-dvh flex-col" style={{ height: '100dvh' }}>
@@ -60,20 +64,20 @@ export default function App() {
         {/* Mobile hamburger menu */}
         <MobileNav items={navItems} />
 
-        <NavLink to="/" className="flex items-center gap-0.5 text-lg font-bold tracking-tight transition-transform hover:scale-105">
+        <NavLink to="/" className="flex items-center gap-0.5 text-lg font-bold tracking-tight transition-opacity hover:opacity-80">
           <span className="text-wi-blue">WI</span>
           <span className="text-wi-red">-Vote</span>
         </NavLink>
 
         {/* Desktop navigation — hidden on mobile */}
-        <nav role="navigation" aria-label="Main navigation" className="hidden items-center overflow-x-auto rounded-xl bg-content2/60 p-1 md:flex">
+        <nav role="navigation" aria-label="Main navigation" className="hidden min-w-0 items-center overflow-x-auto scrollbar-hide rounded-xl bg-content2/60 p-1 md:flex" style={{ maskImage: 'linear-gradient(to right, transparent 0, black 8px, black calc(100% - 8px), transparent 100%)' }}>
           {navItems.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition-all duration-200 ${
+                `flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition-all duration-200 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:outline-none ${
                   isActive
                     ? 'bg-background font-medium text-foreground shadow-md'
                     : 'text-muted-foreground hover:bg-background/50 hover:text-foreground'

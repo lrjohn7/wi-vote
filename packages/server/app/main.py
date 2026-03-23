@@ -26,6 +26,10 @@ logger = logging.getLogger("wivote")
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     # Startup
     logger.info("WI-Vote API starting (version %s, debug=%s)", settings.app_version, settings.debug)
+    if not settings.admin_api_key and not settings.debug:
+        logger.warning("ADMIN_API_KEY is not set — admin endpoints will reject all requests")
+    if not settings.admin_analytics_key and not settings.debug:
+        logger.warning("ADMIN_ANALYTICS_KEY is not set — analytics dashboard will be inaccessible")
     yield
     # Shutdown
     logger.info("WI-Vote API shutting down")
@@ -69,7 +73,7 @@ app.add_middleware(
     allow_origins=settings.api_cors_origins.split(","),
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "X-Admin-Key", "X-Requested-With"],
+    allow_headers=["Content-Type", "Authorization", "X-Admin-Key", "X-Admin-Analytics-Key", "X-Requested-With"],
 )
 
 # Routes

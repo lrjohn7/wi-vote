@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -6,6 +8,9 @@ from app.models.ward import Ward
 from app.models.election_result import ElectionResult
 from app.models.ward_trend import WardTrend
 from app.models.election_aggregation import ElectionAggregation
+from app.services.serializers import serialize_election, serialize_ward_meta
+
+logger = logging.getLogger(__name__)
 
 
 class ReportCardService:
@@ -26,21 +31,11 @@ class ReportCardService:
         ward = result.scalar_one_or_none()
 
         if not ward:
+            logger.info("Report card requested for non-existent ward %s", ward_id)
             return None
 
         # Build metadata
-        metadata = {
-            "ward_id": ward.ward_id,
-            "ward_name": ward.ward_name,
-            "municipality": ward.municipality,
-            "municipality_type": ward.municipality_type,
-            "county": ward.county,
-            "congressional_district": ward.congressional_district,
-            "state_senate_district": ward.state_senate_district,
-            "assembly_district": ward.assembly_district,
-            "ward_vintage": ward.ward_vintage,
-            "is_estimated": ward.is_estimated,
-        }
+        metadata = serialize_ward_meta(ward)
 
         # Partisan lean + percentile
         partisan_lean = await self._get_partisan_lean(ward)
@@ -90,21 +85,16 @@ class ReportCardService:
         )
         elections_used = min(len(pres_elections), 3)
 
-        # Compute percentile: how many wards have a lower partisan lean
-        count_below = await self.db.execute(
-            select(func.count()).select_from(Ward).where(
-                Ward.partisan_lean < lean,
-                Ward.partisan_lean.is_not(None),
-            )
+        # Compute percentile in a single query (count below + total)
+        counts = await self.db.execute(
+            select(
+                func.count().filter(Ward.partisan_lean < lean).label("below"),
+                func.count().label("total"),
+            ).where(Ward.partisan_lean.is_not(None))
         )
-        below = count_below.scalar() or 0
-
-        count_total = await self.db.execute(
-            select(func.count()).select_from(Ward).where(
-                Ward.partisan_lean.is_not(None),
-            )
-        )
-        total = count_total.scalar() or 1
+        row = counts.one()
+        below = row.below or 0
+        total = row.total or 1
 
         percentile = round(below / total * 100, 1)
 
@@ -158,24 +148,7 @@ class ReportCardService:
     def _format_elections(self, election_results: list[ElectionResult]) -> list[dict]:
         """Format election results sorted by year descending, then race type."""
         return sorted(
-            [
-                {
-                    "election_year": e.election_year,
-                    "race_type": e.race_type,
-                    "race_name": e.race_name,
-                    "dem_candidate": e.dem_candidate,
-                    "rep_candidate": e.rep_candidate,
-                    "dem_votes": e.dem_votes,
-                    "rep_votes": e.rep_votes,
-                    "other_votes": e.other_votes,
-                    "total_votes": e.total_votes,
-                    "dem_pct": round(e.dem_pct, 2),
-                    "rep_pct": round(e.rep_pct, 2),
-                    "margin": round(e.margin, 2),
-                    "is_estimate": e.is_estimate,
-                }
-                for e in election_results
-            ],
+            [serialize_election(e) for e in election_results],
             key=lambda x: (-x["election_year"], x["race_type"]),
         )
 

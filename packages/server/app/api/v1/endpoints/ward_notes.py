@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import verify_admin_key
+from app.models.ward import Ward
 from app.models.ward_note import WardNote
 
 router = APIRouter(prefix="/ward-notes", tags=["ward-notes"])
@@ -128,6 +129,13 @@ async def create_ward_note(
             detail=f"Too many submissions. Limit is {_SUBMIT_LIMIT} notes per {_SUBMIT_WINDOW // 60} minutes.",
         )
     _submit_log[client_ip].append(now)
+
+    # Validate that the ward exists
+    ward_exists = await db.execute(
+        select(func.count()).select_from(Ward).where(Ward.ward_id == body.ward_id)
+    )
+    if (ward_exists.scalar() or 0) == 0:
+        raise HTTPException(status_code=404, detail=f"Ward {body.ward_id} not found")
 
     note = WardNote(
         ward_id=body.ward_id,

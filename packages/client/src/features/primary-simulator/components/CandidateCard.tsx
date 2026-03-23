@@ -101,7 +101,7 @@ const CandidateSlider = memo(function CandidateSlider({
     <div className="flex items-center gap-2 mt-1.5">
       <label
         htmlFor={sliderId}
-        className="text-xs text-muted-foreground w-24 shrink-0"
+        className="text-xs text-muted-foreground w-20 sm:w-24 shrink-0"
       >
         {label}
       </label>
@@ -118,7 +118,7 @@ const CandidateSlider = memo(function CandidateSlider({
         style={{ accentColor: color }}
         aria-label={label + ': ' + format(value)}
       />
-      <span className="text-xs font-mono w-12 text-right tabular-nums">
+      <span className="text-xs font-mono w-8 sm:w-12 text-right tabular-nums">
         {format(value)}
       </span>
     </div>
@@ -193,14 +193,14 @@ export const CandidateCard = memo(function CandidateCard({ candidateId }: Candid
       <button
         type="button"
         onClick={handleToggleExpand}
-        className="flex w-full items-center gap-2 px-3 py-2.5 text-left"
+        className="flex w-full items-center gap-2 px-3 py-2.5 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none rounded-t-lg"
         aria-expanded={isExpanded}
         aria-controls={contentId}
       >
         {/* Color dot */}
         <span
           className="h-2 w-2 shrink-0 rounded-full"
-          style={{ backgroundColor: isActive ? candidate.color : '#9ca3af' }}
+          style={{ backgroundColor: isActive ? candidate.color : 'hsl(var(--muted-foreground))' }}
           aria-hidden="true"
         />
 

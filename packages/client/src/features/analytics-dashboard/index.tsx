@@ -100,16 +100,39 @@ export default function AnalyticsDashboard() {
         </div>
 
         {isLoading && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <Card key={i}>
+          <>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardContent className="p-6">
+                    <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+                    <div className="mt-2 h-8 w-16 animate-pulse rounded bg-muted" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            {/* Chart skeletons */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="mb-4 h-4 w-32 animate-pulse rounded bg-muted" />
+                <div className="h-[300px] animate-pulse rounded bg-muted" />
+              </CardContent>
+            </Card>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <Card>
                 <CardContent className="p-6">
-                  <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-                  <div className="mt-2 h-8 w-16 animate-pulse rounded bg-muted" />
+                  <div className="mb-4 h-4 w-24 animate-pulse rounded bg-muted" />
+                  <div className="h-[200px] animate-pulse rounded bg-muted" />
                 </CardContent>
               </Card>
-            ))}
-          </div>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="mb-4 h-4 w-32 animate-pulse rounded bg-muted" />
+                  <div className="h-[200px] animate-pulse rounded bg-muted" />
+                </CardContent>
+              </Card>
+            </div>
+          </>
         )}
 
         {data && (
@@ -280,21 +303,21 @@ export default function AnalyticsDashboard() {
                     </ResponsiveContainer>
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
-                        <Monitor className="h-4 w-4" style={{ color: DEVICE_COLORS.desktop }} />
+                        <Monitor className="h-4 w-4 text-indigo-500" />
                         <span className="text-sm">Desktop</span>
                         <span className="ml-auto text-sm font-semibold tabular-nums">
                           {data.device_breakdown.desktop.toLocaleString()}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Tablet className="h-4 w-4" style={{ color: DEVICE_COLORS.tablet }} />
+                        <Tablet className="h-4 w-4 text-amber-500" />
                         <span className="text-sm">Tablet</span>
                         <span className="ml-auto text-sm font-semibold tabular-nums">
                           {data.device_breakdown.tablet.toLocaleString()}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Smartphone className="h-4 w-4" style={{ color: DEVICE_COLORS.mobile }} />
+                        <Smartphone className="h-4 w-4 text-emerald-500" />
                         <span className="text-sm">Mobile</span>
                         <span className="ml-auto text-sm font-semibold tabular-nums">
                           {data.device_breakdown.mobile.toLocaleString()}

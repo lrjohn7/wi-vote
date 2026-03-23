@@ -59,6 +59,8 @@ class ElectionResult(Base):
         ),
         Index("idx_results_year_race", "election_year", "race_type"),
         Index("idx_results_vintage", "ward_vintage"),
+        Index("idx_results_race_type", "race_type"),
+        Index("idx_results_ward_race_year", "ward_id", "race_type", "election_year"),
         UniqueConstraint(
             "ward_id", "election_year", "race_type", "ward_vintage",
             name="idx_results_unique",

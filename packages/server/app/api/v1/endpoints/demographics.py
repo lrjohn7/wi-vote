@@ -22,12 +22,14 @@ async def get_ward_demographics(
 
 @router.get("/bulk")
 async def get_bulk_demographics(
+    limit: int = Query(default=1000, ge=1, le=10000),
+    offset: int = Query(default=0, ge=0),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """Get demographics for all wards as a compact dictionary."""
+    """Get demographics for all wards as a compact dictionary (paginated)."""
     service = DemographicService(db)
-    data = await service.get_bulk_demographics()
-    return {"ward_count": len(data), "demographics": data}
+    data, total = await service.get_bulk_demographics(limit=limit, offset=offset)
+    return {"total": total, "ward_count": len(data), "limit": limit, "offset": offset, "demographics": data}
 
 
 @router.get("/summary")
