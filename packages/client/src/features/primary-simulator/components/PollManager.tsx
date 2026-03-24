@@ -10,8 +10,8 @@ import { AddPollForm } from './AddPollForm';
 import { PollAveragingConfig } from './PollAveragingConfig';
 
 const TABS: { id: PollSourceMode; label: string }[] = [
-  { id: 'average', label: 'Polls' },
   { id: 'scenario', label: 'Scenarios' },
+  { id: 'average', label: 'Polling' },
 ];
 
 /**

@@ -10,7 +10,7 @@ import { useScrollToTop } from '@/shared/hooks/useScrollToTop';
 
 const navItems = [
   { to: '/map', label: 'Election Map', icon: Map, end: false },
-  { to: '/primary', label: 'Primary', icon: Vote, end: false },
+  { to: '/primary', label: 'Primary Simulator', icon: Vote, end: false },
   { to: '/supreme-court', label: 'Supreme Court', icon: Scale, end: false },
   { to: '/wards', label: 'Ward Explorer', icon: Search, end: true },
   { to: '/wards/report', label: 'My Ward', icon: ClipboardList, end: false },

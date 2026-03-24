@@ -101,6 +101,15 @@ const WI_MEDIAN_INCOME = 67000;
 const DEG_TO_RAD = Math.PI / 180;
 
 // ---------------------------------------------------------------------------
+// Utility
+// ---------------------------------------------------------------------------
+
+/** Clamp a number between min and max. */
+export function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+// ---------------------------------------------------------------------------
 // 1. Haversine Distance
 // ---------------------------------------------------------------------------
 
@@ -204,44 +213,45 @@ export function computeDemographicScore(
   if (demoWeight === 0) return 0;
 
   // Urban/suburban/rural -- one-hot encoding
-  let urbanRuralScore: number;
+  let urbanMatch: number;
   switch (ward.urbanRuralClass) {
     case 'urban':
-      urbanRuralScore = candidate.affinityUrban;
+      urbanMatch = candidate.affinityUrban;
       break;
     case 'suburban':
-      urbanRuralScore = candidate.affinitySuburban;
+      urbanMatch = candidate.affinitySuburban;
       break;
     case 'rural':
-      urbanRuralScore = candidate.affinityRural;
+      urbanMatch = candidate.affinityRural;
       break;
     default:
-      urbanRuralScore = candidate.affinitySuburban;
+      urbanMatch = 0.5;
   }
 
   // Race/ethnicity (ward values are 0-100 percentages)
-  const raceScore =
-    candidate.affinityBlack * (ward.blackPct / 100) +
-    candidate.affinityHispanic * (ward.hispanicPct / 100);
+  const blackPct = ward.blackPct / 100;
+  const hispanicPct = ward.hispanicPct / 100;
+  const raceMatch =
+    candidate.affinityBlack * blackPct +
+    candidate.affinityHispanic * hispanicPct +
+    (1 - candidate.affinityBlack) * (1 - blackPct);
 
   // Education
-  const collegeFraction = ward.collegePct / 100;
-  const educationScore =
-    candidate.affinityCollege * collegeFraction +
-    candidate.affinityWorkingClass * (1 - collegeFraction);
+  const collegePct = ward.collegePct / 100;
+  const educationMatch =
+    candidate.affinityCollege * collegePct +
+    candidate.affinityWorkingClass * (1 - collegePct);
 
-  // Income: normalize to 0-1 using logistic mapping around WI median.
-  // ratio / (1 + ratio) gives ~0.5 at median, bounded (0, 1).
-  const incomeRatio = ward.medianIncome / WI_MEDIAN_INCOME;
-  const normalizedIncome = incomeRatio / (1 + incomeRatio);
-  const incomeScore =
-    candidate.affinityCollege * normalizedIncome +
-    candidate.affinityWorkingClass * (1 - normalizedIncome);
+  // Income: deviation-based formula centered on WI median.
+  const incomeDeviation = (ward.medianIncome - WI_MEDIAN_INCOME) / WI_MEDIAN_INCOME;
+  const incomeMatch = clamp(
+    0.5 + incomeDeviation * (candidate.affinityCollege - candidate.affinityWorkingClass),
+    0,
+    1,
+  );
 
-  // Sum all components. Each is in roughly [0, 1].
-  const totalScore = urbanRuralScore + raceScore + educationScore + incomeScore;
-
-  return demoWeight * totalScore;
+  // Normalize by dividing by 4 (number of components) to keep score in ~[0, 1]
+  return demoWeight * (urbanMatch + raceMatch + educationMatch + incomeMatch) / 4;
 }
 
 // ---------------------------------------------------------------------------
@@ -273,38 +283,13 @@ export function computeIdeologyScore(
 ): number {
   if (ideoWeight === 0) return 0;
 
-  // Map partisan lean to ward ideology (1-10 scale, lower = more progressive)
-  // Uses piecewise linear interpolation for smooth transitions
-  let wardIdeology: number;
-  const lean = ward.partisanLean;
-
-  if (lean > 40) {
-    // Very strong D area (downtown Madison, inner-city Milwaukee)
-    wardIdeology = 2;
-  } else if (lean > 30) {
-    // Strong D area -- interpolate between 2 and 3
-    wardIdeology = 2 + (40 - lean) / 10;
-  } else if (lean > 20) {
-    // Solidly D area -- interpolate between 3 and 4
-    wardIdeology = 3 + (30 - lean) / 10;
-  } else if (lean > 10) {
-    // Moderate D area -- interpolate between 4 and 6
-    wardIdeology = 4 + (20 - lean) / 10 * 2;
-  } else if (lean > 5) {
-    // Lean D area -- interpolate between 6 and 7
-    wardIdeology = 6 + (10 - lean) / 5;
-  } else if (lean > 0) {
-    // Barely D / toss-up -- interpolate between 7 and 8
-    wardIdeology = 7 + (5 - lean) / 5;
-  } else {
-    // R-leaning ward (rare in a Dem primary, but some cross-over voters)
-    wardIdeology = 8;
-  }
+  // Map partisan lean to ward ideology on a 1-10 scale (lower = more progressive).
+  // Linear mapping: lean of +50 → ideology 0, lean of 0 → ideology 5, lean of -50 → ideology 10.
+  const clampedLean = clamp(ward.partisanLean, -50, 50);
+  const wardIdeology = 5 - (clampedLean / 10);
 
   const distance = Math.abs(candidate.ideologyScore - wardIdeology);
-  const score = 1 - distance / 10;
-
-  return ideoWeight * Math.max(0, score);
+  return ideoWeight * (1 - distance / 10);
 }
 
 // ---------------------------------------------------------------------------
@@ -394,7 +379,7 @@ export function softmax(scores: number[], temperature: number): number[] {
   if (scores.length === 1) return [1.0];
 
   // Clamp temperature to a small positive value to avoid division by zero
-  const T = Math.max(temperature, 0.001);
+  const T = Math.max(0.01, temperature);
 
   // Numerical stability: subtract max before exp
   const maxScore = Math.max(...scores);
@@ -438,31 +423,33 @@ export function computeTurnout(
 ): number {
   if (ward.votingAgePopulation <= 0 || turnoutRate <= 0) return 0;
 
-  let turnout = ward.votingAgePopulation * (turnoutRate / 100);
+  const baseRate = turnoutRate / 100;
 
-  // Urban/suburban/rural adjustment
+  // Urban/suburban/rural multiplier
+  let urbanMultiplier: number;
   switch (ward.urbanRuralClass) {
     case 'urban':
-      turnout *= 0.85;
+      urbanMultiplier = 0.95;
       break;
     case 'suburban':
-      // baseline, no adjustment
+      urbanMultiplier = 1.05;
       break;
     case 'rural':
-      turnout *= 0.90;
+      urbanMultiplier = 1.0;
       break;
+    default:
+      urbanMultiplier = 1.0;
   }
 
-  // Partisan lean adjustment -- strong D areas have more primary voters
-  if (ward.partisanLean > 20) {
-    turnout *= 1.1;
-  } else if (ward.partisanLean >= 5) {
-    // baseline range, no adjustment
-  } else {
-    turnout *= 0.8;
-  }
+  // Partisan lean adjustment -- continuous formula: strong partisan areas
+  // get a slight turnout boost (up to ~9% at lean 50)
+  const absLean = Math.abs(ward.partisanLean);
+  const partisanMultiplier = 1 + clamp(absLean - 20, 0, 30) * 0.003;
 
-  return Math.max(0, Math.round(turnout));
+  const turnout = Math.round(
+    ward.votingAgePopulation * baseRate * urbanMultiplier * partisanMultiplier,
+  );
+  return Math.max(0, turnout);
 }
 
 // ---------------------------------------------------------------------------
@@ -589,6 +576,48 @@ export function predictPrimary(
       candidates: candidateVotes,
       winnerId,
       winnerMargin,
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// 10. Statewide Aggregation
+// ---------------------------------------------------------------------------
+
+/**
+ * Aggregate ward-level predictions to statewide totals.
+ *
+ * Sums per-candidate votes across all wards and computes statewide vote shares.
+ *
+ * @param predictions - Array of per-ward predictions
+ * @param candidates - Array of all candidate profiles (active and inactive)
+ * @returns Array of per-candidate statewide vote totals
+ */
+export function aggregateStatewide(
+  predictions: RuPrediction[],
+  candidates: CandidateProfile[],
+): CandidateVote[] {
+  const activeCandidates = candidates.filter((c) => c.isActive);
+  const totalsMap = new Map<string, number>();
+  let grandTotal = 0;
+
+  activeCandidates.forEach((c) => totalsMap.set(c.id, 0));
+
+  for (let i = 0; i < predictions.length; i++) {
+    const pred = predictions[i];
+    grandTotal += pred.totalVotes;
+    for (let j = 0; j < pred.candidates.length; j++) {
+      const cv = pred.candidates[j];
+      totalsMap.set(cv.candidateId, (totalsMap.get(cv.candidateId) || 0) + cv.votes);
+    }
+  }
+
+  return activeCandidates.map((c) => {
+    const votes = totalsMap.get(c.id) || 0;
+    return {
+      candidateId: c.id,
+      voteShare: grandTotal > 0 ? votes / grandTotal : 0,
+      votes,
     };
   });
 }

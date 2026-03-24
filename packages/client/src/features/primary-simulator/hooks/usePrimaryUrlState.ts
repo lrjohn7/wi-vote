@@ -44,9 +44,10 @@ const VALID_POPULATIONS: PollPopulation[] = ['lv', 'rv', 'a'];
  *   endorse_w  - endorsement weight
  *   dropout    - comma-separated inactive candidate IDs
  */
-export function usePrimaryUrlState() {
+export function usePrimaryUrlState(): { hasUrlState: boolean } {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialized = useRef(false);
+  const hadUrlState = useRef(false);
 
   // Store selectors
   const candidates = usePrimaryStore((s) => s.candidates);
@@ -80,12 +81,16 @@ export function usePrimaryUrlState() {
     const isAvgMode = src === 'avg';
     const hasPreset = searchParams.has('preset');
 
+    // Check if URL has any meaningful params (indicating shared/bookmarked state)
+    const hasAnyParams = searchParams.toString().length > 0;
+    hadUrlState.current = hasAnyParams;
+
     if (isAvgMode) {
       setPollSource('average');
     } else if (hasPreset) {
       setPollSource('scenario');
     }
-    // Default: leave as store default ('average')
+    // Default: leave as store default ('scenario')
 
     // --- Poll average mode params ---
     if (isAvgMode) {
@@ -229,9 +234,10 @@ export function usePrimaryUrlState() {
       }
 
       // Per-candidate polling baselines (only if non-default)
+      // Defaults match "Even Field" scenario preset (12.5% each)
       const defaultPolling: Record<string, number> = {
-        barnes: 10, crowley: 5, rodriguez: 6, hong: 11,
-        roys: 4, hughes: 3, brennan: 3, mcguire: 2,
+        barnes: 12.5, crowley: 12.5, rodriguez: 12.5, hong: 12.5,
+        roys: 12.5, hughes: 12.5, brennan: 12.5, mcguire: 12.5,
       };
 
       for (const candidate of candidates) {
@@ -287,6 +293,8 @@ export function usePrimaryUrlState() {
     }, 300);
     return () => { if (urlWriteTimer.current) clearTimeout(urlWriteTimer.current); };
   }, [candidates, globalParams, activePresetId, mapMode, heatmapCandidateId, pollSource, polls, pollAveragingConfig, setSearchParams]);
+
+  return { hasUrlState: hadUrlState.current };
 }
 
 // -- Compact pipe-delimited encoding for custom polls in URL --

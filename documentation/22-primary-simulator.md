@@ -36,15 +36,15 @@ Built from general election ward data + demographics. Key fields:
 
 ### Web Worker (`primary.worker.ts`)
 
-All prediction and Monte Carlo simulation runs in a dedicated Web Worker to keep the UI at 60fps. The worker receives candidate parameters + ward data, runs the demographic-aware primary model, and returns per-ward predictions plus statewide Monte Carlo win probabilities.
+All prediction and Monte Carlo simulation runs in a dedicated Web Worker to keep the UI at 60fps. The worker imports scoring functions from `primaryModel.ts` (single canonical source) rather than duplicating them. It receives candidate parameters + ward data, runs the demographic-aware primary model, and returns per-ward predictions plus statewide Monte Carlo win probabilities.
 
 ### Stores (`primaryStore`)
 
-Zustand store holds candidates, global parameters, predictions, statewide totals, Monte Carlo results, map mode, poll source, and computing state. URL state is synced bidirectionally via `usePrimaryUrlState`.
+Zustand store holds candidates, global parameters, predictions, statewide totals, Monte Carlo results, map mode, poll source, and computing state. Default `pollSource` is `'scenario'` and default `activePresetId` is `'even-field'` (all candidates start at 12.5% baseline). URL state is synced bidirectionally via `usePrimaryUrlState`, which returns `{ hasUrlState: boolean }`. On mount, URL params take priority over the default scenario.
 
 ### Poll Averaging
 
-EWMA (Exponentially Weighted Moving Average) engine in `pollAveraging.ts`. Supports built-in polls, user-added polls, and pre-built poll presets. When `pollSource === 'average'`, candidate baselines reflect the EWMA-weighted poll data rather than hardcoded defaults.
+EWMA (Exponentially Weighted Moving Average) engine in `pollAveraging.ts`. Supports built-in polls, user-added polls, and pre-built poll presets. When `pollSource === 'average'`, candidate baselines reflect the EWMA-weighted poll data rather than scenario defaults.
 
 ---
 
@@ -53,7 +53,7 @@ EWMA (Exponentially Weighted Moving Average) engine in `pollAveraging.ts`. Suppo
 ### Desktop (md+ breakpoint)
 
 Standard sidebar + map layout:
-- **Left sidebar** (`w-80`, `hidden md:flex`): `CandidateCardList`, `PrimaryControlsPanel`, `PrimaryResultsSummary`, `WinProbabilityBars`
+- **Left sidebar** (`w-80`, `hidden md:flex`): `CandidateCardList`, `PollManager` (tabs: Scenarios default, Polling secondary), `PrimaryControlsPanel` (global sliders + factor weights + reset), `PrimaryResultsSummary`, `WinProbabilityBars`
 - **Main area**: `PrimaryMap` (MapLibre choropleth), `PrimaryMapLegend`, `PrimaryTooltip` (hover, `hidden md:block`)
 
 ### Mobile (< md breakpoint)
@@ -79,7 +79,7 @@ Replaces the previous FAB circle button + left-sliding drawer pattern for better
 | Drag handle | Centered pill, toggles expanded/collapsed |
 | Top 4 candidates | Sorted by polling baseline descending. Shows color dot + short name + polling %. Inactive candidates at 50% opacity with strikethrough |
 | "+N more" | Count of remaining candidates beyond top 4 |
-| CTA button | "Try pre-built scenarios or create your own" with ChevronUp icon |
+| CTA button | "Adjust candidates and explore scenarios" with ChevronUp icon |
 
 ### Expanded State (~65vh)
 
@@ -87,7 +87,8 @@ Replaces the previous FAB circle button + left-sliding drawer pattern for better
 |---------|-------------|
 | Drag handle | Same toggle button |
 | `CandidateCardList` | Full candidate cards with `useShortName` prop for compact display |
-| `PrimaryControlsPanel` | Global controls (turnout, poll source, scenarios) |
+| `PollManager` | Scenario/polling tabs (rendered before controls in expanded view) |
+| `PrimaryControlsPanel` | Global controls (turnout, factor weights, reset) |
 | `PrimaryResultsSummary` | Statewide results table |
 | `WinProbabilityBars` | Monte Carlo win probability visualization |
 | Collapse button | "Collapse" with ChevronDown at bottom of scroll area |
@@ -115,11 +116,11 @@ Replaces the previous FAB circle button + left-sliding drawer pattern for better
 
 | Element | Description |
 |---------|-------------|
-| Poll source toggle | Built-in polls vs EWMA poll average |
-| Poll manager | Add/remove polls, view poll table and trend chart |
-| Poll presets | Pre-built scenario selector |
-| Dropout toggles | Remove candidates from simulation |
-| Guide | Expandable methodology explainer |
+| PollManager tabs | Two tabs: Scenarios (default) and Polling. Scenarios tab contains pre-built scenario selector; Polling tab contains poll add/remove, poll table and trend chart |
+| Global sliders | Turnout and other statewide adjustments |
+| Factor weights | Demographic and geographic factor weight sliders |
+| Reset button | Resets parameters to defaults |
+| Dropout toggles | Remove candidates from simulation (on candidate cards) |
 
 ---
 
@@ -129,7 +130,9 @@ Replaces the previous FAB circle button + left-sliding drawer pattern for better
 2. **Top 4 in collapsed**: Only the top 4 candidates by polling baseline appear in the collapsed bottom panel. The rest are indicated by a "+N more" count.
 3. **Map padding on mobile**: `PrimaryMap` calls `setPadding({ bottom: 140 })` when viewport width < 768px so the map center is not obscured by the bottom panel.
 4. **Legend positioning**: `PrimaryMapLegend` uses `bottom-36 left-2` on mobile (above bottom panel) and `bottom-2` on desktop via responsive Tailwind classes.
-5. **Poll average on mount**: When `pollSource === 'average'`, `applyPollAverage()` is called on mount so baselines reflect EWMA data immediately.
+5. **Default state**: `pollSource` defaults to `'scenario'`, `activePresetId` defaults to `'even-field'` (all 8 candidates at 12.5%). URL params, when present, take priority over the default scenario on mount.
+6. **Poll average on mount**: When `pollSource === 'average'`, `applyPollAverage()` is called on mount so baselines reflect EWMA data immediately.
+7. **Navigation label**: The nav item reads "Primary Simulator" (not "Primary").
 
 ---
 
@@ -159,7 +162,7 @@ Replaces the previous FAB circle button + left-sliding drawer pattern for better
 | `features/primary-simulator/components/PrimaryMap.tsx` | MapLibre choropleth with mobile padding |
 | `features/primary-simulator/components/PrimaryMapLegend.tsx` | Map legend (repositioned on mobile) |
 | `features/primary-simulator/components/PrimaryTooltip.tsx` | Hover tooltip (desktop only) |
-| `features/primary-simulator/components/PrimaryGuide.tsx` | Methodology explainer |
+| ~~`features/primary-simulator/components/PrimaryGuide.tsx`~~ | Removed (methodology explainer no longer in sidebar) |
 | `features/primary-simulator/components/PollManager.tsx` | Poll add/remove/table UI |
 | `features/primary-simulator/components/PollAverageSummary.tsx` | EWMA poll average display |
 | `features/primary-simulator/components/PollAveragingConfig.tsx` | EWMA configuration |
@@ -168,9 +171,9 @@ Replaces the previous FAB circle button + left-sliding drawer pattern for better
 | `features/primary-simulator/components/PollTrendChart.tsx` | Poll trend line chart |
 | `features/primary-simulator/components/AddPollForm.tsx` | Form to add custom polls |
 | `features/primary-simulator/components/DropoutToggle.tsx` | Candidate dropout toggle |
-| `features/primary-simulator/primary.worker.ts` | Web Worker for predictions + Monte Carlo |
+| `features/primary-simulator/primary.worker.ts` | Web Worker for predictions + Monte Carlo (imports scoring from `primaryModel.ts`) |
 | `features/primary-simulator/hooks/usePrimaryData.ts` | TanStack Query: ward data + demographics |
-| `features/primary-simulator/hooks/usePrimaryUrlState.ts` | Bidirectional URL state sync |
+| `features/primary-simulator/hooks/usePrimaryUrlState.ts` | Bidirectional URL state sync; returns `{ hasUrlState: boolean }` |
 | `features/primary-simulator/lib/candidates.ts` | Candidate definitions and defaults |
 | `features/primary-simulator/lib/primaryModel.ts` | Demographic-aware primary vote model |
 | `features/primary-simulator/lib/primaryColors.ts` | Candidate color palette |

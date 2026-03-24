@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, memo } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { usePrimaryStore } from '@/stores/primaryStore';
 import { CandidateCardList } from './CandidateCardList';
+import { PollManager } from './PollManager';
 import { PrimaryControlsPanel } from './PrimaryControlsPanel';
 import { PrimaryResultsSummary } from './PrimaryResultsSummary';
 import { WinProbabilityBars } from './WinProbabilityBars';
@@ -116,7 +117,7 @@ export const MobileBottomPanel = memo(function MobileBottomPanel() {
               onClick={toggle}
               className="mt-2 mb-1 flex w-full items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
             >
-              Try pre-built scenarios or create your own
+              Adjust candidates and explore scenarios
               <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           </div>
@@ -129,6 +130,7 @@ export const MobileBottomPanel = memo(function MobileBottomPanel() {
             style={{ overscrollBehaviorY: 'contain' }}
           >
             <CandidateCardList useShortName />
+            <PollManager />
             <PrimaryControlsPanel />
             <PrimaryResultsSummary />
             <WinProbabilityBars />

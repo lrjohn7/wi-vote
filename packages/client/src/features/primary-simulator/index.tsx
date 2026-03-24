@@ -7,11 +7,11 @@ import { usePrimaryUrlState } from './hooks/usePrimaryUrlState';
 import { PrimaryMap } from './components/PrimaryMap';
 import { CandidateCardList } from './components/CandidateCardList';
 import { PrimaryControlsPanel } from './components/PrimaryControlsPanel';
+import { PollManager } from './components/PollManager';
 import { PrimaryResultsSummary } from './components/PrimaryResultsSummary';
 import { WinProbabilityBars } from './components/WinProbabilityBars';
 import { PrimaryMapLegend } from './components/PrimaryMapLegend';
 import { PrimaryTooltip } from './components/PrimaryTooltip';
-import { PrimaryGuide } from './components/PrimaryGuide';
 import { MobileBottomPanel } from './components/MobileBottomPanel';
 import { usePageTitle } from '@/shared/hooks/usePageTitle';
 import type { PrimaryMapMode } from '@/stores/primaryStore';
@@ -72,11 +72,15 @@ export default function PrimarySimulator() {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [workerError, setWorkerError] = useState<string | null>(null);
 
-  usePrimaryUrlState();
+  const { hasUrlState } = usePrimaryUrlState();
 
-  // Apply poll average on mount when in average mode so candidate baselines
-  // reflect the EWMA-weighted poll data rather than hardcoded defaults.
+  // On mount, apply the appropriate data source:
+  // - If URL state was restored, respect it (don't override with defaults)
+  // - If in average mode, apply EWMA poll averaging
+  // - If in scenario mode with no URL state, the store defaults already have
+  //   "Even Field" baselines (12.5% each), so no action needed
   useEffect(() => {
+    if (hasUrlState) return; // URL state takes precedence
     if (pollSource === 'average') {
       applyPollAverage();
     }
@@ -298,8 +302,8 @@ export default function PrimarySimulator() {
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop sidebar */}
         <div className="hidden md:flex w-80 shrink-0 flex-col gap-3 overflow-y-auto border-r border-border/40 bg-background/50 p-4" aria-label="Primary simulator controls">
-          <PrimaryGuide />
           <CandidateCardList />
+          <PollManager />
           <PrimaryControlsPanel />
           <PrimaryResultsSummary />
           <WinProbabilityBars />

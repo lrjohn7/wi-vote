@@ -1,7 +1,6 @@
 import { memo, useState, useCallback } from 'react';
 import { Info } from 'lucide-react';
 import { usePrimaryStore } from '@/stores/primaryStore';
-import { PollManager } from './PollManager';
 import type { PrimaryGlobalParams } from '@/types/primary';
 
 /** Slider configuration for a single global parameter. */
@@ -165,9 +164,6 @@ export function PrimaryControlsPanel() {
 
   return (
     <div className="space-y-3">
-      {/* Poll Manager (Polls + Scenarios tabs) */}
-      <PollManager />
-
       {/* Global Parameters */}
       <div className="space-y-3 rounded-lg border border-border/30 bg-content2/50 p-3">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
